@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="zdendasmrdí fuuuuuuj" />
+    <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="zdendasmrdí fuuuuuj" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -207,7 +207,15 @@
       <option name="project" value="LOCAL" />
       <updated>1782164943949</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="zdendasmrdí fuuuuuj">
+      <option name="closed" value="true" />
+      <created>1782165097048</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1782165097048</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -226,6 +234,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="zdendasmrdí fuuuuuuj" />
-    <option name="LAST_COMMIT_MESSAGE" value="zdendasmrdí fuuuuuuj" />
+    <MESSAGE value="zdendasmrdí fuuuuuj" />
+    <option name="LAST_COMMIT_MESSAGE" value="zdendasmrdí fuuuuuj" />
   </component>
 </project>
