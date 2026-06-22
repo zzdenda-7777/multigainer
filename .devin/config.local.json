@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(ls)",
+      "Exec(dir)",
+      "Exec(.\\gradlew.bat build)",
+      "Exec(gradle build)",
+      "Exec(.\\gradlew.bat wrapper)",
+      "Exec(curl)",
+      "Exec(Invoke-WebRequest)",
+      "Exec(./gradlew build)",
+      "Exec(java)",
+      "Exec(./gradlew clean)",
+      "Exec(where java)",
+      "Exec(./gradlew)",
+      "Exec(findstr jdk)"
+    ]
+  }
+}

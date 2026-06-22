@@ -1,0 +1,8 @@
+name: multigainer
+version: '${version}'
+main: multigainer.multigainer.Multigainer
+api-version: '1.21.11'
+load: POSTWORLD
+
+# Tímto zajistíš, že se tvůj plugin načte až PO ProtocolLibu
+depend: [ProtocolLib, FancyHolograms]
