@@ -30,6 +30,7 @@ public class MiningLevelManager {
 
     /**
      * Generates a sleek visual progress bar for the mining scoreboard interface.
+     * Uses a gradient from white to dark gray for filled segments.
      */
     public static String generateXpBar(double currentXp, double requiredXp) {
         int totalBars = 10;
@@ -37,11 +38,25 @@ public class MiningLevelManager {
         int filledCount = (int) (progress * totalBars);
         int emptyCount = totalBars - filledCount;
 
+        // Gradient colors from white to dark gray (10 hex colors)
+        String[] gradientColors = {
+            "§x§F§F§F§F§F§F", // #FFFFFF (white)
+            "§x§E§C§E§C§E§C", // #ECECEC
+            "§x§D§9§D§9§D§9", // #D9D9D9
+            "§x§C§6§C§6§C§6", // #C6C6C6
+            "§x§B§3§B§3§B§3", // #B3B3B3
+            "§x§9§9§9§9§9§9", // #999999
+            "§x§8§0§8§0§8§0", // #808080
+            "§x§6§6§6§6§6§6", // #666666
+            "§x§4§D§4§D§4§D", // #4D4D4D
+            "§x§3§3§3§3§3§3"  // #333333 (darkest)
+        };
+
         StringBuilder progressBar = new StringBuilder("§8[");
 
-        // Aqua/Cyan filled progress segments for mining themes
-        progressBar.append("§b");
+        // Appends the gradient filled progress segments
         for (int i = 0; i < filledCount; i++) {
+            progressBar.append(gradientColors[i]);
             progressBar.append("■");
         }
 

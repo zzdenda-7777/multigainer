@@ -58,13 +58,13 @@ public class ScoreboardManager {
         Team moneyTeam = board.registerNewTeam("sb_money");
         moneyTeam.addEntry(ChatColor.GREEN.toString());
         moneyTeam.setPrefix("§a⛃ §8| §aMoney: §f$");
-        moneyTeam.setSuffix(NumberFormatter.format(money) + " §7(x" + NumberFormatter.format(totalMoneyMulti) + ")");
+        moneyTeam.setSuffix(NumberFormatter.format(money) + " §8(x" + NumberFormatter.format(totalMoneyMulti) + ")");
         objective.getScore(ChatColor.GREEN.toString()).setScore(13);
 
         Team gemsTeam = board.registerNewTeam("sb_gems");
         gemsTeam.addEntry(ChatColor.AQUA.toString());
         gemsTeam.setPrefix("§b✦ §8| §bGems: §f");
-        gemsTeam.setSuffix(NumberFormatter.format(gems) + " §7(x" + NumberFormatter.format(totalGemsMulti) + ")");
+        gemsTeam.setSuffix(NumberFormatter.format(gems) + " §8(x" + NumberFormatter.format(totalGemsMulti) + ")");
         objective.getScore(ChatColor.AQUA.toString()).setScore(12);
 
         Team rubiesTeam = board.registerNewTeam("sb_rubies");
@@ -79,8 +79,8 @@ public class ScoreboardManager {
         double reqFarmXp = FarmingLevelManager.getRequiredXpForNextLevel(farmLvl);
         Team farmLvlTeam = board.registerNewTeam("sb_farmlvl");
         farmLvlTeam.addEntry(ChatColor.GOLD.toString());
-        farmLvlTeam.setPrefix("§e🌾 §8| §eFarm Lvl: §f");
-        farmLvlTeam.setSuffix(farmLvl + " §7(" + (int) farmXp + "/" + (int) reqFarmXp + ")");
+        farmLvlTeam.setPrefix("§e🌾 §8| §eFarm Lvl: ");
+        farmLvlTeam.setSuffix(farmLvl + " §8(" + (int) farmXp + "/" + (int) reqFarmXp + ")");
         objective.getScore(ChatColor.GOLD.toString()).setScore(9);
 
         Team farmXpTeam = board.registerNewTeam("sb_farmxp");
@@ -92,8 +92,8 @@ public class ScoreboardManager {
         double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
         Team mineLvlTeam = board.registerNewTeam("sb_minelvl");
         mineLvlTeam.addEntry(ChatColor.BLUE.toString());
-        mineLvlTeam.setPrefix("§7⛏ §8| §7Mine Lvl: §f");
-        mineLvlTeam.setSuffix(mineLvl + " §7(" + (int) mineXp + "/" + (int) reqMineXp + ")");
+        mineLvlTeam.setPrefix("§7⛏ §8| §7Mine Lvl: ");
+        mineLvlTeam.setSuffix(mineLvl + " §8(" + (int) mineXp + "/" + (int) reqMineXp + ")");
         objective.getScore(ChatColor.BLUE.toString()).setScore(7);
 
         Team mineXpTeam = board.registerNewTeam("sb_minexp");
