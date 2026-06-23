@@ -47,7 +47,7 @@ public class UpgradeGUI implements Listener {
                 BigNumber cost = UpgradeManager.getUpgradeCost(nextLevel);
                 double nextMulti = UpgradeManager.getTierMultiplier(nextLevel);
 
-                lore.add(ChatColor.GRAY + "Next Tier Multiplier: " + ChatColor.AQUA + "+" + nextMulti + "x");
+                lore.add(ChatColor.GRAY + "Next Tier Multiplier: " + ChatColor.AQUA + "x" + nextMulti);
                 lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GOLD + "$" + NumberFormatter.format(cost));
                 lore.add(" ");
                 lore.add(ChatColor.YELLOW + "▶ Click to purchase upgrade!");
@@ -87,7 +87,16 @@ public class UpgradeGUI implements Listener {
             profile.setMoney(profile.getMoney().subtract(cost));
             profile.setUpgradeLevel(nextLevel);
             player.sendMessage(ChatColor.GREEN + "✔ Successfully upgraded to Tier " + nextLevel + "!");
-            plugin.getScoreboardManager().updateScoreboard(player, profile.getMoney(), profile.getGems(), profile.getRubies());
+            plugin.getScoreboardManager().updateScoreboard(
+                    player,
+                    profile.getMoney(),
+                    profile.getGems(),
+                    profile.getRubies(),
+                    profile.getFarmingLevel(),
+                    profile.getFarmingXp(),
+                    profile.getMiningLevel(),
+                    profile.getMiningXp()
+            );
             openGUI(player);
         } else {
             player.sendMessage(ChatColor.RED + "You need $" + NumberFormatter.format(cost) + " to buy this!");

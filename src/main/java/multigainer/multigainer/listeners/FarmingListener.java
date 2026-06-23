@@ -2,6 +2,7 @@ package multigainer.multigainer.listeners;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.levels.FarmingLevelManager; // Added import to access level requirements
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.upgrades.UpgradeManager;
 import org.bukkit.Bukkit;
@@ -82,12 +83,42 @@ public class FarmingListener implements Listener {
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(uuid);
 
+        // --- Money Calculations ---
         BigNumber baseMoney = new BigNumber(0.25);
         BigNumber activeMultiplier = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
         BigNumber finalPayout = baseMoney.multiply(activeMultiplier);
-
         profile.setMoney(profile.getMoney().add(finalPayout));
-        plugin.getScoreboardManager().updateScoreboard(player, profile.getMoney(), profile.getGems(), profile.getRubies());
+
+        // --- Farming XP & Leveling Logic ---
+        double currentXp = profile.getFarmingXp() + 1.0; // Grants exactly 1 XP per wheat broken
+        int currentLevel = profile.getFarmingLevel();
+        double requiredXp = FarmingLevelManager.getRequiredXpForNextLevel(currentLevel);
+
+        // Check if the player earned enough XP to advance their level tier
+        while (currentXp >= requiredXp) {
+            currentXp -= requiredXp; // Retain rollover XP for the next level
+            currentLevel++;
+            requiredXp = FarmingLevelManager.getRequiredXpForNextLevel(currentLevel);
+
+            // Visual alert message to notify the player of their advancement
+            player.sendMessage("§a§l[!] LEVEL UP! §7Your Farming Level is now §e" + currentLevel + "§7!");
+        }
+
+        // Save updated values back to the player profile object
+        profile.setFarmingXp(currentXp);
+        profile.setFarmingLevel(currentLevel);
+
+        // Update the scoreboard UI with the modified stats
+        plugin.getScoreboardManager().updateScoreboard(
+                player,
+                profile.getMoney(),
+                profile.getGems(),
+                profile.getRubies(),
+                profile.getFarmingLevel(),
+                profile.getFarmingXp(),
+                profile.getMiningLevel(),
+                profile.getMiningXp()
+        );
 
         cooldowns.add(loc);
 
@@ -105,7 +136,6 @@ public class FarmingListener implements Listener {
         }, 60L);
     }
 
-    // Fixed: Blocks interaction on harvested gaps to prevent visual client-side wheat duplication loops
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) return;

@@ -1,18 +1,15 @@
 package multigainer.multigainer.listeners;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.math.BigNumber;
+import multigainer.multigainer.formatting.NumberFormatter;
+import multigainer.multigainer.levels.MiningLevelManager; // Imported your mining level formulas
 import multigainer.multigainer.upgrades.UpgradeManager;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -43,62 +40,87 @@ public class MiningListener implements Listener {
 
         UUID uuid = player.getUniqueId();
         Set<Location> cobbleCooldowns = brokenCobbleCache.computeIfAbsent(uuid, k -> new HashSet<>());
-
-        // Prevent re-triggering if the block is already on cooldown
         if (cobbleCooldowns.contains(block.getLocation())) return;
-
         cobbleCooldowns.add(block.getLocation());
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(uuid);
-        BigNumber finalMoneyPayout = new BigNumber(10.0).multiply(UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel()));
 
-        profile.setMoney(profile.getMoney().add(finalMoneyPayout));
-        profile.setGems(profile.getGems().add(new BigNumber(1.0)));
-        plugin.getScoreboardManager().updateScoreboard(player, profile.getMoney(), profile.getGems(), profile.getRubies());
+        // --- Payout Calculations with New Exponential Level Multipliers ---
+        BigNumber basePayout = new BigNumber(10.0);
+        BigNumber compoundingMultiplier = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
+        BigNumber mineMoneyMultiplier = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
 
-        // Visual feedback
-        player.sendBlockChange(block.getLocation(), Material.BEDROCK.createBlockData());
+        // Final multi-compounded money reward payout
+        BigNumber payout = basePayout.multiply(compoundingMultiplier).multiply(mineMoneyMultiplier);
 
-        int entityId = (int) (Math.random() * Integer.MAX_VALUE);
-        Location loc = block.getLocation().clone().add(0.5, 1.2, 0.5);
+        // Base 1.0 Gem scaling compounded exponentially by 1.02x per mining level tier
+        BigNumber baseGems = new BigNumber(1.0);
+        BigNumber mineGemsMultiplier = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
+        BigNumber finalGems = baseGems.multiply(mineGemsMultiplier);
 
-        // Spawn Armor Stand
-        PacketContainer spawn = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.SPAWN_ENTITY);
-        spawn.getIntegers().write(0, entityId);
-        spawn.getUUIDs().write(0, UUID.randomUUID());
-        spawn.getEntityTypeModifier().write(0, EntityType.ARMOR_STAND);
-        spawn.getDoubles().write(0, loc.getX());
-        spawn.getDoubles().write(1, loc.getY());
-        spawn.getDoubles().write(2, loc.getZ());
-        ProtocolLibrary.getProtocolManager().sendServerPacket(player, spawn);
+        // Update profile currency objects
+        profile.setMoney(profile.getMoney().add(payout));
+        profile.setGems(profile.getGems().add(finalGems));
 
-        // Metadata: Invisibility (0x20) and Marker (0x10)
-        PacketContainer meta = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.ENTITY_METADATA);
-        meta.getIntegers().write(0, entityId);
-        List<WrappedWatchableObject> watchableList = new ArrayList<>();
-        watchableList.add(new WrappedWatchableObject(0, (byte) 0x20));
-        watchableList.add(new WrappedWatchableObject(15, (byte) 0x10));
-        meta.getWatchableCollectionModifier().write(0, watchableList);
-        ProtocolLibrary.getProtocolManager().sendServerPacket(player, meta);
+        // --- Mining Level Engine Logic ---
+        double currentXp = profile.getMiningXp() + 1.0; // Gives exactly 1 XP per cobblestone broken
+        int currentLevel = profile.getMiningLevel();
+        double requiredXp = MiningLevelManager.getRequiredXpForNextLevel(currentLevel);
 
-        // Cleanup task
+        // Run level evaluation loop to check for adjustments or rollover xp points
+        while (currentXp >= requiredXp) {
+            currentXp -= requiredXp;
+            currentLevel++;
+            requiredXp = MiningLevelManager.getRequiredXpForNextLevel(currentLevel);
+            player.sendMessage("§b§l[!] MINE LEVEL UP! §7Your Mining Level is now §e" + currentLevel + "§7!");
+        }
+
+        // Save adjusted tier configurations back to the map cache reference
+        profile.setMiningXp(currentXp);
+        profile.setMiningLevel(currentLevel);
+
+        // Update your 8-parameter upgraded Scoreboard layout
+        plugin.getScoreboardManager().updateScoreboard(
+                player,
+                profile.getMoney(),
+                profile.getGems(),
+                profile.getRubies(),
+                profile.getFarmingLevel(),
+                profile.getFarmingXp(),
+                profile.getMiningLevel(),
+                profile.getMiningXp()
+        );
+
+        block.setType(Material.BEDROCK);
+
+        Location holoLoc = block.getLocation().clone().add(0.5, 1.5, 0.5);
+        if (holoLoc.getWorld() != null) {
+            holoLoc.getWorld().spawn(holoLoc, ArmorStand.class, hologram -> {
+                hologram.setVisible(false);
+                hologram.setGravity(false);
+                hologram.setMarker(true);
+                hologram.setPersistent(false);
+                hologram.setCustomName("§a+" + NumberFormatter.format(payout) + " Money");
+                hologram.setCustomNameVisible(true);
+
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (hologram.isValid()) {
+                            hologram.remove();
+                        }
+                    }
+                }.runTaskLater(plugin, 20L);
+            });
+        }
+
         new BukkitRunnable() {
-            int ticks = 0;
             @Override
             public void run() {
-                ticks++;
-                if (ticks == 10) {
-                    PacketContainer destroy = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.ENTITY_DESTROY);
-                    destroy.getIntLists().write(0, Collections.singletonList(entityId));
-                    ProtocolLibrary.getProtocolManager().sendServerPacket(player, destroy);
-                }
-                if (ticks >= 60) {
-                    cobbleCooldowns.remove(block.getLocation());
-                    player.sendBlockChange(block.getLocation(), Material.COBBLESTONE.createBlockData());
-                    this.cancel();
-                }
+                block.setType(Material.COBBLESTONE);
+                cobbleCooldowns.remove(block.getLocation());
             }
-        }.runTaskTimer(plugin, 0L, 1L);
+        }.runTaskLater(plugin, 60L);
     }
 
     @EventHandler

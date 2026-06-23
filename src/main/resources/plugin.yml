@@ -6,3 +6,8 @@ load: POSTWORLD
 
 # Tímto zajistíš, že se tvůj plugin načte až PO ProtocolLibu
 depend: [ProtocolLib, FancyHolograms]
+
+# Paper safely downloads these on startup so your jar file stays small
+libraries:
+  - "com.zaxxer:HikariCP:5.1.0"
+  - "org.mariadb.jdbc:mariadb-java-client:3.3.3"

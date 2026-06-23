@@ -16,6 +16,10 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly("de.oliver:FancyHolograms:2.10.0")
     compileOnly(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+    // Database connection pooling and MariaDB driver
+    compileOnly("com.zaxxer:HikariCP:5.1.0")
+    compileOnly("org.mariadb.jdbc:mariadb-java-client:3.3.3")
 }
 
 java {
