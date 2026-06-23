@@ -2,8 +2,11 @@ package multigainer.multigainer;
 
 import multigainer.multigainer.commands.StatsCommand;
 import multigainer.multigainer.commands.ReloadCommand;
+import multigainer.multigainer.commands.GiveCommand;
 import multigainer.multigainer.rebirth.RebirthListener;
 import multigainer.multigainer.rebirth.RebirthGUI;
+import multigainer.multigainer.tier.TierGUI;
+import multigainer.multigainer.tier.TierListener;
 import multigainer.multigainer.data.PlayerDataManager;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.data.StorageManager;
@@ -28,12 +31,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Multigainer extends JavaPlugin implements Listener {
 
-    private MiningListener miningListener;
     private ScoreboardManager scoreboardManager;
-    private PacketManager packetManager;
     private StorageManager storageManager;
     private PlayerDataManager playerDataManager;
-    private IncomeManager incomeManager;
     private UpgradeItemHandler upgradeHandler;
     private ToolItemHandler toolHandler;
 
@@ -41,102 +41,96 @@ public final class Multigainer extends JavaPlugin implements Listener {
     public void onEnable() {
         this.storageManager = new StorageManager(this);
         this.storageManager.init();
-
         this.playerDataManager = new PlayerDataManager(this, storageManager);
+        this.scoreboardManager = new ScoreboardManager(this);
 
-        this.scoreboardManager = new ScoreboardManager();
-        this.packetManager = new PacketManager(this);
-        this.miningListener = new MiningListener(this);
-        this.incomeManager = new IncomeManager(this);
         this.upgradeHandler = new UpgradeItemHandler(this);
         this.toolHandler = new ToolItemHandler(this);
 
-        FarmingListener farmingListener = new FarmingListener(this);
-        JoinListener joinListener = new JoinListener(this, playerDataManager);
-
         getServer().getPluginManager().registerEvents(this, this);
-        getServer().getPluginManager().registerEvents(miningListener, this);
-        getServer().getPluginManager().registerEvents(farmingListener, this);
-        getServer().getPluginManager().registerEvents(joinListener, this);
+        getServer().getPluginManager().registerEvents(new MiningListener(this), this);
+        getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
+        getServer().getPluginManager().registerEvents(new JoinListener(this, playerDataManager), this);
         getServer().getPluginManager().registerEvents(upgradeHandler, this);
         getServer().getPluginManager().registerEvents(toolHandler, this);
-
-        // Register the Rebirth Listener
         getServer().getPluginManager().registerEvents(new RebirthListener(this), this);
+        getServer().getPluginManager().registerEvents(new TierListener(this), this);
 
-        // Command Registrations
-        if (getCommand("upgrades") != null) {
-            getCommand("upgrades").setExecutor(upgradeHandler);
-        }
+        if (getCommand("upgrades") != null) getCommand("upgrades").setExecutor(upgradeHandler);
+        if (getCommand("stats") != null) getCommand("stats").setExecutor(new StatsCommand(this));
 
-        if (this.getCommand("stats") != null) {
-            this.getCommand("stats").setExecutor(new StatsCommand(this));
-        }
-
-        if (this.getCommand("multigainer") != null) {
-            this.getCommand("multigainer").setExecutor(new ReloadCommand(this));
-        }
-
-        // Add command for /rebirth
-        if (getCommand("rebirth") != null) {
-            getCommand("rebirth").setExecutor(new CommandExecutor() {
-                @Override
-                public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-                    if (!(sender instanceof Player)) return true;
-                    Player p = (Player) sender;
-                    RebirthGUI.open(p, getPlayerDataManager().getProfile(p.getUniqueId()));
-                    return true;
+        if (getCommand("multigainer") != null) {
+            getCommand("multigainer").setExecutor((sender, command, label, args) -> {
+                if (args.length > 0 && args[0].equalsIgnoreCase("give")) {
+                    String[] newArgs = new String[args.length - 1];
+                    System.arraycopy(args, 1, newArgs, 0, args.length - 1);
+                    return new GiveCommand(this).onCommand(sender, command, label, newArgs);
                 }
+                return new ReloadCommand(this).onCommand(sender, command, label, args);
             });
         }
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            PlayerProfile profile = playerDataManager.getProfile(player.getUniqueId());
-            if (profile != null) {
-                scoreboardManager.createScoreboard(player, profile.getMoney(),
-                        profile.getGems(),
-                        profile.getRubies(),
-                        profile.getFarmingLevel(),
-                        profile.getFarmingXp(),
-                        profile.getMiningLevel(),
-                        profile.getMiningXp()
-                );
-            }
-            player.getInventory().setItem(0, toolHandler.getCustomHoe());
-            player.getInventory().setItem(1, toolHandler.getCustomPickaxe());
-            player.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
+        if (getCommand("rebirth") != null) {
+            getCommand("rebirth").setExecutor((sender, cmd, label, args) -> {
+                if (!(sender instanceof Player)) return true;
+                Player p = (Player) sender;
+                RebirthGUI.open(p, getPlayerDataManager().getProfile(p.getUniqueId()));
+                return true;
+            });
         }
+
+        if (getCommand("tier") != null) {
+            getCommand("tier").setExecutor((sender, cmd, label, args) -> {
+                if (!(sender instanceof Player)) return true;
+                Player p = (Player) sender;
+                TierGUI.open(p, getPlayerDataManager().getProfile(p.getUniqueId()));
+                return true;
+            });
+        }
+
+        // INITIALIZED: Passive Income Engine Core Task Clock
+        new IncomeManager(this);
+
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
+                    if (profile != null) {
+                        scoreboardManager.updateScoreboard(p, profile.getMoney(), profile.getGems(),
+                                profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
+                                profile.getMiningLevel(), profile.getMiningXp());
+                    }
+                }
+            }
+        }.runTaskTimer(this, 20L, 20L);
 
         getLogger().info("§a✓ Multigainer data systems successfully loaded!");
     }
 
     @Override
     public void onDisable() {
-        if (playerDataManager != null) {
-            playerDataManager.saveAllOnlinePlayersSynchronously();
-        }
-        if (storageManager != null) {
-            storageManager.close();
-        }
+        if (playerDataManager != null) playerDataManager.saveAllOnlinePlayersSynchronously();
+        if (storageManager != null) storageManager.close();
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        PlayerProfile profile = playerDataManager.getProfile(player.getUniqueId());
+        Player p = event.getPlayer();
+        PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
         if (profile != null) {
-            scoreboardManager.createScoreboard(player, profile.getMoney(),
-                    profile.getGems(),
-                    profile.getRubies(),
-                    profile.getFarmingLevel(),
-                    profile.getFarmingXp(),
-                    profile.getMiningLevel(),
-                    profile.getMiningXp()
-            );
+            // FIX: Force new profile configurations or uninitialized variables to default to Tier 0
+            if (profile.getTier() < 0 || profile.getMoney().toDouble() == 0 && profile.getRebirthPoints() == 0 && profile.getTier() == 1) {
+                profile.setTier(0);
+            }
+
+            scoreboardManager.createScoreboard(p, profile.getMoney(), profile.getGems(),
+                    profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
+                    profile.getMiningLevel(), profile.getMiningXp());
         }
-        player.getInventory().setItem(0, toolHandler.getCustomHoe());
-        player.getInventory().setItem(1, toolHandler.getCustomPickaxe());
-        player.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
+        p.getInventory().setItem(0, toolHandler.getCustomHoe());
+        p.getInventory().setItem(1, toolHandler.getCustomPickaxe());
+        p.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
     }
 
     @EventHandler
@@ -144,6 +138,9 @@ public final class Multigainer extends JavaPlugin implements Listener {
         playerDataManager.handleQuit(event.getPlayer().getUniqueId());
     }
 
-    public ScoreboardManager getScoreboardManager() { return scoreboardManager; }
     public PlayerDataManager getPlayerDataManager() { return playerDataManager; }
+
+    public ScoreboardManager getScoreboardManager() {
+        return this.scoreboardManager;
+    }
 }

@@ -2,7 +2,10 @@ package multigainer.multigainer.income;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.levels.MiningLevelManager; // IMPORTED
 import multigainer.multigainer.math.BigNumber;
+import multigainer.multigainer.rebirth.RebirthManager;
+import multigainer.multigainer.tier.TierManager;
 import multigainer.multigainer.upgrades.UpgradeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -17,7 +20,6 @@ public class IncomeManager {
     }
 
     private void startPassiveIncomeTask() {
-        // Runs on a repeating schedule every 20 ticks (exactly 1 second)
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -25,39 +27,45 @@ public class IncomeManager {
                     PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
                     if (profile == null) continue;
 
-                    // 1. Base Configuration Value (Using BigNumber to avoid double limitations)
+                    // 1. Base Configuration Value
                     BigNumber baseIncome = new BigNumber(1.0);
 
-                    // 2. Multipliers (Currently hooks into your new compounding 27-tier system!)
+                    // 2. Upgrades Multiplier
                     BigNumber upgradeMultiplier = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
 
-                    /* * 💡 HOW TO EXPAND THIS IN THE FUTURE:
-                     * When you add new systems, you can define them here like this:
-                     * BigNumber petMultiplier = profile.getPetMultiplier();
-                     * BigNumber rebirthMultiplier = profile.getRebirthMultiplier();
-                     */
+                    // 3. Rebirth Multiplier Hook
+                    double rebirthBonus = RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints());
+                    BigNumber rebirthMultiplier = new BigNumber(rebirthBonus);
 
-                    // 3. Calculation Formula Stacking
-                    BigNumber totalEarned = baseIncome.multiply(upgradeMultiplier);
+                    // 4. Tier Multiplier Hook
+                    double tierBonus = TierManager.getMultiplierForTier(profile.getTier());
+                    BigNumber tierMultiplier = new BigNumber(tierBonus);
 
-                    /* * To add more multipliers to the final product later, just chain them:
-                     * totalEarned = totalEarned.multiply(petMultiplier).multiply(rebirthMultiplier);
-                     */
+                    // 5. Mining Multiplier Hook (FIX: Added to ensure calculation parity)
+                    BigNumber mineMoneyMultiplier = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
 
-                    // Add the money directly to the profile wrapper
-                    profile.addMoney(totalEarned);
+                    // Compound Multiplier Formula Stacking (Base * Upgrades * Rebirth * Tier * Mining)
+                    BigNumber totalEarned = baseIncome
+                            .multiply(upgradeMultiplier)
+                            .multiply(rebirthMultiplier)
+                            .multiply(tierMultiplier)
+                            .multiply(mineMoneyMultiplier);
+
+                    profile.setMoney(profile.getMoney().add(totalEarned));
 
                     // Re-render visual text interfaces instantly for the player
-                    plugin.getScoreboardManager().updateScoreboard(
-                            player,
-                            profile.getMoney(),
-                            profile.getGems(),
-                            profile.getRubies(),
-                            profile.getFarmingLevel(),
-                            profile.getFarmingXp(),
-                            profile.getMiningLevel(),
-                            profile.getMiningXp()
-                    );
+                    if (plugin.getScoreboardManager() != null) {
+                        plugin.getScoreboardManager().updateScoreboard(
+                                player,
+                                profile.getMoney(),
+                                profile.getGems(),
+                                profile.getRubies(),
+                                profile.getFarmingLevel(),
+                                profile.getFarmingXp(),
+                                profile.getMiningLevel(),
+                                profile.getMiningXp()
+                        );
+                    }
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L);

@@ -26,12 +26,10 @@ public class StorageManager {
         plugin.getLogger().info("🚀 MULTIGAINER DEBUG: SWITCHING TO LOCAL SQLITE 🚀");
         plugin.getLogger().info("=================================================");
 
-        // Create the plugin data folder if it doesn't exist
         if (!plugin.getDataFolder().exists()) {
             plugin.getDataFolder().mkdirs();
         }
 
-        // Define the target file where all your data will be securely stored
         this.dbFile = new File(plugin.getDataFolder(), "userdata.db");
 
         try {
@@ -39,8 +37,6 @@ public class StorageManager {
                 dbFile.createNewFile();
                 plugin.getLogger().info("Successfully created fresh local userdata.db file.");
             }
-
-            // Load the native SQLite driver built directly into Paper
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
             plugin.getLogger().severe("SQLite driver could not be found within the server container!");
@@ -52,7 +48,6 @@ public class StorageManager {
             return;
         }
 
-        // Run table generation safely in an asynchronous task background thread
         Bukkit.getScheduler().runTaskAsynchronously(plugin, this::setupTables);
     }
 
@@ -60,44 +55,56 @@ public class StorageManager {
      * Executes internal DDL commands to ensure local tables are ready.
      */
     private void setupTables() {
-        // Note: Cleaned MySQL-specific engine properties to match native SQLite syntax
         String createProfilesTable = "CREATE TABLE IF NOT EXISTS mg_player_profiles ("
-                + "uuid VARCHAR(36) NOT NULL,"
-                + "username VARCHAR(16) NOT NULL,"
-                + "money_mantissa DOUBLE DEFAULT 0.0,"
-                + "money_exponent DOUBLE DEFAULT 0.0,"
-                + "gems_mantissa DOUBLE DEFAULT 0.0,"
-                + "gems_exponent DOUBLE DEFAULT 0.0,"
-                + "rubies_mantissa DOUBLE DEFAULT 0.0,"
-                + "rubies_exponent DOUBLE DEFAULT 0.0,"
-                + "upgrade_level INT DEFAULT 0,"
-                + "farming_level INT DEFAULT 1,"
-                + "farming_xp DOUBLE DEFAULT 0.0,"
-                + "mining_level INT DEFAULT 1,"
-                + "mining_xp DOUBLE DEFAULT 0.0,"
-                + "PRIMARY KEY (uuid)"
-
-                + "rebirth_points DOUBLE DEFAULT 0.0,"
-                + "rebirth_count INT DEFAULT 0,"
+                + "uuid TEXT PRIMARY KEY, "
+                + "username TEXT, "
+                + "money_mantissa REAL DEFAULT 0, money_exponent REAL DEFAULT 0, "
+                + "gems_mantissa REAL DEFAULT 0, gems_exponent REAL DEFAULT 0, "
+                + "rubies_mantissa REAL DEFAULT 0, rubies_exponent REAL DEFAULT 0, "
+                + "upgrade_level INTEGER DEFAULT 0, "
+                + "tier INTEGER DEFAULT 1, "
+                + "farming_level INTEGER DEFAULT 1, farming_xp REAL DEFAULT 0, "
+                + "mining_level INTEGER DEFAULT 1, mining_xp REAL DEFAULT 0, "
+                + "rebirth_points REAL DEFAULT 0, "
+                + "rebirth_count INTEGER DEFAULT 0"
                 + ");";
 
         String createStatsTable = "CREATE TABLE IF NOT EXISTS mg_player_stats ("
-                + "uuid VARCHAR(36) NOT NULL,"
-                + "kills INT DEFAULT 0,"
-                + "deaths INT DEFAULT 0,"
-                + "playtime BIGINT DEFAULT 0,"
-                + "PRIMARY KEY (uuid),"
+                + "uuid TEXT PRIMARY KEY, "
+                + "kills INTEGER DEFAULT 0, "
+                + "deaths INTEGER DEFAULT 0, "
+                + "playtime BIGINT DEFAULT 0, "
                 + "FOREIGN KEY (uuid) REFERENCES mg_player_profiles(uuid) ON DELETE CASCADE"
                 + ");";
 
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
 
-            // Enable foreign keys explicitly inside SQLite session connections
             stmt.execute("PRAGMA foreign_keys = ON;");
-
             stmt.execute(createProfilesTable);
             stmt.execute(createStatsTable);
+
+            // AUTOMATIC MIGRATION: Programmatically adds new columns if an old database file exists
+            try {
+                stmt.execute("ALTER TABLE mg_player_profiles ADD COLUMN tier INTEGER DEFAULT 0;");
+                plugin.getLogger().info("⚠️ Database Migration: Added missing 'tier' column.");
+            } catch (SQLException ignored) {
+                // Column already exists, safe to ignore
+            }
+
+            try {
+                stmt.execute("ALTER TABLE mg_player_profiles ADD COLUMN rebirth_points REAL DEFAULT 0.0;");
+                plugin.getLogger().info("⚠️ Database Migration: Added missing 'rebirth_points' column.");
+            } catch (SQLException ignored) {
+                // Column already exists, safe to ignore
+            }
+
+            try {
+                stmt.execute("ALTER TABLE mg_player_profiles ADD COLUMN rebirth_count INTEGER DEFAULT 0;");
+                plugin.getLogger().info("⚠️ Database Migration: Added missing 'rebirth_count' column.");
+            } catch (SQLException ignored) {
+                // Column already exists, safe to ignore
+            }
 
             plugin.getLogger().info("Database initialization complete. Local schemas checked.");
         } catch (SQLException e) {

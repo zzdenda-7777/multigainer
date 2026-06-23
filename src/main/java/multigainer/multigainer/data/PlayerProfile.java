@@ -6,72 +6,27 @@ public class PlayerProfile {
     private BigNumber money;
     private BigNumber gems;
     private BigNumber rubies;
-    private int upgradeLevel;
+    private int tierPoints = 0;
+    private int upgradeLevel, tier, farmingLevel, miningLevel, rebirthCount;
+    private double farmingXp, miningXp, rebirthPoints;
 
-    // Farming tracking fields
-    private int farmingLevel;
-    private double farmingXp;
-
-    // INTEGRATED: Mining tracking fields
-    private int miningLevel;
-    private double miningXp;
-
-    // NEW: Rebirth tracking fields
-    private double rebirthPoints;
-    private int rebirthCount;
-
-    // Main constructor
-    public PlayerProfile(BigNumber money, BigNumber gems, BigNumber rubies, int upgradeLevel) {
-        this.money = money;
-        this.gems = gems;
-        this.rubies = rubies;
-        this.upgradeLevel = upgradeLevel;
-
-        this.farmingLevel = 1;
-        this.farmingXp = 0.0;
-        this.miningLevel = 1;
-        this.miningXp = 0.0;
-
-        // Initialize rebirth defaults
-        this.rebirthPoints = 0.0;
-        this.rebirthCount = 0;
-    }
-
-    // Overloaded file-loading constructor
-    public PlayerProfile(double money, int gems, int rubies) {
-        this.money = new BigNumber(money);
-        this.gems = new BigNumber((double) gems);
-        this.rubies = new BigNumber((double) rubies);
-        this.upgradeLevel = 0;
-
-        this.farmingLevel = 1;
-        this.farmingXp = 0.0;
-        this.miningLevel = 1;
-        this.miningXp = 0.0;
-
-        // Initialize rebirth defaults
-        this.rebirthPoints = 0.0;
-        this.rebirthCount = 0;
-    }
-
-    // Convenient constructor for brand new players
+    // Default constructor
     public PlayerProfile() {
-        this.money = new BigNumber(0);
-        this.gems = new BigNumber(0);
-        this.rubies = new BigNumber(0);
-        this.upgradeLevel = 0;
-
-        this.farmingLevel = 1;
-        this.farmingXp = 0.0;
-        this.miningLevel = 1;
-        this.miningXp = 0.0;
-
-        // Initialize rebirth defaults
-        this.rebirthPoints = 0.0;
-        this.rebirthCount = 0;
+        this(new BigNumber(0), new BigNumber(0), new BigNumber(0), 0, 1, 1, 0.0, 1, 0.0, 0.0, 0);
     }
 
-    // --- Existing Methods ---
+    // Full constructor
+    public PlayerProfile(BigNumber money, BigNumber gems, BigNumber rubies, int upgradeLevel, int tier,
+                         int farmingLevel, double farmingXp, int miningLevel, double miningXp,
+                         double rebirthPoints, int rebirthCount) {
+        this.money = money; this.gems = gems; this.rubies = rubies;
+        this.upgradeLevel = upgradeLevel; this.tier = tier;
+        this.farmingLevel = farmingLevel; this.farmingXp = farmingXp;
+        this.miningLevel = miningLevel; this.miningXp = miningXp;
+        this.rebirthPoints = rebirthPoints; this.rebirthCount = rebirthCount;
+    }
+
+    // --- Currency Methods ---
     public BigNumber getMoney() { return money; }
     public void setMoney(BigNumber money) { this.money = money; }
     public void addMoney(BigNumber amount) { this.money = this.money.add(amount); }
@@ -84,23 +39,34 @@ public class PlayerProfile {
     public void setRubies(BigNumber rubies) { this.rubies = rubies; }
     public void addRubies(BigNumber amount) { this.rubies = this.rubies.add(amount); }
 
+    // --- Stats Methods ---
     public int getUpgradeLevel() { return upgradeLevel; }
-    public void setUpgradeLevel(int upgradeLevel) { this.upgradeLevel = upgradeLevel; }
+    public void setUpgradeLevel(int level) { this.upgradeLevel = level; }
+
+    public int getTier() { return tier; }
+    public void setTier(int tier) { this.tier = tier; }
 
     public int getFarmingLevel() { return farmingLevel; }
-    public void setFarmingLevel(int farmingLevel) { this.farmingLevel = farmingLevel; }
+    public void setFarmingLevel(int level) { this.farmingLevel = level; }
     public double getFarmingXp() { return farmingXp; }
-    public void setFarmingXp(double farmingXp) { this.farmingXp = farmingXp; }
+    public void setFarmingXp(double xp) { this.farmingXp = xp; }
 
     public int getMiningLevel() { return miningLevel; }
-    public void setMiningLevel(int miningLevel) { this.miningLevel = miningLevel; }
+    public void setMiningLevel(int level) { this.miningLevel = level; }
     public double getMiningXp() { return miningXp; }
-    public void setMiningXp(double miningXp) { this.miningXp = miningXp; }
+    public void setMiningXp(double xp) { this.miningXp = xp; }
 
-    // --- NEW: Rebirth System Methods ---
     public double getRebirthPoints() { return rebirthPoints; }
     public void setRebirthPoints(double points) { this.rebirthPoints = points; }
-
     public int getRebirthCount() { return rebirthCount; }
     public void setRebirthCount(int count) { this.rebirthCount = count; }
+
+    // --- Added Tier Points Methods ---
+    public int getTierPoints() {
+        return this.tierPoints;
+    }
+
+    public void setTierPoints(int tierPoints) {
+        this.tierPoints = tierPoints;
+    }
 }

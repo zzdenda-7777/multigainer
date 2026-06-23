@@ -16,11 +16,10 @@ libraries:
 commands:
   stats:
     description: Shows your current mining level and resource multipliers!
-    usage: /stats
-  multigainer:
-    description: Core administrative control commands.
-    usage: /multigainer [reload]
-    permission: multigainer.admin
-    permission-message: You do not have permission to execute this command!
   rebirth:
     description: Open the rebirth menu.
+  tier:
+    description: Open the tier advancement menu.
+  multigainer:
+    description: Main plugin command.
+    permission: multigainer.admin

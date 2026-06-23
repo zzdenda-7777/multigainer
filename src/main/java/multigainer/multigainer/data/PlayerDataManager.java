@@ -16,8 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlayerDataManager {
     private final Multigainer plugin;
     private final StorageManager storageManager;
-
-    // Thread-safe map cache for 200 concurrent players
     private final Map<UUID, PlayerProfile> profileCache = new ConcurrentHashMap<>();
 
     public PlayerDataManager(Multigainer plugin, StorageManager storageManager) {
@@ -25,42 +23,35 @@ public class PlayerDataManager {
         this.storageManager = storageManager;
     }
 
-    /**
-     * Gets an online player's profile directly from the fast in-memory cache.
-     */
     public PlayerProfile getProfile(UUID uuid) {
         return profileCache.get(uuid);
     }
 
-    /**
-     * Loads a player's profile from the database asynchronously.
-     * If the profile doesn't exist, it creates a new entry natively.
-     */
     public CompletableFuture<PlayerProfile> loadProfileAsync(UUID uuid, String username) {
         CompletableFuture<PlayerProfile> future = new CompletableFuture<>();
 
         Bukkit.getAsyncScheduler().runNow(plugin, task -> {
             try (Connection conn = storageManager.getConnection()) {
-
-                // 1. Check if the profile already exists in the table
                 String selectQuery = "SELECT * FROM mg_player_profiles WHERE uuid = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
                     stmt.setString(1, uuid.toString());
 
                     try (ResultSet rs = stmt.executeQuery()) {
                         if (rs.next()) {
-                            // Reconstruct existing player metrics from database
+                            // Map all fields to the new PlayerProfile constructor
                             PlayerProfile profile = new PlayerProfile(
                                     new BigNumber(rs.getDouble("money_mantissa"), rs.getDouble("money_exponent")),
                                     new BigNumber(rs.getDouble("gems_mantissa"), rs.getDouble("gems_exponent")),
                                     new BigNumber(rs.getDouble("rubies_mantissa"), rs.getDouble("rubies_exponent")),
-                                    rs.getInt("upgrade_level")
+                                    rs.getInt("upgrade_level"),
+                                    rs.getInt("tier"),
+                                    rs.getInt("farming_level"),
+                                    rs.getDouble("farming_xp"),
+                                    rs.getInt("mining_level"),
+                                    rs.getDouble("mining_xp"),
+                                    rs.getDouble("rebirth_points"),
+                                    rs.getInt("rebirth_count")
                             );
-                            profile.setFarmingLevel(rs.getInt("farming_level"));
-                            profile.setFarmingXp(rs.getDouble("farming_xp"));
-                            profile.setMiningLevel(rs.getInt("mining_level"));
-                            profile.setMiningXp(rs.getDouble("mining_xp"));
-
                             profileCache.put(uuid, profile);
                             future.complete(profile);
                             return;
@@ -68,17 +59,11 @@ public class PlayerDataManager {
                     }
                 }
 
-                // 2. Fallback: Player is new. Create default profile rows inside database
+                // New player initialization
                 String insertProfile = "INSERT INTO mg_player_profiles (uuid, username) VALUES (?, ?)";
                 try (PreparedStatement stmt = conn.prepareStatement(insertProfile)) {
                     stmt.setString(1, uuid.toString());
                     stmt.setString(2, username);
-                    stmt.executeUpdate();
-                }
-
-                String insertStats = "INSERT INTO mg_player_stats (uuid) VALUES (?)";
-                try (PreparedStatement stmt = conn.prepareStatement(insertStats)) {
-                    stmt.setString(1, uuid.toString());
                     stmt.executeUpdate();
                 }
 
@@ -90,60 +75,16 @@ public class PlayerDataManager {
                 future.completeExceptionally(e);
             }
         });
-
         return future;
     }
 
-    /**
-     * Saves a single player's profile data asynchronously.
-     */
-    public void saveProfileAsync(UUID uuid) {
-        PlayerProfile profile = profileCache.get(uuid);
-        if (profile == null) return;
-
-        Bukkit.getAsyncScheduler().runNow(plugin, task -> {
-            String updateQuery = "UPDATE mg_player_profiles SET "
-                    + "money_mantissa = ?, money_exponent = ?, "
-                    + "gems_mantissa = ?, gems_exponent = ?, "
-                    + "rubies_mantissa = ?, rubies_exponent = ?, "
-                    + "upgrade_level = ?, farming_level = ?, farming_xp = ?, "
-                    + "mining_level = ?, mining_xp = ? WHERE uuid = ?";
-
-            try (Connection conn = storageManager.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
-
-                stmt.setDouble(1, profile.getMoney().getMantissa());
-                stmt.setDouble(2, profile.getMoney().getExponent());
-                stmt.setDouble(3, profile.getGems().getMantissa());
-                stmt.setDouble(4, profile.getGems().getExponent());
-                stmt.setDouble(5, profile.getRubies().getMantissa());
-                stmt.setDouble(6, profile.getRubies().getExponent());
-                stmt.setInt(7, profile.getUpgradeLevel());
-                stmt.setInt(8, profile.getFarmingLevel());
-                stmt.setDouble(9, profile.getFarmingXp());
-                stmt.setInt(10, profile.getMiningLevel());
-                stmt.setDouble(11, profile.getMiningXp());
-                stmt.setString(12, uuid.toString());
-
-                stmt.executeUpdate();
-            } catch (SQLException e) {
-                plugin.getLogger().severe("Could not save player profile data for UUID: " + uuid);
-                e.printStackTrace();
-            }
-        });
-    }
-
-    /**
-     * Synchronously saves an individual player's profile data.
-     * Used strictly during server shutdown sequences.
-     */
     public void saveProfileSynchronously(UUID uuid, PlayerProfile profile) {
         String updateQuery = "UPDATE mg_player_profiles SET "
                 + "money_mantissa = ?, money_exponent = ?, "
                 + "gems_mantissa = ?, gems_exponent = ?, "
                 + "rubies_mantissa = ?, rubies_exponent = ?, "
-                + "upgrade_level = ?, farming_level = ?, farming_xp = ?, "
-                + "mining_level = ?, mining_xp = ? WHERE uuid = ?";
+                + "upgrade_level = ?, tier = ?, farming_level = ?, farming_xp = ?, "
+                + "mining_level = ?, mining_xp = ?, rebirth_points = ?, rebirth_count = ? WHERE uuid = ?";
 
         try (Connection conn = storageManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(updateQuery)) {
@@ -155,35 +96,28 @@ public class PlayerDataManager {
             stmt.setDouble(5, profile.getRubies().getMantissa());
             stmt.setDouble(6, profile.getRubies().getExponent());
             stmt.setInt(7, profile.getUpgradeLevel());
-            stmt.setInt(8, profile.getFarmingLevel());
-            stmt.setDouble(9, profile.getFarmingXp());
-            stmt.setInt(10, profile.getMiningLevel());
-            stmt.setDouble(11, profile.getMiningXp());
-            stmt.setString(12, uuid.toString());
+            stmt.setInt(8, profile.getTier());
+            stmt.setInt(9, profile.getFarmingLevel());
+            stmt.setDouble(10, profile.getFarmingXp());
+            stmt.setInt(11, profile.getMiningLevel());
+            stmt.setDouble(12, profile.getMiningXp());
+            stmt.setDouble(13, profile.getRebirthPoints());
+            stmt.setInt(14, profile.getRebirthCount());
+            stmt.setString(15, uuid.toString());
 
             stmt.executeUpdate();
         } catch (SQLException e) {
-            plugin.getLogger().severe("Could not safely flush player data profile synchronously for UUID: " + uuid);
+            plugin.getLogger().severe("Could not sync profile for " + uuid);
             e.printStackTrace();
         }
     }
 
-    /**
-     * Loops through all cached data profiles and flushes them to the DB synchronously.
-     */
     public void saveAllOnlinePlayersSynchronously() {
-        for (Map.Entry<UUID, PlayerProfile> entry : profileCache.entrySet()) {
-            saveProfileSynchronously(entry.getKey(), entry.getValue());
-        }
+        profileCache.forEach(this::saveProfileSynchronously);
     }
 
-    /**
-     * Saves a player's profile data one final time before evicting them from the active cache map.
-     */
     public void handleQuit(UUID uuid) {
         PlayerProfile profile = profileCache.remove(uuid);
-        if (profile != null) {
-            saveProfileSynchronously(uuid, profile);
-        }
+        if (profile != null) saveProfileSynchronously(uuid, profile);
     }
 }

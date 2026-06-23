@@ -2,9 +2,12 @@ package multigainer.multigainer.listeners;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
-import multigainer.multigainer.levels.FarmingLevelManager; // Added import to access level requirements
+import multigainer.multigainer.levels.FarmingLevelManager;
+import multigainer.multigainer.levels.MiningLevelManager; // IMPORTED
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.upgrades.UpgradeManager;
+import multigainer.multigainer.rebirth.RebirthManager;
+import multigainer.multigainer.tier.TierManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -83,42 +86,53 @@ public class FarmingListener implements Listener {
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(uuid);
 
-        // --- Money Calculations ---
+        // --- Money Calculations with Global Cross-System Multipliers ---
         BigNumber baseMoney = new BigNumber(0.25);
         BigNumber activeMultiplier = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
-        BigNumber finalPayout = baseMoney.multiply(activeMultiplier);
+
+        // Dynamic Global Multiplier Hooks
+        BigNumber rebirthMultiplier = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
+        BigNumber tierMultiplier = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
+
+        // FIX: Grab Mining Multiplier to match the Scoreboard & Passive Income math
+        BigNumber mineMoneyMultiplier = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
+
+        // Stacked Calculation Formula (Base * Upgrades * Rebirth * Tier * Mining)
+        BigNumber finalPayout = baseMoney.multiply(activeMultiplier)
+                .multiply(rebirthMultiplier)
+                .multiply(tierMultiplier)
+                .multiply(mineMoneyMultiplier);
+
         profile.setMoney(profile.getMoney().add(finalPayout));
 
         // --- Farming XP & Leveling Logic ---
-        double currentXp = profile.getFarmingXp() + 1.0; // Grants exactly 1 XP per wheat broken
+        double currentXp = profile.getFarmingXp() + 1.0;
         int currentLevel = profile.getFarmingLevel();
         double requiredXp = FarmingLevelManager.getRequiredXpForNextLevel(currentLevel);
 
-        // Check if the player earned enough XP to advance their level tier
         while (currentXp >= requiredXp) {
-            currentXp -= requiredXp; // Retain rollover XP for the next level
+            currentXp -= requiredXp;
             currentLevel++;
             requiredXp = FarmingLevelManager.getRequiredXpForNextLevel(currentLevel);
-
-            // Visual alert message to notify the player of their advancement
             player.sendMessage("§a§l[!] LEVEL UP! §7Your Farming Level is now §e" + currentLevel + "§7!");
         }
 
-        // Save updated values back to the player profile object
         profile.setFarmingXp(currentXp);
         profile.setFarmingLevel(currentLevel);
 
         // Update the scoreboard UI with the modified stats
-        plugin.getScoreboardManager().updateScoreboard(
-                player,
-                profile.getMoney(),
-                profile.getGems(),
-                profile.getRubies(),
-                profile.getFarmingLevel(),
-                profile.getFarmingXp(),
-                profile.getMiningLevel(),
-                profile.getMiningXp()
-        );
+        if (plugin.getScoreboardManager() != null) {
+            plugin.getScoreboardManager().updateScoreboard(
+                    player,
+                    profile.getMoney(),
+                    profile.getGems(),
+                    profile.getRubies(),
+                    profile.getFarmingLevel(),
+                    profile.getFarmingXp(),
+                    profile.getMiningLevel(),
+                    profile.getMiningXp()
+            );
+        }
 
         cooldowns.add(loc);
 

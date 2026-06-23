@@ -1,9 +1,14 @@
 package multigainer.multigainer.scoreboard;
 
+import multigainer.multigainer.Multigainer;
+import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.levels.FarmingLevelManager;
 import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.math.BigNumber;
+import multigainer.multigainer.rebirth.RebirthManager;
+import multigainer.multigainer.tier.TierManager;
+import multigainer.multigainer.upgrades.UpgradeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -15,6 +20,13 @@ import org.bukkit.scoreboard.Team;
 
 public class ScoreboardManager {
 
+    private final Multigainer plugin;
+
+    // Added constructor hook to safely fetch profile data without breaking signatures
+    public ScoreboardManager(Multigainer plugin) {
+        this.plugin = plugin;
+    }
+
     public void createScoreboard(Player player, BigNumber money, BigNumber gems, BigNumber rubies, int farmLvl, double farmXp, int mineLvl, double mineXp) {
         org.bukkit.scoreboard.ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
@@ -25,17 +37,34 @@ public class ScoreboardManager {
 
         objective.getScore(" ").setScore(14);
 
+        // Calculate compounding incremental game multipliers dynamically
+        PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
+        BigNumber totalMoneyMulti = new BigNumber(1.0);
+        BigNumber totalGemsMulti = new BigNumber(1.0);
+
+        if (profile != null) {
+            BigNumber upgradeMulti = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
+            BigNumber rebirthMulti = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
+            BigNumber tierMulti = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
+            BigNumber mineMoneyMulti = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
+
+            // Money Multipliers stack exponentially (Upgrades * Rebirth * Tier * Mine Money Multiplier)
+            totalMoneyMulti = upgradeMulti.multiply(rebirthMulti).multiply(tierMulti).multiply(mineMoneyMulti);
+            // Gems Multipliers scale by mining tier progression
+            totalGemsMulti = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
+        }
+
         // Economy Section
         Team moneyTeam = board.registerNewTeam("sb_money");
         moneyTeam.addEntry(ChatColor.GREEN.toString());
         moneyTeam.setPrefix("§a⛃ §8| §aMoney: §f$");
-        moneyTeam.setSuffix(NumberFormatter.format(money));
+        moneyTeam.setSuffix(NumberFormatter.format(money) + " §7(x" + NumberFormatter.format(totalMoneyMulti) + ")");
         objective.getScore(ChatColor.GREEN.toString()).setScore(13);
 
         Team gemsTeam = board.registerNewTeam("sb_gems");
         gemsTeam.addEntry(ChatColor.AQUA.toString());
         gemsTeam.setPrefix("§b✦ §8| §bGems: §f");
-        gemsTeam.setSuffix(NumberFormatter.format(gems));
+        gemsTeam.setSuffix(NumberFormatter.format(gems) + " §7(x" + NumberFormatter.format(totalGemsMulti) + ")");
         objective.getScore(ChatColor.AQUA.toString()).setScore(12);
 
         Team rubiesTeam = board.registerNewTeam("sb_rubies");
@@ -90,34 +119,54 @@ public class ScoreboardManager {
         Scoreboard board = player.getScoreboard();
         if (board.getObjective("currency_sb") == null) return;
 
-        // Update Economy
+        // Recalculate compounding incremental multipliers on runtime updates
+        PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
+        BigNumber totalMoneyMulti = new BigNumber(1.0);
+        BigNumber totalGemsMulti = new BigNumber(1.0);
+
+        if (profile != null) {
+            BigNumber upgradeMulti = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
+            BigNumber rebirthMulti = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
+            BigNumber tierMulti = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
+            BigNumber mineMoneyMulti = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
+
+            // Money Multipliers stack exponentially (Upgrades * Rebirth * Tier * Mine Money Multiplier)
+            totalMoneyMulti = upgradeMulti.multiply(rebirthMulti).multiply(tierMulti).multiply(mineMoneyMulti);
+            totalGemsMulti = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
+        }
+
+        // Update Economy Display Elements
         Team moneyTeam = board.getTeam("sb_money");
-        if (moneyTeam != null) moneyTeam.setSuffix(NumberFormatter.format(money));
+        if (moneyTeam != null) {
+            moneyTeam.setSuffix(NumberFormatter.format(money) + " §7(x" + NumberFormatter.format(totalMoneyMulti) + ")");
+        }
 
         Team gemsTeam = board.getTeam("sb_gems");
-        if (gemsTeam != null) gemsTeam.setSuffix(NumberFormatter.format(gems));
+        if (gemsTeam != null) {
+            gemsTeam.setSuffix(NumberFormatter.format(gems) + " §7(x" + NumberFormatter.format(totalGemsMulti) + ")");
+        }
 
         Team rubiesTeam = board.getTeam("sb_rubies");
         if (rubiesTeam != null) rubiesTeam.setSuffix(NumberFormatter.format(rubies));
 
-        // Update Farming
+        // Update Farming Displays
         double reqFarmXp = FarmingLevelManager.getRequiredXpForNextLevel(farmLvl);
         Team farmLvlTeam = board.getTeam("sb_farmlvl");
         if (farmLvlTeam != null) farmLvlTeam.setSuffix(farmLvl + " §7(" + (int) farmXp + "/" + (int) reqFarmXp + ")");
         Team farmXpTeam = board.getTeam("sb_farmxp");
         if (farmXpTeam != null) farmXpTeam.setSuffix(FarmingLevelManager.generateXpBar(farmXp, reqFarmXp));
 
-        // Update Mining
+        // Update Mining Displays
         double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
         Team mineLvlTeam = board.getTeam("sb_minelvl");
         if (mineLvlTeam != null) mineLvlTeam.setSuffix(mineLvl + " §7(" + (int) mineXp + "/" + (int) reqMineXp + ")");
         Team mineXpTeam = board.getTeam("sb_minexp");
         if (mineXpTeam != null) mineXpTeam.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
 
-        // Update MSPT
+        // Update Performance Metrics
         Team msptTeam = board.getTeam("sb_mspt");
         if (msptTeam != null) {
             msptTeam.setSuffix(String.format("%.2f", Bukkit.getAverageTickTime()));
         }
-    } // This closes the updateScoreboard method
-} // This closes the ScoreboardManager class
+    }
+}

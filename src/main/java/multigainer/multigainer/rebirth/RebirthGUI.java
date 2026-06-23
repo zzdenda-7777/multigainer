@@ -2,6 +2,7 @@ package multigainer.multigainer.rebirth;
 
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.formatting.NumberFormatter;
+import multigainer.multigainer.math.BigNumber; // Added import for BigNumber conversion
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -24,14 +25,16 @@ public class RebirthGUI {
         for (int i = 0; i < 27; i++) inv.setItem(i, pane);
 
         // 1. Statistics Section (Slot 11)
-        ItemStack stats = new ItemStack(Material.PLAYER_HEAD); // Using Head as a stat icon
+        ItemStack stats = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta sm = stats.getItemMeta();
         sm.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR PROGRESS");
         sm.setLore(Arrays.asList(
                 " ",
                 ChatColor.GRAY + "● " + ChatColor.WHITE + "Current Funds: " + ChatColor.GREEN + NumberFormatter.format(profile.getMoney()),
-                ChatColor.GRAY + "● " + ChatColor.WHITE + "Rebirth Points: " + ChatColor.AQUA + String.format("%.2f", profile.getRebirthPoints()),
-                ChatColor.GRAY + "● " + ChatColor.WHITE + "Active Multiplier: " + ChatColor.YELLOW + String.format("%.2fx", RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints())),
+                // FIXED: Wrapped rebirth points into the formatter system
+                ChatColor.GRAY + "● " + ChatColor.WHITE + "Rebirth Points: " + ChatColor.AQUA + NumberFormatter.format(new BigNumber(profile.getRebirthPoints())),
+                // FIXED: Wrapped active scaling multiplier into the formatter system
+                ChatColor.GRAY + "● " + ChatColor.WHITE + "Active Multiplier: " + ChatColor.YELLOW + NumberFormatter.format(new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()))) + "x",
                 " "
         ));
         stats.setItemMeta(sm);
@@ -44,11 +47,13 @@ public class RebirthGUI {
         ItemMeta rm = rebirth.getItemMeta();
         rm.setDisplayName(canRebirth ? ChatColor.GREEN + "" + ChatColor.BOLD + "INITIATE REBIRTH" : ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
         rm.setLore(Arrays.asList(
-                ChatColor.GRAY + "Cost: " + ChatColor.WHITE + "500,000 Money",
+                // FIXED: Automatically format the static cost threshold using BigNumber definitions
+                ChatColor.GRAY + "Cost: " + ChatColor.WHITE + NumberFormatter.format(new BigNumber(RebirthManager.REBIRTH_THRESHOLD)) + " Money",
                 " ",
                 ChatColor.GRAY + "Upon rebirth, your stats reset",
                 ChatColor.GRAY + "but you will be granted:",
-                ChatColor.AQUA + "➜ " + String.format("%.2f", potential) + " Rebirth Points"
+                // FIXED: Formatted potential point yield to fix the issue shown in image_346d49.png
+                ChatColor.AQUA + "➜ " + NumberFormatter.format(new BigNumber(potential)) + " Rebirth Points"
         ));
         rebirth.setItemMeta(rm);
 
@@ -59,7 +64,8 @@ public class RebirthGUI {
         im.setLore(Arrays.asList(
                 ChatColor.DARK_GRAY + "Master your progression:",
                 " ",
-                ChatColor.GRAY + "1. Reach the goal of 500k money.",
+                // FIXED: Replaced raw string goal text with dynamic formatted output
+                ChatColor.GRAY + "1. Reach the goal of " + NumberFormatter.format(new BigNumber(RebirthManager.REBIRTH_THRESHOLD)) + " money.",
                 ChatColor.GRAY + "2. Rebirth to reset your progress.",
                 ChatColor.GRAY + "3. Earn permanent multipliers",
                 ChatColor.GRAY + "   to accelerate your future growth.",
