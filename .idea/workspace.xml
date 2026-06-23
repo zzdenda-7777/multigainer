@@ -5,27 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="jak ti muze takhle smrdět píča">
-      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/dbnavigator.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/StorageManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/levels/FarmingLevelManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/levels/MiningLevelManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/JoinListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/ToolGUI.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/ToolItemHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/ReloadCommand.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/StatsCommand.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthGUI.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/Multigainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/Multigainer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerDataManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerProfile.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerProfile.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/income/IncomeManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/income/IncomeManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/FarmingListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/FarmingListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/UpgradeItemHandler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/ptacekuchyl/ptakplesnivak.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/StorageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/StorageManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/kokot/debil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/math/BigNumber.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/math/BigNumber.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/scoreboard/ScoreboardManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/scoreboard/ScoreboardManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/upgrades/UpgradeGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/upgrades/UpgradeGUI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/upgrades/UpgradeManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/upgrades/UpgradeManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/plugin.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/plugin.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -322,7 +313,23 @@
       <option name="project" value="LOCAL" />
       <updated>1782166165168</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="jak ti muze takhle smrdět píča">
+      <option name="closed" value="true" />
+      <created>1782214483583</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1782214483583</updated>
+    </task>
+    <task id="LOCAL-00007" summary="jak ti muze takhle smrdět píča">
+      <option name="closed" value="true" />
+      <created>1782214574139</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1782214574139</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

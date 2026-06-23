@@ -11,3 +11,16 @@ depend: [ProtocolLib, FancyHolograms]
 libraries:
   - "com.zaxxer:HikariCP:5.1.0"
   - "org.mariadb.jdbc:mariadb-java-client:3.3.3"
+
+
+commands:
+  stats:
+    description: Shows your current mining level and resource multipliers!
+    usage: /stats
+  multigainer:
+    description: Core administrative control commands.
+    usage: /multigainer [reload]
+    permission: multigainer.admin
+    permission-message: You do not have permission to execute this command!
+  rebirth:
+    description: Open the rebirth menu.

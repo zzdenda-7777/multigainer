@@ -1,5 +1,9 @@
 package multigainer.multigainer;
 
+import multigainer.multigainer.commands.StatsCommand;
+import multigainer.multigainer.commands.ReloadCommand;
+import multigainer.multigainer.rebirth.RebirthListener;
+import multigainer.multigainer.rebirth.RebirthGUI;
 import multigainer.multigainer.data.PlayerDataManager;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.data.StorageManager;
@@ -12,6 +16,9 @@ import multigainer.multigainer.tools.ToolItemHandler;
 import multigainer.multigainer.packet.PacketManager;
 import multigainer.multigainer.scoreboard.ScoreboardManager;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,11 +39,9 @@ public final class Multigainer extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        // 1. Initialize Database Connection Pool Infrastructure First
         this.storageManager = new StorageManager(this);
         this.storageManager.init();
 
-        // 2. Provide the database connection pool manager to your Player Data system
         this.playerDataManager = new PlayerDataManager(this, storageManager);
 
         this.scoreboardManager = new ScoreboardManager();
@@ -49,7 +54,6 @@ public final class Multigainer extends JavaPlugin implements Listener {
         FarmingListener farmingListener = new FarmingListener(this);
         JoinListener joinListener = new JoinListener(this, playerDataManager);
 
-        // Register event systems
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(miningListener, this);
         getServer().getPluginManager().registerEvents(farmingListener, this);
@@ -57,14 +61,37 @@ public final class Multigainer extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(upgradeHandler, this);
         getServer().getPluginManager().registerEvents(toolHandler, this);
 
+        // Register the Rebirth Listener
+        getServer().getPluginManager().registerEvents(new RebirthListener(this), this);
+
+        // Command Registrations
         if (getCommand("upgrades") != null) {
             getCommand("upgrades").setExecutor(upgradeHandler);
         }
 
-        // Handles all currently online players if the plugin reloads
+        if (this.getCommand("stats") != null) {
+            this.getCommand("stats").setExecutor(new StatsCommand(this));
+        }
+
+        if (this.getCommand("multigainer") != null) {
+            this.getCommand("multigainer").setExecutor(new ReloadCommand(this));
+        }
+
+        // Add command for /rebirth
+        if (getCommand("rebirth") != null) {
+            getCommand("rebirth").setExecutor(new CommandExecutor() {
+                @Override
+                public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+                    if (!(sender instanceof Player)) return true;
+                    Player p = (Player) sender;
+                    RebirthGUI.open(p, getPlayerDataManager().getProfile(p.getUniqueId()));
+                    return true;
+                }
+            });
+        }
+
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerProfile profile = playerDataManager.getProfile(player.getUniqueId());
-
             if (profile != null) {
                 scoreboardManager.createScoreboard(player, profile.getMoney(),
                         profile.getGems(),
@@ -75,8 +102,6 @@ public final class Multigainer extends JavaPlugin implements Listener {
                         profile.getMiningXp()
                 );
             }
-
-            // Give items safely on startup
             player.getInventory().setItem(0, toolHandler.getCustomHoe());
             player.getInventory().setItem(1, toolHandler.getCustomPickaxe());
             player.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
@@ -87,12 +112,9 @@ public final class Multigainer extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        // 3. Use the updated synchronous database flushing method call
         if (playerDataManager != null) {
             playerDataManager.saveAllOnlinePlayersSynchronously();
         }
-
-        // 4. Close database pool connections cleanly on server stop/reload
         if (storageManager != null) {
             storageManager.close();
         }
@@ -102,7 +124,6 @@ public final class Multigainer extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         PlayerProfile profile = playerDataManager.getProfile(player.getUniqueId());
-
         if (profile != null) {
             scoreboardManager.createScoreboard(player, profile.getMoney(),
                     profile.getGems(),
@@ -113,8 +134,6 @@ public final class Multigainer extends JavaPlugin implements Listener {
                     profile.getMiningXp()
             );
         }
-
-        // Give items safely when a player joins the server
         player.getInventory().setItem(0, toolHandler.getCustomHoe());
         player.getInventory().setItem(1, toolHandler.getCustomPickaxe());
         player.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
@@ -122,7 +141,6 @@ public final class Multigainer extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // 5. Use updated eviction and data synchronization sequence method name
         playerDataManager.handleQuit(event.getPlayer().getUniqueId());
     }
 

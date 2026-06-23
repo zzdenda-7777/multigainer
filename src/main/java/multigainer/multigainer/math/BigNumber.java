@@ -36,6 +36,11 @@ public class BigNumber implements Comparable<BigNumber> {
     public double getMantissa() { return mantissa; }
     public double getExponent() { return exponent; }
 
+    // Helper method to convert BigNumber back to a standard double
+    public double toDouble() {
+        return this.mantissa * Math.pow(10, this.exponent);
+    }
+
     public BigNumber add(BigNumber other) {
         if (this.mantissa == 0) return other;
         if (other.mantissa == 0) return this;

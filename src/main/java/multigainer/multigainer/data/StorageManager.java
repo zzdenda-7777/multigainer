@@ -76,6 +76,9 @@ public class StorageManager {
                 + "mining_level INT DEFAULT 1,"
                 + "mining_xp DOUBLE DEFAULT 0.0,"
                 + "PRIMARY KEY (uuid)"
+
+                + "rebirth_points DOUBLE DEFAULT 0.0,"
+                + "rebirth_count INT DEFAULT 0,"
                 + ");";
 
         String createStatsTable = "CREATE TABLE IF NOT EXISTS mg_player_stats ("
