@@ -118,16 +118,18 @@ public final class Multigainer extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player p = event.getPlayer();
         PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
+
         if (profile != null) {
             // FIX: Force new profile configurations or uninitialized variables to default to Tier 0
-            if (profile.getTier() < 0 || profile.getMoney().toDouble() == 0 && profile.getRebirthPoints() == 0 && profile.getTier() == 1) {
+            if (profile.getTier() < 0 || (profile.getMoney().toDouble() == 0 && profile.getRebirthPoints() == 0 && profile.getTier() == 1)) {
                 profile.setTier(0);
             }
 
-            scoreboardManager.createScoreboard(p, profile.getMoney(), profile.getGems(),
-                    profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
-                    profile.getMiningLevel(), profile.getMiningXp());
+            // Upravené volání pro FastBoard:
+            // Stačí pouze vytvořit instanci, data se načtou v nejbližším update tasku.
+            scoreboardManager.createScoreboard(p);
         }
+
         p.getInventory().setItem(0, toolHandler.getCustomHoe());
         p.getInventory().setItem(1, toolHandler.getCustomPickaxe());
         p.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
@@ -136,6 +138,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         playerDataManager.handleQuit(event.getPlayer().getUniqueId());
+        scoreboardManager.removeScoreboard(event.getPlayer());
     }
 
     public PlayerDataManager getPlayerDataManager() { return playerDataManager; }
