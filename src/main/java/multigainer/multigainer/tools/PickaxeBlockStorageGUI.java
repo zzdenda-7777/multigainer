@@ -19,7 +19,7 @@ import java.util.Locale;
 
 public class PickaxeBlockStorageGUI implements Listener {
 
-    public static final String TITLE = "§8📦 §fBlock Storage";
+    public static final String TITLE = "§7Block Storage";
 
     private static final int SLOT_BACK = 31;
 
@@ -66,9 +66,7 @@ public class PickaxeBlockStorageGUI implements Listener {
         ItemMeta m = item.getItemMeta();
         m.setDisplayName("§f§l" + name);
         m.setLore(Arrays.asList(
-            "§8———————————————",
             "§7Stored: §f" + formatCount(count),
-            "§8———————————————",
             "§7Required Tier: " + tierColor + tierName + " Pickaxe"
         ));
         item.setItemMeta(m);

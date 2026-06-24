@@ -6,12 +6,14 @@ import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.tools.PickaxeManager;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -26,6 +28,8 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.util.*;
+
+import static multigainer.multigainer.tools.PickaxeManager.getBlockIndex;
 
 public class MiningListener implements Listener {
     private final Multigainer plugin;
@@ -150,7 +154,7 @@ public class MiningListener implements Listener {
         Material blockType = block.getType();
 
         // Check if the block is in our mining list
-        int blockIndex = PickaxeManager.getBlockIndex(blockType);
+        int blockIndex = getBlockIndex(blockType);
         if (blockIndex == -1) return;
 
         // Only process if holding the custom pickaxe
@@ -164,15 +168,27 @@ public class MiningListener implements Listener {
 
         // Tier restriction check
         int minTier = PickaxeManager.getMinTierForBlock(blockIndex);
+
         if (profile.getPickaxeTier() < minTier) {
-            sendUpgradeTitle(player, minTier);
-            // Still show the bedrock visual briefly so they see the block is inaccessible
+            // 1. Zobrazení hologramu nad blokem místo Title na obrazovce
+            spawnUpgradeHologram(block.getLocation(), minTier);
+
+            // 2. Vizuální efekt BEDROCK pro hráče
             new BukkitRunnable() {
-                @Override public void run() { sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK); }
+                @Override
+                public void run() {
+                    sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
+                }
             }.runTaskLater(plugin, 1L);
+
+            // 3. Vrácení bloku po 3 sekundách (60 ticků)
             new BukkitRunnable() {
-                @Override public void run() { revertFakeBlockChange(player, block); }
+                @Override
+                public void run() {
+                    revertFakeBlockChange(player, block);
+                }
             }.runTaskLater(plugin, 60L);
+
             return;
         }
 
@@ -233,8 +249,24 @@ public class MiningListener implements Listener {
         }.runTaskLater(plugin, 1L);
 
         spawnDropEffect(player, block.getLocation(), blockType);
-        player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
-                .deserialize("§7+ §b" + NumberFormatter.format(payout) + " Gems"));
+        // Předpokládám, že máš někde: double xpGained = ...;
+
+        String gemsFormatted = NumberFormatter.format(payout);
+        String xpFormatted = NumberFormatter.format(new BigNumber(xpGain));
+
+
+
+        // Zkus tam dát 10 až 20 mezer na konec.
+// Čím víc mezer na konci, tím víc se text posune doleva.
+
+        player.sendActionBar(net.kyori.adventure.text.Component.text()
+                .append(LegacyComponentSerializer.legacySection().deserialize("§7+ §b" + gemsFormatted + " Gems"))
+                .append(net.kyori.adventure.text.Component.text(" §8| "))
+                .append(LegacyComponentSerializer.legacySection().deserialize("§7+ §a" + xpFormatted + " XP"))
+                // Přidáme velký balík mezer na konec, který "vytlačí" text doleva
+                .append(net.kyori.adventure.text.Component.text("   "))
+                .font(org.bukkit.NamespacedKey.minecraft("uniform"))
+                .build());
 
         if (leveledUp) {
             spawnLevelUpItemEffect(player, block.getLocation());
@@ -259,29 +291,71 @@ public class MiningListener implements Listener {
         }.runTaskLater(plugin, 60L);
     }
 
-    private void sendUpgradeTitle(Player player, int requiredTier) {
-        long now = System.currentTimeMillis();
-        if (now - titleCooldown.getOrDefault(player.getUniqueId(), 0L) < 2000) return;
-        titleCooldown.put(player.getUniqueId(), now);
-
+    private void spawnUpgradeHologram(Location loc, int requiredTier) {
         String tierName = PickaxeManager.TIER_NAMES[requiredTier];
         String tierColor = PickaxeManager.TIER_COLORS[requiredTier];
-        player.sendTitle(
-            "§c§lPickaxe Required",
-            "§7Reach a " + tierColor + "§l" + tierName + " Pickaxe §7to mine this!",
-            5, 50, 10
-        );
+
+        // Vytvoření TextDisplay entity
+        Location spawnLoc = loc.clone().add(0.5, 1.5, 0.5); // Trochu nad blokem
+        TextDisplay td = loc.getWorld().spawn(spawnLoc, TextDisplay.class);
+
+        td.setText("§c§lPickaxe Required: " + tierColor + "§l" + tierName);
+        td.setBillboard(Display.Billboard.CENTER); // Bude se vždy natáčet k hráči
+        td.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0)); // Průhledné pozadí
+        td.setShadowed(true);
+
+        // Po 2 sekundách hologram smažeme
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                td.remove();
+            }
+        }.runTaskLater(plugin, 40L); // 40 ticků = 2 sekundy
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+        // 1. Zkontroluj, zda hráč klikl na blok
+        if (event.getClickedBlock() == null) return;
+
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
-        if (block != null && brokenCobbleCache.getOrDefault(player.getUniqueId(), Collections.emptySet()).contains(block.getLocation())) {
+
+        // 2. Ochrana proti pravému kliknutí na "falešný" Bedrock
+        // Pokud je blok v cache (tedy je to Bedrock), zrušíme jakýkoliv pravý klik
+        if (brokenCobbleCache.getOrDefault(player.getUniqueId(), Collections.emptySet()).contains(block.getLocation())) {
             event.setCancelled(true);
-            sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
+            return; // Hráč nemůže nic dělat, dokud se blok neobnoví
         }
+
+        // 3. Kontrola tieru (pouze pro levé kliknutí pro těžení)
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+            int blockIndex = getBlockIndex(block.getType()); // Předpokládám, že máš metodu pro index
+            int minTier = PickaxeManager.getMinTierForBlock(blockIndex);
+            PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
+
+            if (profile.getPickaxeTier() < minTier) {
+                event.setCancelled(true);
+
+                // Zobrazení hologramu a efektu
+                spawnUpgradeHologram(block.getLocation(), minTier);
+                sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
+
+                // Automatické vrácení bloku po 3 sekundách (pokud máš takovou logiku)
+                new BukkitRunnable() {
+                    @Override public void run() { revertFakeBlockChange(player, block); }
+                }.runTaskLater(plugin, 60L);
+
+                return;
+            }
+        }
+
+    }
+    // Tuto metodu si přidej do třídy (např. do Utils)
+    public String formatStable(String input, int length) {
+        if (input.length() >= length) return input;
+        // Doplnění mezer zleva
+        return String.format("%" + length + "s", input);
     }
 
     @EventHandler

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.Arrays;
 
@@ -25,18 +26,21 @@ public class TierGUI {
         for (int i = 0; i < 27; i++) inv.setItem(i, pane);
 
         // Tier Info Item (Beacon)
-        ItemStack stats = new ItemStack(Material.BEACON);
-        ItemMeta sm = stats.getItemMeta();
+        ItemStack stats = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta sm = (SkullMeta) stats.getItemMeta(); // Změněno na SkullMeta a přetypováno
+
+        if (sm != null) {
+            // Nastavení hlavy hráče
+            sm.setOwningPlayer(player);
         sm.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "TIER " + profile.getTier());
         sm.setLore(Arrays.asList(
                 " ",
-                ChatColor.GRAY + "● " + ChatColor.WHITE + "Current Multi: " + ChatColor.YELLOW +
+                ChatColor.GRAY + "Current Multi: " + ChatColor.YELLOW +
                         String.format("%.0fx", TierManager.getMultiplierForTier(profile.getTier())),
                 // ADDED: Displays the user's current accumulated Tier Points directly on the Beacon
-                ChatColor.GRAY + "● " + ChatColor.WHITE + "Tier Points: " + ChatColor.LIGHT_PURPLE + profile.getTierPoints(),
-                ChatColor.GRAY + "● " + ChatColor.WHITE + "Next Tier Cost: " + ChatColor.AQUA +
-                        NumberFormatter.format(new BigNumber(TierManager.getCostForTier(profile.getTier() + 1))) + " Points",
-                " "
+                ChatColor.GRAY + "Tier Points: " + ChatColor.LIGHT_PURPLE + profile.getTierPoints(),
+                ChatColor.GRAY + "Next Tier Cost: " + ChatColor.AQUA +
+                        NumberFormatter.format(new BigNumber(TierManager.getCostForTier(profile.getTier() + 1))) + " Points"
         ));
         stats.setItemMeta(sm);
 
@@ -58,33 +62,34 @@ public class TierGUI {
                 " ",
                 ChatColor.GRAY + "Progress: " + ChatColor.AQUA + formattedCurrent + ChatColor.GRAY + "/" + ChatColor.GOLD + formattedCost,
                 " ",
-                canTier ? ChatColor.YELLOW + "Click to advance!" : ChatColor.RED + "Not enough points."
+                canTier ? ChatColor.YELLOW + "Click to TIER UP!" : ChatColor.RED + "Not enough points."
         ));
         button.setItemMeta(bm);
 
         // Explanatory Guide Book Item
         ItemStack book = new ItemStack(Material.BOOK);
         ItemMeta bookMeta = book.getItemMeta();
-        bookMeta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "TIER GUIDEBOOK");
-        bookMeta.setLore(Arrays.asList(
-                " ",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "What is Tier Advancement?",
-                ChatColor.GRAY + "A milestone which gives you 2x money everytime,",
-                ChatColor.GRAY + "Its the last reset layer, essential for progression .",
-                " ",
-                ChatColor.RED + "" + ChatColor.BOLD + "What you LOSE:",
-                ChatColor.GRAY + "● All Money",
-                ChatColor.GRAY + "● Upgrades (slot 5)",
-                " ",
-                ChatColor.GREEN + "" + ChatColor.BOLD + "What you KEEP:",
-                ChatColor.GRAY + "● Everything else",
-                " "
-        ));
-        book.setItemMeta(bookMeta);
+            bookMeta.setDisplayName(ChatColor.WHITE + "");
+            bookMeta.setLore(Arrays.asList(
+                    " ",
+                    ChatColor.YELLOW + "TIER ADVANCEMENT",
+                    ChatColor.GRAY + "A milestone that doubles your money.",
+                    ChatColor.GRAY + "The final reset layer for progression.",
+                    " ",
+                    ChatColor.RED + "ON ADVANCEMENT",
+                    ChatColor.GRAY + "All money is reset and",
+                    ChatColor.GRAY + "pickaxe upgrades are cleared.",
+                    " ",
+                    ChatColor.GREEN + "WHAT REMAINS",
+                    ChatColor.GRAY + "All other progress is saved",
+                    ChatColor.GRAY + "and stays with you.",
+                    " "
+            ));
+            book.setItemMeta(bookMeta);
 
         inv.setItem(11, stats);
         inv.setItem(13, button);
         inv.setItem(15, book);
         player.openInventory(inv);
     }
-}
+};}

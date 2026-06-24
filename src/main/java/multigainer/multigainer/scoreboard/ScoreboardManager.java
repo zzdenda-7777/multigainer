@@ -31,9 +31,29 @@ public class ScoreboardManager {
         org.bukkit.scoreboard.ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
 
+
+// Royal Gold (#FFC125) -> Dark Bronze (#8B5A2B) -> Royal Gold (#FFC125)
         Scoreboard board = manager.getNewScoreboard();
-        Objective objective = board.registerNewObjective("currency_sb", Criteria.DUMMY, ChatColor.GOLD + "" + ChatColor.BOLD + "MULTIGAINER");
+
+// Klasická zlatá (#FFD700) -> Střední oranžovo-zlatá (#D2691E)
+// Plynulý gradient (zářivá zlatá -> střední oranžová -> zářivá zlatá)
+        String title = "§x§F§F§D§7§0§0§lM" + // Zlatá
+                "§x§F§F§D§7§0§0§lU" +
+                "§x§F§D§C§9§0§B§lL" +
+                "§x§F§C§B§C§1§6§lT" +
+                "§x§F§A§A§F§1§C§lI" +
+                "§x§E§D§9§E§4§4§lG" +
+                "§x§F§A§A§F§1§C§lA" +
+                "§x§F§C§B§C§1§6§lI" +
+                "§x§F§D§C§9§0§B§lN" +
+                "§x§F§F§D§7§0§0§lE" +
+                "§x§F§F§D§7§0§0§lR";
+
+        Objective objective = board.registerNewObjective("currency_sb", Criteria.DUMMY, title);
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+        // Hide the numbers (1-14) shown on the right side of the scoreboard
+        objective.numberFormat(io.papermc.paper.scoreboard.numbers.NumberFormat.blank());
 
         objective.getScore(" ").setScore(14);
 
@@ -69,7 +89,7 @@ public class ScoreboardManager {
 
         Team rubiesTeam = board.registerNewTeam("sb_rubies");
         rubiesTeam.addEntry(ChatColor.RED.toString());
-        rubiesTeam.setPrefix("§c♦ §8| §cRubies: §f");
+        rubiesTeam.setPrefix("§4♦ §8| §4Rubies: §f");
         rubiesTeam.setSuffix(NumberFormatter.format(rubies));
         objective.getScore(ChatColor.RED.toString()).setScore(11);
 

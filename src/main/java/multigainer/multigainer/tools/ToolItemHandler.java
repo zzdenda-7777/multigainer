@@ -54,6 +54,8 @@ public class ToolItemHandler implements Listener {
     public ItemStack getPickaxeForProfile(PlayerProfile profile) {
         int tier = profile != null ? profile.getPickaxeTier() : 0;
         int speedLevel = profile != null ? profile.getMiningSpeedLevel() : 0;
+        int xpLvl = profile != null ? profile.getXpMultiLevel() : 0;
+        int gemLvl = profile != null ? profile.getGemMultiLevel() : 0;
 
         Material mat = PickaxeManager.TIER_MATERIALS[tier];
         String color = PickaxeManager.TIER_COLORS[tier];
@@ -62,8 +64,17 @@ public class ToolItemHandler implements Listener {
         ItemStack pickaxe = new ItemStack(mat);
         ItemMeta meta = pickaxe.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color + "§l" + tierName + " Pickaxe §8(Right Click)");
-            meta.setLore(Collections.singletonList("§7Right click to open the pickaxe menu!"));
+            meta.setDisplayName(color + "§l" + tierName + " Pickaxe");
+
+            // Build lore with upgrade stats
+            java.util.List<String> lore = new java.util.ArrayList<>();
+            lore.add("§7Right click to open the pickaxe menu!");
+            lore.add("");
+            lore.add("§7Mining speed: §f" + speedLevel + " level");
+            lore.add("§7XP Multi: §ax" + String.format("%.2f", PickaxeManager.getXpMultiplier(xpLvl)));
+            lore.add("§7Gem Multi: §bx" + String.format("%.2f", PickaxeManager.getGemMultiplier(gemLvl)));
+            meta.setLore(lore);
+
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
 

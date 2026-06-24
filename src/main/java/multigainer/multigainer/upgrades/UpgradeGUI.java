@@ -35,11 +35,11 @@ public class UpgradeGUI implements Listener {
         ItemMeta meta = upgradeItem.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Upgrade Money Multiplier");
+            meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Money Multiplier");
             List<String> lore = new ArrayList<>();
             lore.add(" ");
-            lore.add(ChatColor.GRAY + "Current Level: " + ChatColor.YELLOW + currentLevel + "/" + UpgradeManager.MAX_LEVEL);
-            lore.add(ChatColor.GRAY + "Total Multiplier: " + ChatColor.GREEN + NumberFormatter.format(UpgradeManager.getTotalMultiplier(currentLevel)) + "x");
+            lore.add(ChatColor.GRAY + "Current Level: " + ChatColor.GOLD + currentLevel + "/" + UpgradeManager.MAX_LEVEL);
+            lore.add(ChatColor.GRAY + "Total Multiplier: " + ChatColor.GOLD + NumberFormatter.format(UpgradeManager.getTotalMultiplier(currentLevel)) + "x");
             lore.add(" ");
 
             if (currentLevel < UpgradeManager.MAX_LEVEL) {
@@ -48,9 +48,9 @@ public class UpgradeGUI implements Listener {
                 double nextMulti = UpgradeManager.getTierMultiplier(nextLevel);
 
                 lore.add(ChatColor.GRAY + "Next Tier Multiplier: " + ChatColor.AQUA + "x" + nextMulti);
-                lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GOLD + "$" + NumberFormatter.format(cost));
+                lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GREEN + "$" + NumberFormatter.format(cost));
                 lore.add(" ");
-                lore.add(ChatColor.YELLOW + "▶ Click to purchase upgrade!");
+                lore.add(ChatColor.YELLOW + "Click to purchase upgrade!");
             } else {
                 lore.add(ChatColor.RED + "✔ Max upgrade tier achieved!");
             }

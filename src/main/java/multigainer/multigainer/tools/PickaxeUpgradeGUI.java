@@ -19,7 +19,7 @@ import java.util.List;
 
 public class PickaxeUpgradeGUI implements Listener {
 
-    public static final String TITLE = "§8⚒ §fPickaxe Upgrades";
+    public static final String TITLE = "§7Pickaxe Upgrades";
 
     private static final int SLOT_SPEED   = 10;
     private static final int SLOT_XP      = 13;
@@ -55,18 +55,17 @@ public class PickaxeUpgradeGUI implements Listener {
 
         ItemStack item = new ItemStack(Material.WIND_CHARGE);
         ItemMeta m = item.getItemMeta();
-        m.setDisplayName("§f§lMining Speed" + (isMax ? " §8(MAX)" : ""));
+        m.setDisplayName("§f§lMINING SPEED" + (isMax ? " §8(MAX)" : ""));
         m.setLore(Arrays.asList(
-            "§8———————————————",
             "§7Boosts your mining speed by",
             "§7increasing your Efficiency level.",
-            "§8———————————————",
-            "§7Level:      §f" + level + " §8/ §750",
+            "",
+            "§7Level: §f" + level + " §8/ §750",
             "§7Efficiency: §fLevel " + level,
-            "§8———————————————",
+            "",
+            isMax ? "" : "§7Next Level: §fLevel " + (level + 1),
             isMax ? "§a✔ Max level reached!" : "§7Cost: §b" + NumberFormatter.format(cost) + " Gems",
-            isMax ? "" : "§8Next Level: §fLevel " + (level + 1),
-            "§8———————————————",
+            "",
             isMax ? "§7No further upgrades available." : "§eClick to upgrade!"
         ));
         item.setItemMeta(m);
@@ -80,18 +79,17 @@ public class PickaxeUpgradeGUI implements Listener {
 
         ItemStack item = new ItemStack(Material.EXPERIENCE_BOTTLE);
         ItemMeta m = item.getItemMeta();
-        m.setDisplayName("§a§lXP Multiplier");
+        m.setDisplayName("§a§lXP MULTIPLIER");
         m.setLore(Arrays.asList(
-            "§8———————————————",
             "§7Multiplies all mining XP gained.",
             "§7Stacks with block XP values.",
-            "§8———————————————",
-            "§7Level:     §a" + level,
+            "",
+            "§7Level: §a" + level,
             "§7Total XP Multi: §ax" + String.format("%.4f", totalMulti),
-            "§8———————————————",
+            "§7Per Level: §a+1.05x §8(Exponential)",
+            "",
             "§7Cost: §b" + NumberFormatter.format(cost) + " Gems",
-            "§7Per Level: §a+1.05x §8(exponential)",
-            "§8———————————————",
+            "",
             "§eClick to upgrade!"
         ));
         item.setItemMeta(m);
@@ -108,20 +106,20 @@ public class PickaxeUpgradeGUI implements Listener {
 
         ItemStack item = new ItemStack(Material.LIGHT_BLUE_DYE);
         ItemMeta m = item.getItemMeta();
-        m.setDisplayName("§b§lGem Multiplier");
+        m.setDisplayName("§b§lGEM MULTIPLIER");
         m.setLore(Arrays.asList(
-            "§8———————————————",
             "§7Multiplies all gems gained.",
             "§7Stacks with your Mining Level multi.",
-            "§8———————————————",
-            "§7Level:          §b" + level,
-            "§7Upgrade Multi:  §bx" + String.format("%.4f", upgradeMulti),
+            "",
+            "§7Level: §b" + level,
+            "§7Per Level: §b+1.03x §8(Exponential)",
+            "§7Upgrade Multi: §bx" + String.format("%.4f", upgradeMulti),
+            "",
             "§7Mining Lvl Multi: §bx" + String.format("%.4f", miningLevelMulti),
             "§7Total Gem Multi: §bx" + String.format("%.4f", totalMulti),
-            "§8———————————————",
+            "",
             "§7Cost: §b" + NumberFormatter.format(cost) + " Gems",
-            "§7Per Level: §b+1.03x §8(exponential)",
-            "§8———————————————",
+            "",
             "§eClick to upgrade!"
         ));
         item.setItemMeta(m);

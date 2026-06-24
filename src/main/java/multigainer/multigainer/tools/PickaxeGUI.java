@@ -18,7 +18,7 @@ import java.util.List;
 
 public class PickaxeGUI implements Listener {
 
-    public static final String TITLE = "§8⛏ §fPickaxe Menu";
+    public static final String TITLE = "§7Pickaxe Menu";
 
     private static final int SLOT_UPGRADES = 11;
     private static final int SLOT_TIER_UP  = 13;
@@ -44,13 +44,13 @@ public class PickaxeGUI implements Listener {
 
         ItemStack upgrades = new ItemStack(Material.ANVIL);
         ItemMeta um = upgrades.getItemMeta();
-        um.setDisplayName("§e§lUpgrades");
+        um.setDisplayName("§e§lUPGRADES");
         um.setLore(Arrays.asList(
-            "§8———————————————",
-            "§7Mining Speed  §f" + speedLvl + (speedLvl >= 50 ? " §a(MAX)" : ""),
-            "§7XP Multi      §ax" + String.format("%.2f", PickaxeManager.getXpMultiplier(xpLvl)),
-            "§7Gem Multi     §bx" + String.format("%.2f", PickaxeManager.getGemMultiplier(gemLvl)),
-            "§8———————————————",
+            "",
+            "§7Mining Speed: §f" + speedLvl + (speedLvl >= 50 ? " §a(MAX)" : ""),
+            "§7XP Multi: §ax" + String.format("%.2f", PickaxeManager.getXpMultiplier(xpLvl)),
+            "§7Gem Multi: §bx" + String.format("%.2f", PickaxeManager.getGemMultiplier(gemLvl)),
+            "",
             "§eClick to open upgrades!"
         ));
         upgrades.setItemMeta(um);
@@ -62,12 +62,11 @@ public class PickaxeGUI implements Listener {
         // --- Slot 15: Block Storage ---
         ItemStack storage = new ItemStack(Material.CHEST);
         ItemMeta sm = storage.getItemMeta();
-        sm.setDisplayName("§b§lBlock Storage");
+        sm.setDisplayName("§b§lBLOCK STORAGE");
         sm.setLore(Arrays.asList(
-            "§8———————————————",
             "§7View how many blocks you have",
             "§7collected from mining.",
-            "§8———————————————",
+            "",
             "§eClick to open!"
         ));
         storage.setItemMeta(sm);
@@ -83,11 +82,11 @@ public class PickaxeGUI implements Listener {
         if (isMax) {
             ItemStack item = new ItemStack(PickaxeManager.TIER_MATERIALS[currentTier]);
             ItemMeta m = item.getItemMeta();
-            m.setDisplayName("§a§lMax Tier Reached");
+            m.setDisplayName("§a§lMAX TIER REACHED!");
             m.setLore(Arrays.asList(
-                "§8———————————————",
+                "",
                 "§7Current Tier: " + PickaxeManager.TIER_COLORS[currentTier] + "§l" + PickaxeManager.TIER_NAMES[currentTier],
-                "§8———————————————",
+                "",
                 "§7You have reached the maximum",
                 "§7pickaxe tier. Well done!"
             ));
@@ -108,19 +107,16 @@ public class PickaxeGUI implements Listener {
         ItemStack item = new ItemStack(mat);
         ItemMeta m = item.getItemMeta();
 
-        m.setDisplayName((canUpgrade ? "§a§l" : "§c§l") + "Tier Up  "
-            + PickaxeManager.TIER_COLORS[currentTier] + PickaxeManager.TIER_NAMES[currentTier]
-            + " §8→ "
-            + PickaxeManager.TIER_COLORS[nextTier] + PickaxeManager.TIER_NAMES[nextTier]);
+        m.setDisplayName((canUpgrade ? "§a§l" : "§c§l") + "TIER UP  "
 
+
+        + PickaxeManager.TIER_COLORS[currentTier] + PickaxeManager.TIER_NAMES[currentTier]
+                + " §8→ "
+                + PickaxeManager.TIER_COLORS[nextTier] + PickaxeManager.TIER_NAMES[nextTier]);
         List<String> lore = new ArrayList<>();
-        lore.add("§8———————————————");
-        lore.add("§7Current: " + PickaxeManager.TIER_COLORS[currentTier] + "§l" + PickaxeManager.TIER_NAMES[currentTier] + " Pickaxe");
-        lore.add("§7Next:    " + PickaxeManager.TIER_COLORS[nextTier] + "§l" + PickaxeManager.TIER_NAMES[nextTier] + " Pickaxe");
-        lore.add("§8———————————————");
-        lore.add((tierMet  ? "§a✔" : "§c✘") + " §7Tier:         §f" + reqTier  + " §8(yours: " + profile.getTier() + ")");
-        lore.add((levelMet ? "§a✔" : "§c✘") + " §7Mining Level: §f" + formatLevel(reqMineLevel) + " §8(yours: " + formatLevel(profile.getMiningLevel()) + ")");
-        lore.add("§8———————————————");
+        lore.add((tierMet  ? "§a✔" : "§c✘") + " §7Tier: §f" + reqTier  + " §8(Current: " + profile.getTier() + ")");
+        lore.add((levelMet ? "§a✔" : "§c✘") + " §7Mining Level: §f" + formatLevel(reqMineLevel) + " §8(Current: " + formatLevel(profile.getMiningLevel()) + ")");
+        lore.add("");
         lore.add(canUpgrade ? "§eClick to upgrade!" : "§cRequirements not met.");
         m.setLore(lore);
         item.setItemMeta(m);

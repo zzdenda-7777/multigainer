@@ -66,7 +66,7 @@ public class MiningLevelManager {
             progressBar.append("■");
         }
 
-        progressBar.append("§8] §e").append((int) (progress * 100)).append("%");
+        progressBar.append("§8] §7").append((int) (progress * 100)).append("%");
         return progressBar.toString();
     }
 }

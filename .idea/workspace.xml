@@ -5,7 +5,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="jak ti muze takhle smrdět píča">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/levels/MiningLevelManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/levels/MiningLevelManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/scoreboard/ScoreboardManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/scoreboard/ScoreboardManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tier/TierGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tier/TierGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeBlockStorageGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeBlockStorageGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeUpgradeGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeUpgradeGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/ToolItemHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/ToolItemHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/upgrades/UpgradeGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/upgrades/UpgradeGUI.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,7 +85,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/zzdenda-7777/multigainer.git&quot;,
-    &quot;accountId&quot;: &quot;1912f1a8-1d90-4a14-b682-a92f5c725591&quot;
+    &quot;accountId&quot;: &quot;ead36c14-1c17-4ea2-ab00-b16a9788a5f1&quot;
   }
 }</component>
   <component name="ProblemsViewState">
@@ -376,5 +389,16 @@
     <MESSAGE value="zdendasmrdí fuuuuuj" />
     <MESSAGE value="jak ti muze takhle smrdět píča" />
     <option name="LAST_COMMIT_MESSAGE" value="jak ti muze takhle smrdět píča" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/multigainer/multigainer/tier/TierGUI.java</url>
+          <line>41</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
