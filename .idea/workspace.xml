@@ -5,15 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="jak ti muze takhle smrdět píča">
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/levels/FarmingLevelManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/levels/FarmingLevelManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/levels/MiningLevelManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/levels/MiningLevelManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/scoreboard/ScoreboardManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/scoreboard/ScoreboardManager.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -148,7 +143,7 @@
       <recent name="multigainer.multigainer.data" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.multigainer [jar]">
+  <component name="RunManager" selected="Gradle.multigainer [build]">
     <configuration name="multigainer [buildDependents]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -251,8 +246,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.multigainer [jar]" />
         <item itemvalue="Gradle.multigainer [build]" />
+        <item itemvalue="Gradle.multigainer [jar]" />
         <item itemvalue="Gradle.multigainer [clean]" />
         <item itemvalue="Gradle.multigainer [buildDependents]" />
       </list>
