@@ -15,13 +15,13 @@ import multigainer.multigainer.listeners.MiningListener;
 import multigainer.multigainer.listeners.FarmingListener;
 import multigainer.multigainer.listeners.JoinListener;
 import multigainer.multigainer.upgrades.UpgradeItemHandler;
+import multigainer.multigainer.tools.PickaxeBlockStorageGUI;
+import multigainer.multigainer.tools.PickaxeGUI;
+import multigainer.multigainer.tools.PickaxeUpgradeGUI;
+import multigainer.multigainer.tools.ToolGUI;
 import multigainer.multigainer.tools.ToolItemHandler;
-import multigainer.multigainer.packet.PacketManager;
 import multigainer.multigainer.scoreboard.ScoreboardManager;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,6 +36,10 @@ public final class Multigainer extends JavaPlugin implements Listener {
     private PlayerDataManager playerDataManager;
     private UpgradeItemHandler upgradeHandler;
     private ToolItemHandler toolHandler;
+    private ToolGUI toolGUI;
+    private PickaxeGUI pickaxeGUI;
+    private PickaxeUpgradeGUI pickaxeUpgradeGUI;
+    private PickaxeBlockStorageGUI pickaxeBlockStorageGUI;
 
     @Override
     public void onEnable() {
@@ -46,6 +50,10 @@ public final class Multigainer extends JavaPlugin implements Listener {
 
         this.upgradeHandler = new UpgradeItemHandler(this);
         this.toolHandler = new ToolItemHandler(this);
+        this.toolGUI = new ToolGUI(this);
+        this.pickaxeGUI = new PickaxeGUI(this);
+        this.pickaxeUpgradeGUI = new PickaxeUpgradeGUI(this);
+        this.pickaxeBlockStorageGUI = new PickaxeBlockStorageGUI(this);
 
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new MiningListener(this), this);
@@ -53,6 +61,10 @@ public final class Multigainer extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new JoinListener(this, playerDataManager), this);
         getServer().getPluginManager().registerEvents(upgradeHandler, this);
         getServer().getPluginManager().registerEvents(toolHandler, this);
+        getServer().getPluginManager().registerEvents(toolGUI, this);
+        getServer().getPluginManager().registerEvents(pickaxeGUI, this);
+        getServer().getPluginManager().registerEvents(pickaxeUpgradeGUI, this);
+        getServer().getPluginManager().registerEvents(pickaxeBlockStorageGUI, this);
         getServer().getPluginManager().registerEvents(new RebirthListener(this), this);
         getServer().getPluginManager().registerEvents(new TierListener(this), this);
 
@@ -88,7 +100,6 @@ public final class Multigainer extends JavaPlugin implements Listener {
             });
         }
 
-        // INITIALIZED: Passive Income Engine Core Task Clock
         new IncomeManager(this);
 
         new org.bukkit.scheduler.BukkitRunnable() {
@@ -119,17 +130,15 @@ public final class Multigainer extends JavaPlugin implements Listener {
         Player p = event.getPlayer();
         PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
         if (profile != null) {
-            // FIX: Force new profile configurations or uninitialized variables to default to Tier 0
             if (profile.getTier() < 0 || profile.getMoney().toDouble() == 0 && profile.getRebirthPoints() == 0 && profile.getTier() == 1) {
                 profile.setTier(0);
             }
-
             scoreboardManager.createScoreboard(p, profile.getMoney(), profile.getGems(),
                     profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
                     profile.getMiningLevel(), profile.getMiningXp());
         }
         p.getInventory().setItem(0, toolHandler.getCustomHoe());
-        p.getInventory().setItem(1, toolHandler.getCustomPickaxe());
+        p.getInventory().setItem(1, toolHandler.getPickaxeForProfile(profile));
         p.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
     }
 
@@ -139,8 +148,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
     }
 
     public PlayerDataManager getPlayerDataManager() { return playerDataManager; }
-
-    public ScoreboardManager getScoreboardManager() {
-        return this.scoreboardManager;
-    }
+    public ScoreboardManager getScoreboardManager() { return this.scoreboardManager; }
+    public ToolItemHandler getToolHandler() { return toolHandler; }
+    public ToolGUI getToolGUI() { return toolGUI; }
 }
