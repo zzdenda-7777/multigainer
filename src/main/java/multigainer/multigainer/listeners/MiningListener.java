@@ -58,10 +58,10 @@ public class MiningListener implements Listener {
      * 1. Item vyskočí z bloku a krátce se vznáší
      * 2. Po 0.5s (10 ticků) odletí k hráči
      * 3. Po 0.6s (12 ticků) se entita VŽDY smaže (pojistka), peníze už byly
-     *    připsány dřív v onBlockBreak, takže animace je čistě vizuální bonus
+     * připsány dřív v onBlockBreak, takže animace je čistě vizuální bonus
      *
      * Billboard.FIXED - item má pevnou orientaci v prostoru, NEOTÁČÍ se za
-     * hráčovou kamerou (na rozdíl od CENTER, který by sledoval pohled hráče)
+     * hráčovou kamerou (na rozdíl @param CENTER, který by sledoval pohled hráče)
      */
     private void spawnDropEffect(Player player, Location blockLocation, Material dropMaterial) {
         Location restingLoc = blockLocation.clone().add(0.5, 1.05, 0.5);
@@ -104,7 +104,6 @@ public class MiningListener implements Listener {
         }.runTaskLater(plugin, 1L);
 
         // Krok 2: po 0.5s (10 ticků) odletí k hráči
-        // Krok 2: po 0.5s (10 ticků) odletí k hráči
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -120,7 +119,7 @@ public class MiningListener implements Listener {
         }.runTaskLater(plugin, 10L);
 
         // Krok 3: POJISTKA - po 0.6s (12 ticků) se entita vždy smaže,
-        // bez ohledu na to, jestli let k hráči stihl doběhnout
+        // bez ohledu na to, jestli let k hráči stihl dospět
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -220,7 +219,8 @@ public class MiningListener implements Listener {
 
         profile.setGems(profile.getGems().add(payout));
 
-        double currentXp = profile.getMiningXp() + 1.0;
+        // Využití blockMultiplier (2.0 pro Cobbled Deepslate, 1.0 pro Cobblestone) k zajištění 2x XP
+        double currentXp = profile.getMiningXp() + blockMultiplier;
         int currentLevel = profile.getMiningLevel();
         double requiredXp = MiningLevelManager.getRequiredXpForNextLevel(currentLevel);
         boolean leveledUp = false;

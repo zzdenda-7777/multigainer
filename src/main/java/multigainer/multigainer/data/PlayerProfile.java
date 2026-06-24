@@ -12,15 +12,15 @@ public class PlayerProfile {
 
     // Default constructor
     public PlayerProfile() {
-        this(new BigNumber(0), new BigNumber(0), new BigNumber(0), 0, 1, 1, 0.0, 1, 0.0, 0.0, 0);
+        this(new BigNumber(0), new BigNumber(0), new BigNumber(0), 0, 1, 0, 1, 0.0, 1, 0.0, 0.0, 0);
     }
 
-    // Full constructor
-    public PlayerProfile(BigNumber money, BigNumber gems, BigNumber rubies, int upgradeLevel, int tier,
+    // Full constructor (Updated to include tierPoints)
+    public PlayerProfile(BigNumber money, BigNumber gems, BigNumber rubies, int upgradeLevel, int tier, int tierPoints,
                          int farmingLevel, double farmingXp, int miningLevel, double miningXp,
                          double rebirthPoints, int rebirthCount) {
         this.money = money; this.gems = gems; this.rubies = rubies;
-        this.upgradeLevel = upgradeLevel; this.tier = tier;
+        this.upgradeLevel = upgradeLevel; this.tier = tier; this.tierPoints = tierPoints;
         this.farmingLevel = farmingLevel; this.farmingXp = farmingXp;
         this.miningLevel = miningLevel; this.miningXp = miningXp;
         this.rebirthPoints = rebirthPoints; this.rebirthCount = rebirthCount;

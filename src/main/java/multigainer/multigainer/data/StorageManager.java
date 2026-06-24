@@ -63,6 +63,7 @@ public class StorageManager {
                 + "rubies_mantissa REAL DEFAULT 0, rubies_exponent REAL DEFAULT 0, "
                 + "upgrade_level INTEGER DEFAULT 0, "
                 + "tier INTEGER DEFAULT 1, "
+                + "tier_points INTEGER DEFAULT 0, " // Added tier_points column
                 + "farming_level INTEGER DEFAULT 1, farming_xp REAL DEFAULT 0, "
                 + "mining_level INTEGER DEFAULT 1, mining_xp REAL DEFAULT 0, "
                 + "rebirth_points REAL DEFAULT 0, "
@@ -88,6 +89,14 @@ public class StorageManager {
             try {
                 stmt.execute("ALTER TABLE mg_player_profiles ADD COLUMN tier INTEGER DEFAULT 0;");
                 plugin.getLogger().info("⚠️ Database Migration: Added missing 'tier' column.");
+            } catch (SQLException ignored) {
+                // Column already exists, safe to ignore
+            }
+
+            // ADDED: Auto-migration block for tier_points column
+            try {
+                stmt.execute("ALTER TABLE mg_player_profiles ADD COLUMN tier_points INTEGER DEFAULT 0;");
+                plugin.getLogger().info("⚠️ Database Migration: Added missing 'tier_points' column.");
             } catch (SQLException ignored) {
                 // Column already exists, safe to ignore
             }

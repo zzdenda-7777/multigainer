@@ -38,13 +38,14 @@ public class PlayerDataManager {
 
                     try (ResultSet rs = stmt.executeQuery()) {
                         if (rs.next()) {
-                            // Map all fields to the new PlayerProfile constructor
+                            // Map all fields to the new PlayerProfile constructor including tier_points
                             PlayerProfile profile = new PlayerProfile(
                                     new BigNumber(rs.getDouble("money_mantissa"), rs.getDouble("money_exponent")),
                                     new BigNumber(rs.getDouble("gems_mantissa"), rs.getDouble("gems_exponent")),
                                     new BigNumber(rs.getDouble("rubies_mantissa"), rs.getDouble("rubies_exponent")),
                                     rs.getInt("upgrade_level"),
                                     rs.getInt("tier"),
+                                    rs.getInt("tier_points"), // Loaded from DB
                                     rs.getInt("farming_level"),
                                     rs.getDouble("farming_xp"),
                                     rs.getInt("mining_level"),
@@ -83,7 +84,7 @@ public class PlayerDataManager {
                 + "money_mantissa = ?, money_exponent = ?, "
                 + "gems_mantissa = ?, gems_exponent = ?, "
                 + "rubies_mantissa = ?, rubies_exponent = ?, "
-                + "upgrade_level = ?, tier = ?, farming_level = ?, farming_xp = ?, "
+                + "upgrade_level = ?, tier = ?, tier_points = ?, farming_level = ?, farming_xp = ?, "
                 + "mining_level = ?, mining_xp = ?, rebirth_points = ?, rebirth_count = ? WHERE uuid = ?";
 
         try (Connection conn = storageManager.getConnection();
@@ -97,13 +98,14 @@ public class PlayerDataManager {
             stmt.setDouble(6, profile.getRubies().getExponent());
             stmt.setInt(7, profile.getUpgradeLevel());
             stmt.setInt(8, profile.getTier());
-            stmt.setInt(9, profile.getFarmingLevel());
-            stmt.setDouble(10, profile.getFarmingXp());
-            stmt.setInt(11, profile.getMiningLevel());
-            stmt.setDouble(12, profile.getMiningXp());
-            stmt.setDouble(13, profile.getRebirthPoints());
-            stmt.setInt(14, profile.getRebirthCount());
-            stmt.setString(15, uuid.toString());
+            stmt.setInt(9, profile.getTierPoints()); // Saved to DB
+            stmt.setInt(10, profile.getFarmingLevel());
+            stmt.setDouble(11, profile.getFarmingXp());
+            stmt.setInt(12, profile.getMiningLevel());
+            stmt.setDouble(13, profile.getMiningXp());
+            stmt.setDouble(14, profile.getRebirthPoints());
+            stmt.setInt(15, profile.getRebirthCount());
+            stmt.setString(16, uuid.toString());
 
             stmt.executeUpdate();
         } catch (SQLException e) {
