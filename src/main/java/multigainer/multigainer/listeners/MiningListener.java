@@ -200,42 +200,61 @@ public class MiningListener implements Listener {
         Player player = event.getPlayer();
         Material blockType = block.getType();
 
-        // --- Kontrola bloku včetně 15 nových progresivních typů bloků ---
-        double blockMultiplier;
+        // --- Kontrola bloku s odděleným násobitelem pro drahokamy a XP ---
+        double blockGemsMultiplier;
+        double blockXpMultiplier;
+
         if (blockType == Material.COBBLESTONE) {
-            blockMultiplier = 1.0;
+            blockGemsMultiplier = 1.0;
+            blockXpMultiplier = 1.0;
         } else if (blockType == Material.COBBLED_DEEPSLATE) {
-            blockMultiplier = 2.0;
+            blockGemsMultiplier = 2.0;
+            blockXpMultiplier = 2.0;
         } else if (blockType == Material.COPPER_ORE) {
-            blockMultiplier = 4.0;
+            blockGemsMultiplier = 4.0;
+            blockXpMultiplier = 3.0;
         } else if (blockType == Material.DEEPSLATE_COPPER_ORE) {
-            blockMultiplier = 6.0;
+            blockGemsMultiplier = 6.0;
+            blockXpMultiplier = 4.0;
         } else if (blockType == Material.COAL_ORE) {
-            blockMultiplier = 10.0;
+            blockGemsMultiplier = 10.0;
+            blockXpMultiplier = 5.0;
         } else if (blockType == Material.DEEPSLATE_COAL_ORE) {
-            blockMultiplier = 15.0;
+            blockGemsMultiplier = 15.0;
+            blockXpMultiplier = 7.0;
         } else if (blockType == Material.IRON_ORE) {
-            blockMultiplier = 25.0;
+            blockGemsMultiplier = 25.0;
+            blockXpMultiplier = 9.0;
         } else if (blockType == Material.DEEPSLATE_IRON_ORE) {
-            blockMultiplier = 40.0;
+            blockGemsMultiplier = 40.0;
+            blockXpMultiplier = 11.0;
         } else if (blockType == Material.REDSTONE_ORE) {
-            blockMultiplier = 70.0;
+            blockGemsMultiplier = 70.0;
+            blockXpMultiplier = 13.0;
         } else if (blockType == Material.DEEPSLATE_REDSTONE_ORE) {
-            blockMultiplier = 120.0;
+            blockGemsMultiplier = 120.0;
+            blockXpMultiplier = 15.0;
         } else if (blockType == Material.LAPIS_ORE) {
-            blockMultiplier = 200.0;
+            blockGemsMultiplier = 200.0;
+            blockXpMultiplier = 18.0;
         } else if (blockType == Material.DEEPSLATE_LAPIS_ORE) {
-            blockMultiplier = 450.0;
+            blockGemsMultiplier = 450.0;
+            blockXpMultiplier = 25.0;
         } else if (blockType == Material.GOLD_ORE) {
-            blockMultiplier = 1000.0;
+            blockGemsMultiplier = 1000.0;
+            blockXpMultiplier = 35.0;
         } else if (blockType == Material.DEEPSLATE_GOLD_ORE) {
-            blockMultiplier = 2500.0;
+            blockGemsMultiplier = 2500.0;
+            blockXpMultiplier = 50.0;
         } else if (blockType == Material.DIAMOND_ORE) {
-            blockMultiplier = 10000.0;
+            blockGemsMultiplier = 10000.0;
+            blockXpMultiplier = 75.0;
         } else if (blockType == Material.DEEPSLATE_DIAMOND_ORE) {
-            blockMultiplier = 50000.0;
+            blockGemsMultiplier = 50000.0;
+            blockXpMultiplier = 150.0;
         } else if (blockType == Material.NETHERITE_BLOCK) {
-            blockMultiplier = 1000000.0;
+            blockGemsMultiplier = 1000000.0;
+            blockXpMultiplier = 1000.0;
         } else {
             return; // Jakýkoliv jiný nezařazený blok ignorujeme
         }
@@ -249,13 +268,14 @@ public class MiningListener implements Listener {
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(uuid);
 
-        BigNumber payout = new BigNumber(blockMultiplier)
+        // Výpočet odměny drahokamů za použití nového blockGemsMultiplier
+        BigNumber payout = new BigNumber(blockGemsMultiplier)
                 .multiply(MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()));
 
         profile.setGems(profile.getGems().add(payout));
 
-        // Využití blockMultiplier k zajištění odpovídajícího množství XP pro každý blok
-        double currentXp = profile.getMiningXp() + blockMultiplier;
+        // Výpočet a přidání zkušeností (XP) za využití dedikovaného blockXpMultiplier
+        double currentXp = profile.getMiningXp() + blockXpMultiplier;
         int currentLevel = profile.getMiningLevel();
         double requiredXp = MiningLevelManager.getRequiredXpForNextLevel(currentLevel);
         boolean leveledUp = false;
