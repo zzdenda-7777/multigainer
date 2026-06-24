@@ -24,6 +24,7 @@ public class IncomeManager {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (player == null || !player.isOnline()) continue; // Pojistka
                     PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
                     if (profile == null) continue;
 

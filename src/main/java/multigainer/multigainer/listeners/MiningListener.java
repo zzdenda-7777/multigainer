@@ -215,9 +215,15 @@ public class MiningListener implements Listener {
         profile.incrementBlockStorage(blockIndex);
 
         if (plugin.getScoreboardManager() != null) {
-            plugin.getScoreboardManager().updateGemsOnly(
-                    player, profile.getGems(),
-                    profile.getMiningLevel(), profile.getMiningXp()
+            plugin.getScoreboardManager().updateScoreboard(
+                    player,
+                    profile.getMoney(),
+                    profile.getGems(),
+                    profile.getRubies(),
+                    profile.getFarmingLevel(),
+                    profile.getFarmingXp(),
+                    profile.getMiningLevel(),
+                    profile.getMiningXp()
             );
         }
 
