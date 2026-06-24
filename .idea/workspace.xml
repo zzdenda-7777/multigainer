@@ -5,11 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="jak ti muze takhle smrdět píča">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerDataManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerProfile.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerProfile.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/StorageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/StorageManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -343,7 +339,15 @@
       <option name="project" value="LOCAL" />
       <updated>1782244087437</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="jak ti muze takhle smrdět píča">
+      <option name="closed" value="true" />
+      <created>1782303907541</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1782303907541</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

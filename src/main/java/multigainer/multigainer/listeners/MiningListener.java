@@ -200,8 +200,46 @@ public class MiningListener implements Listener {
         Player player = event.getPlayer();
         Material blockType = block.getType();
 
-        // --- Jen tyto dva bloky podporujeme, žádný jiný se netěží naším systémem ---
-        if (blockType != Material.COBBLESTONE && blockType != Material.COBBLED_DEEPSLATE) return;
+        // --- Kontrola bloku včetně 15 nových progresivních typů bloků ---
+        double blockMultiplier;
+        if (blockType == Material.COBBLESTONE) {
+            blockMultiplier = 1.0;
+        } else if (blockType == Material.COBBLED_DEEPSLATE) {
+            blockMultiplier = 2.0;
+        } else if (blockType == Material.COPPER_ORE) {
+            blockMultiplier = 4.0;
+        } else if (blockType == Material.DEEPSLATE_COPPER_ORE) {
+            blockMultiplier = 6.0;
+        } else if (blockType == Material.COAL_ORE) {
+            blockMultiplier = 10.0;
+        } else if (blockType == Material.DEEPSLATE_COAL_ORE) {
+            blockMultiplier = 15.0;
+        } else if (blockType == Material.IRON_ORE) {
+            blockMultiplier = 25.0;
+        } else if (blockType == Material.DEEPSLATE_IRON_ORE) {
+            blockMultiplier = 40.0;
+        } else if (blockType == Material.REDSTONE_ORE) {
+            blockMultiplier = 70.0;
+        } else if (blockType == Material.DEEPSLATE_REDSTONE_ORE) {
+            blockMultiplier = 120.0;
+        } else if (blockType == Material.LAPIS_ORE) {
+            blockMultiplier = 200.0;
+        } else if (blockType == Material.DEEPSLATE_LAPIS_ORE) {
+            blockMultiplier = 450.0;
+        } else if (blockType == Material.GOLD_ORE) {
+            blockMultiplier = 1000.0;
+        } else if (blockType == Material.DEEPSLATE_GOLD_ORE) {
+            blockMultiplier = 2500.0;
+        } else if (blockType == Material.DIAMOND_ORE) {
+            blockMultiplier = 10000.0;
+        } else if (blockType == Material.DEEPSLATE_DIAMOND_ORE) {
+            blockMultiplier = 50000.0;
+        } else if (blockType == Material.NETHERITE_BLOCK) {
+            blockMultiplier = 1000000.0;
+        } else {
+            return; // Jakýkoliv jiný nezařazený blok ignorujeme
+        }
+
         event.setCancelled(true);
 
         UUID uuid = player.getUniqueId();
@@ -211,15 +249,12 @@ public class MiningListener implements Listener {
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(uuid);
 
-        // cobbled_deepslate dává 2x gemy oproti cobblestone
-        double blockMultiplier = (blockType == Material.COBBLED_DEEPSLATE) ? 2.0 : 1.0;
-
         BigNumber payout = new BigNumber(blockMultiplier)
                 .multiply(MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()));
 
         profile.setGems(profile.getGems().add(payout));
 
-        // Využití blockMultiplier (2.0 pro Cobbled Deepslate, 1.0 pro Cobblestone) k zajištění 2x XP
+        // Využití blockMultiplier k zajištění odpovídajícího množství XP pro každý blok
         double currentXp = profile.getMiningXp() + blockMultiplier;
         int currentLevel = profile.getMiningLevel();
         double requiredXp = MiningLevelManager.getRequiredXpForNextLevel(currentLevel);
@@ -253,7 +288,7 @@ public class MiningListener implements Listener {
         }.runTaskLater(plugin, 1L);
 
         // Drop efekt + action bar text, jen pro tohoto hráče
-        // Z cobblestone vyletí cobblestone, z cobbled_deepslate vyletí cobbled_deepslate
+        // Vyletí přesný typ vytěženého bloku podle proměnné blockType
         spawnDropEffect(player, block.getLocation(), blockType);
         player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
                 .deserialize("§7+ §b" + NumberFormatter.format(payout) + " Gems"));
