@@ -169,4 +169,27 @@ public class ScoreboardManager {
             msptTeam.setSuffix(String.format("%.2f", Bukkit.getAverageTickTime()));
         }
     }
+
+    public void updateGemsOnly(Player player, BigNumber gems, int mineLvl, double mineXp) {
+        Scoreboard board = player.getScoreboard();
+        if (board.getObjective("currency_sb") == null) return;
+
+        PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
+        BigNumber totalGemsMulti = new BigNumber(1.0);
+
+        if (profile != null) {
+            totalGemsMulti = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
+        }
+
+        Team gemsTeam = board.getTeam("sb_gems");
+        if (gemsTeam != null) {
+            gemsTeam.setSuffix(NumberFormatter.format(gems) + " §7(x" + NumberFormatter.format(totalGemsMulti) + ")");
+        }
+
+        double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
+        Team mineLvlTeam = board.getTeam("sb_minelvl");
+        if (mineLvlTeam != null) mineLvlTeam.setSuffix(mineLvl + " §7(" + (int) mineXp + "/" + (int) reqMineXp + ")");
+        Team mineXpTeam = board.getTeam("sb_minexp");
+        if (mineXpTeam != null) mineXpTeam.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
+    }
 }
