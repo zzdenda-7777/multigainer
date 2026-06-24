@@ -115,6 +115,41 @@ public class StorageManager {
                 // Column already exists, safe to ignore
             }
 
+            // Pickaxe progression columns
+            String[] pickaxeCols = {
+                "ALTER TABLE mg_player_profiles ADD COLUMN pickaxe_tier INTEGER DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN mining_speed_level INTEGER DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN xp_multi_level INTEGER DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN gem_multi_level INTEGER DEFAULT 0;"
+            };
+            for (String sql : pickaxeCols) {
+                try { stmt.execute(sql); } catch (SQLException ignored) {}
+            }
+
+            // Block storage columns (one counter per mineable block type)
+            String[] storageCols = {
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_cobblestone BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_cobbled_deepslate BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_copper_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_deepslate_copper_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_coal_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_deepslate_coal_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_iron_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_deepslate_iron_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_redstone_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_deepslate_redstone_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_lapis_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_deepslate_lapis_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_gold_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_deepslate_gold_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_diamond_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_deepslate_diamond_ore BIGINT DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN storage_netherite_block BIGINT DEFAULT 0;"
+            };
+            for (String sql : storageCols) {
+                try { stmt.execute(sql); } catch (SQLException ignored) {}
+            }
+
             plugin.getLogger().info("Database initialization complete. Local schemas checked.");
         } catch (SQLException e) {
             plugin.getLogger().severe("Critical exception encountered setting up local SQL tables!");

@@ -8,6 +8,7 @@ import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.rebirth.RebirthManager;
 import multigainer.multigainer.tier.TierManager;
+import multigainer.multigainer.tools.PickaxeManager;
 import multigainer.multigainer.upgrades.UpgradeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -50,8 +51,9 @@ public class ScoreboardManager {
 
             // Money Multipliers stack exponentially (Upgrades * Rebirth * Tier * Mine Money Multiplier)
             totalMoneyMulti = upgradeMulti.multiply(rebirthMulti).multiply(tierMulti).multiply(mineMoneyMulti);
-            // Gems Multipliers scale by mining tier progression
-            totalGemsMulti = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
+            // Gems multiplier: mining level × gem upgrade
+            BigNumber gemUpgradeMulti = new BigNumber(PickaxeManager.getGemMultiplier(profile.getGemMultiLevel()));
+            totalGemsMulti = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()).multiply(gemUpgradeMulti);
         }
 
         // Economy Section

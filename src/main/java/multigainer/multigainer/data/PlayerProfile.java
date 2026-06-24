@@ -10,12 +10,19 @@ public class PlayerProfile {
     private int upgradeLevel, tier, farmingLevel, miningLevel, rebirthCount;
     private double farmingXp, miningXp, rebirthPoints;
 
+    // Pickaxe progression fields
+    private int pickaxeTier = 0;
+    private int miningSpeedLevel = 0;
+    private int xpMultiLevel = 0;
+    private int gemMultiLevel = 0;
+    private long[] blockStorage = new long[17];
+
     // Default constructor
     public PlayerProfile() {
         this(new BigNumber(0), new BigNumber(0), new BigNumber(0), 0, 1, 0, 1, 0.0, 1, 0.0, 0.0, 0);
     }
 
-    // Full constructor (Updated to include tierPoints)
+    // Full constructor
     public PlayerProfile(BigNumber money, BigNumber gems, BigNumber rubies, int upgradeLevel, int tier, int tierPoints,
                          int farmingLevel, double farmingXp, int miningLevel, double miningXp,
                          double rebirthPoints, int rebirthCount) {
@@ -61,12 +68,36 @@ public class PlayerProfile {
     public int getRebirthCount() { return rebirthCount; }
     public void setRebirthCount(int count) { this.rebirthCount = count; }
 
-    // --- Added Tier Points Methods ---
-    public int getTierPoints() {
-        return this.tierPoints;
+    public int getTierPoints() { return this.tierPoints; }
+    public void setTierPoints(int tierPoints) { this.tierPoints = tierPoints; }
+
+    // --- Pickaxe Progression ---
+    public int getPickaxeTier() { return pickaxeTier; }
+    public void setPickaxeTier(int pickaxeTier) { this.pickaxeTier = Math.max(0, Math.min(6, pickaxeTier)); }
+
+    public int getMiningSpeedLevel() { return miningSpeedLevel; }
+    public void setMiningSpeedLevel(int level) { this.miningSpeedLevel = level; }
+
+    public int getXpMultiLevel() { return xpMultiLevel; }
+    public void setXpMultiLevel(int level) { this.xpMultiLevel = level; }
+
+    public int getGemMultiLevel() { return gemMultiLevel; }
+    public void setGemMultiLevel(int level) { this.gemMultiLevel = level; }
+
+    // --- Block Storage ---
+    public long getBlockStorage(int index) {
+        if (index < 0 || index >= blockStorage.length) return 0;
+        return blockStorage[index];
     }
 
-    public void setTierPoints(int tierPoints) {
-        this.tierPoints = tierPoints;
+    public void setBlockStorage(int index, long value) {
+        if (index >= 0 && index < blockStorage.length) blockStorage[index] = value;
     }
+
+    public void incrementBlockStorage(int index) {
+        if (index >= 0 && index < blockStorage.length) blockStorage[index]++;
+    }
+
+    public long[] getBlockStorageArray() { return blockStorage; }
+    public void setBlockStorageArray(long[] storage) { this.blockStorage = storage; }
 }

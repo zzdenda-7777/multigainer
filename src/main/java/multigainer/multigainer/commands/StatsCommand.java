@@ -2,6 +2,8 @@ package multigainer.multigainer.commands;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.formatting.NumberFormatter;
+import multigainer.multigainer.levels.MiningLevelManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,35 +20,25 @@ public class StatsCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // Ensure only players can run this command
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Only players can look up their stats!");
+            sender.sendMessage(ChatColor.RED + "Only players can use this command!");
             return true;
         }
 
         Player player = (Player) sender;
-
-        // 1. Fetch the player's profile object directly from the PlayerDataManager
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
 
-        // Safety check to ensure their data has fully loaded from SQLite
         if (profile == null) {
-            player.sendMessage(ChatColor.RED + "Your player profile is still loading. Please try again in a moment!");
+            player.sendMessage(ChatColor.RED + "Your profile is still loading. Please try again in a moment!");
             return true;
         }
 
-        // 2. Safely extract the mining level from the loaded profile object
         int miningLevel = profile.getMiningLevel();
 
-        // 3. Calculate the multipliers exponentially: base^level
-        double moneyMultiplier = Math.pow(1.1, miningLevel);
-        double gemMultiplier = Math.pow(1.02, miningLevel);
+        // Using your NumberFormatter for consistency across the plugin
+        String formattedMoney = NumberFormatter.format(MiningLevelManager.getMoneyMultiplier(miningLevel));
+        String formattedGems = NumberFormatter.format(MiningLevelManager.getGemsMultiplier(miningLevel));
 
-        // 4. Format the multipliers cleanly to 2 decimal places so it looks nice in chat
-        String formattedMoney = String.format("%.2f", moneyMultiplier);
-        String formattedGems = String.format("%.2f", gemMultiplier);
-
-        // 5. Send the beautifully formatted breakdown to the player
         player.sendMessage(ChatColor.GOLD + "========== ✨ YOUR STATS ✨ ==========");
         player.sendMessage(ChatColor.YELLOW + "⛏ Mining Level: " + ChatColor.WHITE + miningLevel);
         player.sendMessage(ChatColor.GREEN + "💵 Money Multiplier: " + ChatColor.WHITE + formattedMoney + "x");
