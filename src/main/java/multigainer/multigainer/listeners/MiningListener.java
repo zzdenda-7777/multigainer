@@ -2,18 +2,18 @@ package multigainer.multigainer.listeners;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.levels.MiningLevelManager;
-import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.tools.PickaxeManager;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -29,17 +29,22 @@ import org.joml.Vector3f;
 
 import java.util.*;
 
+import static multigainer.multigainer.tools.PickaxeManager.getBlockIndex;
+
 public class MiningListener implements Listener {
     private final Multigainer plugin;
     private final Map<UUID, Set<Location>> brokenCobbleCache = new HashMap<>();
+    private final Map<UUID, Boolean> isLevelingUp = new HashMap<>();
+
+    // Title cooldown to avoid spamming the "upgrade pickaxe" title
     private final Map<UUID, Long> titleCooldown = new HashMap<>();
 
-    public MiningListener(Multigainer plugin) { this.plugin = plugin; }
+    public MiningListener(Multigainer plugin) {
+        this.plugin = plugin;
+    }
 
     private ItemDisplay spawnHiddenItemDisplay(Player viewer, Location location, ItemStack item) {
-        World world = location.getWorld();
-        if (world == null) return null;
-        ItemDisplay display = world.spawn(location, ItemDisplay.class, d -> {
+        ItemDisplay display = location.getWorld().spawn(location, ItemDisplay.class, d -> {
             d.setItemStack(item);
             d.setVisibleByDefault(false);
             d.setPersistent(false);
@@ -50,19 +55,16 @@ public class MiningListener implements Listener {
     }
 
     private void spawnDropEffect(Player player, Location blockLocation, Material dropMaterial) {
-        World world = blockLocation.getWorld();
-        if (world == null) return;
-
         Location restingLoc = blockLocation.clone().add(0.5, 1.05, 0.5);
 
         final Transformation smallScale = new Transformation(
-            new Vector3f(0, 0, 0),
-            new AxisAngle4f(0, 0, 0, 1),
-            new Vector3f(0.4f, 0.4f, 0.4f),
-            new AxisAngle4f(0, 0, 0, 1)
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(0.4f, 0.4f, 0.4f),
+                new AxisAngle4f(0, 0, 0, 1)
         );
 
-        ItemDisplay display = world.spawn(restingLoc, ItemDisplay.class, d -> {
+        ItemDisplay display = restingLoc.getWorld().spawn(restingLoc, ItemDisplay.class, d -> {
             d.setItemStack(new ItemStack(dropMaterial));
             d.setVisibleByDefault(false);
             d.setPersistent(false);
@@ -72,21 +74,23 @@ public class MiningListener implements Listener {
             d.setTransformation(smallScale);
         });
         player.showEntity(plugin, display);
-        display.setTeleportDuration(4);
 
+        display.setInterpolationDuration(4);
+        display.setTeleportDuration(4);
         new BukkitRunnable() {
             @Override public void run() {
-                if (!player.isOnline() || !display.isValid()) { display.remove(); return; }
-                display.teleport(restingLoc.clone().add(0, 0.2, 0));
+                if (display.isValid()) display.teleport(restingLoc.clone().add(0, 0.2, 0));
             }
         }.runTaskLater(plugin, 1L);
 
         new BukkitRunnable() {
             @Override public void run() {
-                if (!player.isOnline() || !display.isValid()) { display.remove(); return; }
-                display.setTeleportDuration(4);
-                display.teleport(player.getEyeLocation());
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.5f);
+                if (display.isValid()) {
+                    display.setInterpolationDuration(4);
+                    display.setTeleportDuration(4);
+                    display.teleport(player.getEyeLocation().clone());
+                    player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.5f);
+                }
             }
         }.runTaskLater(plugin, 10L);
 
@@ -98,17 +102,15 @@ public class MiningListener implements Listener {
     }
 
     private void spawnLevelUpItemEffect(Player player, Location blockLocation) {
-        ItemDisplay display = spawnHiddenItemDisplay(player,
-            blockLocation.clone().add(0.5, 1.0, 0.5),
-            new ItemStack(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
-        if (display == null) return;
+        Location spawnLoc = blockLocation.clone().add(0.5, 1.0, 0.5);
+        ItemDisplay display = spawnHiddenItemDisplay(player, spawnLoc,
+                new ItemStack(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
 
         display.setInterpolationDuration(4);
         display.setBillboard(Display.Billboard.CENTER);
 
-        Location spawnLoc = blockLocation.clone().add(0.5, 1.0, 0.5);
         final int totalTicks = 60;
-        final int stepEvery  = 4;
+        final int stepEvery = 4;
 
         new BukkitRunnable() {
             int ticks = 0;
@@ -116,24 +118,20 @@ public class MiningListener implements Listener {
                 if (ticks >= totalTicks || !display.isValid()) {
                     player.hideEntity(plugin, display);
                     display.remove();
-                    cancel();
+                    this.cancel();
                     return;
                 }
-                if (!player.isOnline()) { display.remove(); cancel(); return; }
-
                 float progress = (float) ticks / totalTicks;
-                display.teleport(spawnLoc.clone().add(0, 1.5 * progress, 0));
+                Location nextTarget = spawnLoc.clone().add(0, 1.5 * progress, 0);
+                display.teleport(nextTarget);
 
-                // Reset interpolation so transformation animates immediately
-                display.setInterpolationDelay(-1);
-                display.setInterpolationDuration(stepEvery);
-                float rotation = ticks * 0.35f;
-                float scale    = 1.0f + progress;
+                float rotation = (float) (ticks * 0.35);
+                float scale = 1.0f + progress;
                 display.setTransformation(new Transformation(
-                    new Vector3f(0, 0, 0),
-                    new AxisAngle4f(rotation, 0, 1, 0),
-                    new Vector3f(scale, scale, scale),
-                    new AxisAngle4f(0, 0, 0, 1)
+                        new Vector3f(0, 0, 0),
+                        new AxisAngle4f(rotation, 0, 1, 0),
+                        new Vector3f(scale, scale, scale),
+                        new AxisAngle4f(0, 0, 0, 1)
                 ));
                 ticks += stepEvery;
             }
@@ -152,13 +150,15 @@ public class MiningListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         if (event.isCancelled()) return;
 
-        Block block       = event.getBlock();
-        Player player     = event.getPlayer();
+        Block block = event.getBlock();
+        Player player = event.getPlayer();
         Material blockType = block.getType();
 
-        int blockIndex = PickaxeManager.getBlockIndex(blockType);
+        // Check if the block is in our mining list
+        int blockIndex = getBlockIndex(blockType);
         if (blockIndex == -1) return;
 
+        // Only process if holding the custom pickaxe
         ItemStack held = player.getInventory().getItemInMainHand();
         if (!plugin.getToolHandler().isCustomPickaxe(held)) return;
 
@@ -167,19 +167,29 @@ public class MiningListener implements Listener {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
+        // Tier restriction check
         int minTier = PickaxeManager.getMinTierForBlock(blockIndex);
+
         if (profile.getPickaxeTier() < minTier) {
-            sendUpgradeTitle(player, minTier);
+            // 1. ZobrazenĂ­ hologramu nad blokem mĂ­sto Title na obrazovce
+            spawnUpgradeHologram(block.getLocation(), minTier);
+
+            // 2. VizuĂˇlnĂ­ efekt BEDROCK pro hrĂˇÄŤe
             new BukkitRunnable() {
-                @Override public void run() {
-                    if (player.isOnline()) sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
+                @Override
+                public void run() {
+                    sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
                 }
             }.runTaskLater(plugin, 1L);
+
+            // 3. VrĂˇcenĂ­ bloku po 3 sekundĂˇch (60 tickĹŻ)
             new BukkitRunnable() {
-                @Override public void run() {
-                    if (player.isOnline()) revertFakeBlockChange(player, block);
+                @Override
+                public void run() {
+                    revertFakeBlockChange(player, block);
                 }
             }.runTaskLater(plugin, 60L);
+
             return;
         }
 
@@ -188,20 +198,24 @@ public class MiningListener implements Listener {
         if (cobbleCooldowns.contains(block.getLocation())) return;
         cobbleCooldowns.add(block.getLocation());
 
+        // Block-specific base multipliers
         double blockGemsMultiplier = getBlockGemsMultiplier(blockType);
         double blockXpMultiplier   = getBlockXpMultiplier(blockType);
+
+        // Apply upgrade multipliers
         double gemUpgradeMulti = PickaxeManager.getGemMultiplier(profile.getGemMultiLevel());
         double xpUpgradeMulti  = PickaxeManager.getXpMultiplier(profile.getXpMultiLevel());
 
         BigNumber payout = new BigNumber(blockGemsMultiplier)
-            .multiply(MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()))
-            .multiply(new BigNumber(gemUpgradeMulti));
+                .multiply(MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()))
+                .multiply(new BigNumber(gemUpgradeMulti));
 
         profile.setGems(profile.getGems().add(payout));
 
-        double xpGain     = blockXpMultiplier * xpUpgradeMulti;
-        double currentXp  = profile.getMiningXp() + xpGain;
-        int    currentLevel = profile.getMiningLevel();
+        // XP with upgrade multiplier
+        double xpGain = blockXpMultiplier * xpUpgradeMulti;
+        double currentXp = profile.getMiningXp() + xpGain;
+        int currentLevel = profile.getMiningLevel();
         double requiredXp = MiningLevelManager.getRequiredXpForNextLevel(currentLevel);
         boolean leveledUp = false;
 
@@ -213,67 +227,153 @@ public class MiningListener implements Listener {
         }
         profile.setMiningXp(currentXp);
         profile.setMiningLevel(currentLevel);
+
+        // Increment block storage counter
         profile.incrementBlockStorage(blockIndex);
 
         if (plugin.getScoreboardManager() != null) {
-            plugin.getScoreboardManager().updateScoreboard(player,
-                profile.getMoney(), profile.getGems(), profile.getRubies(),
-                profile.getFarmingLevel(), profile.getFarmingXp(),
-                profile.getMiningLevel(), profile.getMiningXp());
+            plugin.getScoreboardManager().updateScoreboard(
+                    player,
+                    profile.getMoney(),
+                    profile.getGems(),
+                    profile.getRubies(),
+                    profile.getFarmingLevel(),
+                    profile.getFarmingXp(),
+                    profile.getMiningLevel(),
+                    profile.getMiningXp()
+            );
         }
 
+        // Fake bedrock visual
         new BukkitRunnable() {
-            @Override public void run() {
-                if (player.isOnline()) sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
-            }
+            @Override public void run() { sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK); }
         }.runTaskLater(plugin, 1L);
 
         spawnDropEffect(player, block.getLocation(), blockType);
-        player.sendActionBar(LegacyComponentSerializer.legacySection()
-            .deserialize("§7+ §b" + NumberFormatter.format(payout) + " Gems"));
+        // PĹ™edpoklĂˇdĂˇm, Ĺľe mĂˇĹˇ nÄ›kde: double xpGained = ...;
+
+        String gemsFormatted = NumberFormatter.format(payout);
+        String xpFormatted = NumberFormatter.format(new BigNumber(xpGain));
+        if (isLevelingUp.getOrDefault(player.getUniqueId(), false)) {
+            return;
+        }
+
+        // Jinak poĹˇli bÄ›ĹľnĂ˝ ActionBar
+        sendFixedActionBar(player, gemsFormatted, xpFormatted);
+        sendFixedActionBar(player, gemsFormatted, xpFormatted);
 
         if (leveledUp) {
             spawnLevelUpItemEffect(player, block.getLocation());
             final int finalLevel = currentLevel;
+
+            // Zamkneme ActionBar pro tohoto hrĂˇÄŤe
+            isLevelingUp.put(player.getUniqueId(), true);
+
             new BukkitRunnable() {
                 int count = 0;
-                final String msg = "§b§l[!] §7Mining Level Up! §7Your level is now §e" + finalLevel + "§7!";
-                @Override public void run() {
-                    if (count >= 30 || !player.isOnline()) { cancel(); return; }
+                final String msg = "Â§7MINING LEVEL UP! YOUR LEVEL IS NOW Â§e" + finalLevel + "Â§7!";
+
+                @Override
+                public void run() {
+                    // Po 1.5 sekundĂˇch (30 tickĹŻ celkem / 10 tickĹŻ interval = 3 prĹŻbÄ›hy)
+                    // Tady mĂˇĹˇ count 30 (30 tickĹŻ = 1.5 sekundy pĹ™i intervalu 10L)
+                    if (count >= 60) {
+                        isLevelingUp.put(player.getUniqueId(), false); // Odemkneme
+                        this.cancel();
+                        return;
+                    }
                     player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(msg));
                     count += 10;
                 }
-            }.runTaskTimer(plugin, 20L, 10L);
+            }.runTaskTimer(plugin, 0L, 10L); // ZaÄŤne hned (0L)
         }
 
         new BukkitRunnable() {
             @Override public void run() {
-                if (player.isOnline()) revertFakeBlockChange(player, block);
+                revertFakeBlockChange(player, block);
                 cobbleCooldowns.remove(block.getLocation());
             }
         }.runTaskLater(plugin, 60L);
     }
 
-    private void sendUpgradeTitle(Player player, int requiredTier) {
-        long now = System.currentTimeMillis();
-        if (now - titleCooldown.getOrDefault(player.getUniqueId(), 0L) < 2000L) return;
-        titleCooldown.put(player.getUniqueId(), now);
-        player.sendTitle("§c§lPickaxe Required",
-            "§7Reach a " + PickaxeManager.TIER_COLORS[requiredTier]
-                + "§l" + PickaxeManager.TIER_NAMES[requiredTier] + " Pickaxe §7to mine this!",
-            5, 50, 10);
+    private void spawnUpgradeHologram(Location loc, int requiredTier) {
+        String tierName = PickaxeManager.TIER_NAMES[requiredTier];
+        String tierColor = PickaxeManager.TIER_COLORS[requiredTier];
+
+        // VytvoĹ™enĂ­ TextDisplay entity
+        Location spawnLoc = loc.clone().add(0.5, 1.5, 0.5); // Trochu nad blokem
+        TextDisplay td = loc.getWorld().spawn(spawnLoc, TextDisplay.class);
+
+        td.setText("Â§cÂ§lPickaxe Required: " + tierColor + "Â§l" + tierName);
+        td.setBillboard(Display.Billboard.CENTER); // Bude se vĹľdy natĂˇÄŤet k hrĂˇÄŤi
+        td.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0)); // PrĹŻhlednĂ© pozadĂ­
+        td.setShadowed(true);
+
+        // Po 2 sekundĂˇch hologram smaĹľeme
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                td.remove();
+            }
+        }.runTaskLater(plugin, 40L); // 40 tickĹŻ = 2 sekundy
+    }
+    private void sendFixedActionBar(Player player, String gems, String xp) {
+        int sideWidth = 22; // Uprav podle toho, jak moc to chceĹˇ roztĂˇhnout
+
+        String leftSide = String.format("%" + sideWidth + "s", "Â§7+ Â§b" + gems + " Gems");
+        String rightSide = String.format("%-" + sideWidth + "s", "Â§7+ Â§a" + xp + " XP");
+
+        player.sendActionBar(net.kyori.adventure.text.Component.text()
+                .append(LegacyComponentSerializer.legacySection().deserialize(leftSide))
+                .append(net.kyori.adventure.text.Component.text(" Â§8| "))
+                .append(net.kyori.adventure.text.Component.text(rightSide))
+                .font(org.bukkit.NamespacedKey.minecraft("uniform"))
+                .build());
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
-        Block block   = event.getClickedBlock();
+        // 1. Zkontroluj, zda hrĂˇÄŤ klikl na blok
+        if (event.getClickedBlock() == null) return;
+
+        Block block = event.getClickedBlock();
         Player player = event.getPlayer();
-        if (block != null && brokenCobbleCache.getOrDefault(player.getUniqueId(), Collections.emptySet())
-                .contains(block.getLocation())) {
+
+        // 2. Ochrana proti pravĂ©mu kliknutĂ­ na "faleĹˇnĂ˝" Bedrock
+        // Pokud je blok v cache (tedy je to Bedrock), zruĹˇĂ­me jakĂ˝koliv pravĂ˝ klik
+        if (brokenCobbleCache.getOrDefault(player.getUniqueId(), Collections.emptySet()).contains(block.getLocation())) {
             event.setCancelled(true);
-            sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
+            return; // HrĂˇÄŤ nemĹŻĹľe nic dÄ›lat, dokud se blok neobnovĂ­
         }
+
+        // 3. Kontrola tieru (pouze pro levĂ© kliknutĂ­ pro tÄ›ĹľenĂ­)
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+            int blockIndex = getBlockIndex(block.getType()); // PĹ™edpoklĂˇdĂˇm, Ĺľe mĂˇĹˇ metodu pro index
+            int minTier = PickaxeManager.getMinTierForBlock(blockIndex);
+            PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
+
+            if (profile.getPickaxeTier() < minTier) {
+                event.setCancelled(true);
+
+                // ZobrazenĂ­ hologramu a efektu
+                spawnUpgradeHologram(block.getLocation(), minTier);
+                sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
+
+                // AutomatickĂ© vrĂˇcenĂ­ bloku po 3 sekundĂˇch (pokud mĂˇĹˇ takovou logiku)
+                new BukkitRunnable() {
+                    @Override public void run() { revertFakeBlockChange(player, block); }
+                }.runTaskLater(plugin, 60L);
+
+                return;
+            }
+        }
+
+    }
+    // Tuto metodu si pĹ™idej do tĹ™Ă­dy (napĹ™. do Utils)
+    public String formatStable(String input, int length) {
+        if (input.length() >= length) return input;
+        // DoplnÄ›nĂ­ mezer zleva
+        return String.format("%" + length + "s", input);
     }
 
     @EventHandler
@@ -282,6 +382,8 @@ public class MiningListener implements Listener {
         brokenCobbleCache.remove(uuid);
         titleCooldown.remove(uuid);
     }
+
+    // --- Block multiplier tables ---
 
     private double getBlockGemsMultiplier(Material m) {
         return switch (m) {
