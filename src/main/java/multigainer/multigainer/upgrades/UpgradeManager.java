@@ -3,82 +3,67 @@ package multigainer.multigainer.upgrades;
 import multigainer.multigainer.math.BigNumber;
 
 public class UpgradeManager {
-    public static final int MAX_LEVEL = 27;
+    public static final int MONEY_MAX_LEVEL = 100;
+    public static final int GEM_MAX_LEVEL   = 100;
+    // Backward compatibility aliases
+    public static final int MAX_LEVEL = MONEY_MAX_LEVEL;
+    public static BigNumber getUpgradeCost(int level)     { return getMoneyUpgradeCost(level); }
+    public static BigNumber getTotalMultiplier(int level)  { return getMoneyTotalMultiplier(level); }
+    public static double    getTierMultiplier(int level)   { return getMoneyTierMultiplier(level); }
 
-    // 27 completely separate costs explicitly written down scaling up to e10000
-    public static BigNumber getUpgradeCost(int level) {
-        switch (level) {
-            case 1: return new BigNumber(500.0);
-            case 2: return new BigNumber(2500.0);
-            case 3: return new BigNumber(50000.0);     // 50k
-            case 4: return new BigNumber(1000000.0);   // 1m
-            case 5: return new BigNumber(50000000.0);  // 50m
-            case 6: return new BigNumber(5.0, 9.0);    // 5b
-            case 7: return new BigNumber(5.0, 13.0);   // 50t
-            case 8: return new BigNumber(1.0, 15.0);   // 1qn
-            case 9: return new BigNumber(7.5, 18.0);   // 7.5Qi
-            case 10: return new BigNumber(2.0, 24.0);  // Septillion scales
-            case 11: return new BigNumber(4.2, 36.0);
-            case 12: return new BigNumber(1.0, 50.0);
-            case 13: return new BigNumber(8.8, 75.0);
-            case 14: return new BigNumber(3.0, 110.0);
-            case 15: return new BigNumber(1.5, 160.0);
-            case 16: return new BigNumber(9.0, 240.0);
-            case 17: return new BigNumber(5.0, 380.0);
-            case 18: return new BigNumber(2.2, 550.0);
-            case 19: return new BigNumber(7.7, 800.0);
-            case 20: return new BigNumber(1.0, 1200.0);
-            case 21: return new BigNumber(4.0, 1800.0);
-            case 22: return new BigNumber(3.3, 2700.0);
-            case 23: return new BigNumber(6.5, 4000.0);
-            case 24: return new BigNumber(1.2, 5800.0);
-            case 25: return new BigNumber(8.0, 7500.0);
-            case 26: return new BigNumber(4.5, 9000.0);
-            case 27: return new BigNumber(1.0, 10000.0); // e10000 Max target
-            default: return new BigNumber(1.0, 10000.0);
-        }
+    // Money: cost(n) = 500^(1.5^(n-1))
+    public static BigNumber getMoneyUpgradeCost(int level) {
+        double logCost = Math.pow(1.5, level - 1) * Math.log10(500.0);
+        return fromLog10(logCost);
     }
 
-    // 27 completely separate tier multipliers (each between 2x and 10x)
-    public static double getTierMultiplier(int level) {
-        switch (level) {
-            case 1: return 2.0;
-            case 2: return 3.0;
-            case 3: return 2.0;
-            case 4: return 4.0;
-            case 5: return 5.0;
-            case 6: return 3.0;
-            case 7: return 6.0;
-            case 8: return 4.0;
-            case 9: return 7.0;
-            case 10: return 5.0;
-            case 11: return 8.0;
-            case 12: return 4.0;
-            case 13: return 9.0;
-            case 14: return 6.0;
-            case 15: return 10.0;
-            case 16: return 5.0;
-            case 17: return 8.0;
-            case 18: return 6.0;
-            case 19: return 9.0;
-            case 20: return 7.0;
-            case 21: return 10.0;
-            case 22: return 5.0;
-            case 23: return 8.0;
-            case 24: return 6.0;
-            case 25: return 9.0;
-            case 26: return 7.0;
-            case 27: return 10.0;
-            default: return 1.0;
-        }
+    // Per-level money multiplier cubic polynomial
+    public static double getMoneyTierMultiplier(int level) {
+        double n = level;
+        double logMulti = 3.261e-5 * n*n*n - 2.252e-3 * n*n + 0.1019 * n + 0.2013;
+        return Math.pow(10, logMulti);
     }
 
-    // Compounds the multipliers multiplicatively (e.g., 2x * 3x * 2x = 12x)
-    public static BigNumber getTotalMultiplier(int currentOwnedLevel) {
-        BigNumber total = new BigNumber(1.0);
-        for (int i = 1; i <= currentOwnedLevel; i++) {
-            total = total.multiply(new BigNumber(getTierMultiplier(i)));
-        }
-        return total;
+    // Total money multiplier via closed-form sums (no loop)
+    public static BigNumber getMoneyTotalMultiplier(int level) {
+        if (level <= 0) return new BigNumber(1.0);
+        double n = level;
+        double sumCubes   = n * n * (n + 1) * (n + 1) / 4.0;
+        double sumSquares = n * (n + 1) * (2 * n + 1) / 6.0;
+        double sumLinear  = n * (n + 1) / 2.0;
+        double totalLog   = 3.261e-5 * sumCubes - 2.252e-3 * sumSquares + 0.1019 * sumLinear + 0.2013 * n;
+        return fromLog10(totalLog);
+    }
+
+    // Gem: cost(n) = 2500^(1.4^(n-1)), total = 1.25^level
+    public static BigNumber getGemUpgradeCost(int level) {
+        double logCost = Math.pow(1.4, level - 1) * Math.log10(2500.0);
+        return fromLog10(logCost);
+    }
+    public static BigNumber getGemTotalMultiplier(int level) {
+        if (level <= 0) return new BigNumber(1.0);
+        return fromLog10(level * Math.log10(1.25));
+    }
+
+    // Farm: cost(n) = 2500^(1.3^(n-1)), total = 2^level
+    public static BigNumber getFarmUpgradeCost(int level) {
+        double logCost = Math.pow(1.3, level - 1) * Math.log10(2500.0);
+        return fromLog10(logCost);
+    }
+    public static BigNumber getFarmTotalMultiplier(int level) {
+        if (level <= 0) return new BigNumber(1.0);
+        return fromLog10(level * Math.log10(2.0));
+    }
+    public static double getFarmTotalMultiplierDouble(int level) {
+        if (level <= 0) return 1.0;
+        double result = Math.pow(2.0, level);
+        return Double.isFinite(result) ? result : Double.MAX_VALUE;
+    }
+
+    public static BigNumber fromLog10(double logValue) {
+        if (!Double.isFinite(logValue)) return new BigNumber(1.0, 1.0e15);
+        double exponent = Math.floor(logValue);
+        double mantissa = Math.pow(10, logValue - exponent);
+        return new BigNumber(mantissa, exponent);
     }
 }

@@ -6,6 +6,7 @@ import multigainer.multigainer.farming.FarmingManager;
 import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.levels.FarmingLevelManager;
 import multigainer.multigainer.math.BigNumber;
+import multigainer.multigainer.upgrades.UpgradeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -72,10 +73,13 @@ public class FarmingListener implements Listener {
         event.setCancelled(true);
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(uuid);
+        // Override Paper's WHEAT resend immediately so client sees chosen crop, not wheat
+        player.sendBlockChange(loc, FarmingManager.getCropBlockData(profile != null ? profile.getChosenCrop() : 0));
         if (profile == null) return;
 
-        // ── Farm multi increment (+0.001 per crop) ────────────────
-        profile.incrementFarmMulti();
+        // ── Farm multi increment (+0.001 × farmUpgradeMulti per crop) ──
+        double farmUpgDouble = UpgradeManager.getFarmTotalMultiplierDouble(profile.getFarmMultiUpgradeLevel());
+        profile.setFarmMulti(profile.getFarmMulti() + 0.001 * farmUpgDouble);
 
         // ── Seeds (cropMulti × enchantMulti) ─────────────────────
         long cropSeedMulti = FarmingManager.getSeedMultiplier(profile.getChosenCrop());

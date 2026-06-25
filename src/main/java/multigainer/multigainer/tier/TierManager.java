@@ -8,14 +8,22 @@ import org.bukkit.entity.Player;
 
 public class TierManager {
 
-    /**
-     * Calculates exponential tier costs. Tier 0 -> Tier 1 costs exactly 100,000.
-     */
+    // BigNumber version — avoids double overflow (Infinity) at tier 17+
+    // log10(cost) = 5 * 1.3^(nextTier-1)
+    public static BigNumber getCostForTierBig(int nextTier) {
+        if (nextTier <= 1) return new BigNumber(100000.0);
+        double logCost = 5.0 * Math.pow(1.3, nextTier - 1);
+        if (!Double.isFinite(logCost)) return new BigNumber(1.0, 1.0e15);
+        double exponent = Math.floor(logCost);
+        double mantissa = Math.pow(10, logCost - exponent);
+        return new BigNumber(mantissa, exponent);
+    }
+
+    // Legacy double version — capped to avoid Infinity
     public static double getCostForTier(int nextTier) {
-        if (nextTier <= 1) {
-            return 100000.0;
-        }
-        return Math.pow(100000.0, Math.pow(1.3, nextTier - 1));
+        if (nextTier <= 1) return 100000.0;
+        double result = Math.pow(100000.0, Math.pow(1.3, nextTier - 1));
+        return Double.isFinite(result) ? result : Double.MAX_VALUE;
     }
 
     /**
@@ -38,6 +46,8 @@ public class TierManager {
         // Clear progress vectors back to base level settings
         profile.setMoney(new BigNumber(0));
         profile.setUpgradeLevel(0);
+        profile.setGemUpgradeLevel(0);
+        profile.setFarmMultiUpgradeLevel(0);
 
         // Display Screen Elements (Title, Subtitle, Fade In, Stay, Fade Out Ticks)
         player.sendTitle(

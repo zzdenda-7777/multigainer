@@ -104,10 +104,14 @@ public class ScoreboardManager {
 
         // ── Farm Multi ────────────────────────────────────────────
         double farmMulti = profile != null ? profile.getFarmMulti() : 1.0;
+        int farmUpgLvl   = profile != null ? profile.getFarmMultiUpgradeLevel() : 0;
+        BigNumber farmUpgBig = UpgradeManager.getFarmTotalMultiplier(farmUpgLvl);
+        String farmMultiSuffix = FarmingManager.formatFarmMulti(farmMulti)
+            + (farmUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(farmUpgBig) + "x§8)" : "");
         Team farmMultiTeam = board.registerNewTeam("sb_farmmulti");
         farmMultiTeam.addEntry(ChatColor.YELLOW.toString());
         farmMultiTeam.setPrefix("§e🌾 §8│ §eFarm Multi§8: §f");
-        farmMultiTeam.setSuffix(FarmingManager.formatFarmMulti(farmMulti));
+        farmMultiTeam.setSuffix(farmMultiSuffix);
         objective.getScore(ChatColor.YELLOW.toString()).setScore(5);
 
         // ── Performance ───────────────────────────────────────────
@@ -160,8 +164,13 @@ public class ScoreboardManager {
         if (t != null) t.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
 
         t = board.getTeam("sb_farmmulti");
-        if (t != null && profile != null)
-            t.setSuffix(FarmingManager.formatFarmMulti(profile.getFarmMulti()));
+        if (t != null && profile != null) {
+            int fUpgLvl = profile.getFarmMultiUpgradeLevel();
+            BigNumber fUpgBig = UpgradeManager.getFarmTotalMultiplier(fUpgLvl);
+            String fSuffix = FarmingManager.formatFarmMulti(profile.getFarmMulti())
+                + (fUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(fUpgBig) + "x§8)" : "");
+            t.setSuffix(fSuffix);
+        }
 
         t = board.getTeam("sb_mspt");
         if (t != null) t.setSuffix(String.format("%.2f", Bukkit.getAverageTickTime()));
@@ -193,13 +202,16 @@ public class ScoreboardManager {
         BigNumber money = new BigNumber(1.0);
         BigNumber gems  = new BigNumber(1.0);
         if (profile != null) {
-            BigNumber upgrade  = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
-            BigNumber rebirth  = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
-            BigNumber tier     = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
-            BigNumber mine     = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
-            BigNumber farmMult = new BigNumber(profile.getFarmMulti());
-            money = upgrade.multiply(rebirth).multiply(tier).multiply(mine).multiply(farmMult);
-            gems  = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
+            BigNumber upgrade    = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
+            BigNumber rebirth    = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
+            BigNumber tier       = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
+            BigNumber mine       = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
+            BigNumber farmMult   = new BigNumber(profile.getFarmMulti());
+            BigNumber farmUpgMult = UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());
+            money = upgrade.multiply(rebirth).multiply(tier).multiply(mine).multiply(farmMult).multiply(farmUpgMult);
+            BigNumber gemPickaxe = new BigNumber(multigainer.multigainer.tools.PickaxeManager.getGemMultiplier(profile.getGemMultiLevel()));
+            BigNumber gemUpgMult = UpgradeManager.getGemTotalMultiplier(profile.getGemUpgradeLevel());
+            gems  = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()).multiply(gemPickaxe).multiply(gemUpgMult);
         }
         return new BigNumber[]{ money, gems };
     }

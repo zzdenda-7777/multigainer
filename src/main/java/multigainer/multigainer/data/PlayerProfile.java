@@ -140,4 +140,13 @@ public class PlayerProfile {
 
     public boolean isAutoMerge() { return autoMerge; }
     public void setAutoMerge(boolean autoMerge) { this.autoMerge = autoMerge; }
+
+    // ── Upgrade levels (reset on tier and rebirth) ────────────────
+    private int gemUpgradeLevel = 0;
+    private int farmMultiUpgradeLevel = 0;
+
+    public int getGemUpgradeLevel() { return gemUpgradeLevel; }
+    public void setGemUpgradeLevel(int level) { this.gemUpgradeLevel = Math.max(0, level); }
+    public int getFarmMultiUpgradeLevel() { return farmMultiUpgradeLevel; }
+    public void setFarmMultiUpgradeLevel(int level) { this.farmMultiUpgradeLevel = Math.max(0, level); }
 }

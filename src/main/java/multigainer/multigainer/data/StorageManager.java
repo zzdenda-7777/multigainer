@@ -113,7 +113,9 @@ public class StorageManager {
                 "ALTER TABLE mg_player_profiles ADD COLUMN enchant_msg_world_eater INTEGER DEFAULT 1;",
                 "ALTER TABLE mg_player_profiles ADD COLUMN enchant_msg_universe_destroyer INTEGER DEFAULT 1;",
                 "ALTER TABLE mg_player_profiles ADD COLUMN hoe_tier INTEGER DEFAULT 0;",
-                "ALTER TABLE mg_player_profiles ADD COLUMN auto_merge INTEGER DEFAULT 0;"
+                "ALTER TABLE mg_player_profiles ADD COLUMN auto_merge INTEGER DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN gem_upgrade_level INTEGER DEFAULT 0;",
+                "ALTER TABLE mg_player_profiles ADD COLUMN farm_multi_upgrade_level INTEGER DEFAULT 0;"
             };
             for (String sql : all) {
                 try { stmt.execute(sql); } catch (SQLException ignored) {}

@@ -45,8 +45,9 @@ public class RebirthListener implements Listener {
         // FIX: Explicitly define both parameters as 0.0 to prevent Math.log10(0) from breaking your income[cite: 23]
         profile.setMoney(new BigNumber(0.0, 0.0));
 
-        // OPTIONAL: Reset upgrade metrics if your game design requires an operational loop wipe[cite: 23]
         profile.setUpgradeLevel(0);
+        profile.setGemUpgradeLevel(0);
+        profile.setFarmMultiUpgradeLevel(0);
 
         // CHANGED: Formats the massive unformatted number from image_34ec6c.jpg into a clean formatted suffix string
         String formattedGained = NumberFormatter.format(new BigNumber(pointsGained));

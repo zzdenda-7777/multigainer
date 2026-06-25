@@ -33,7 +33,7 @@ public class FarmingManager {
         "§4§lFire Coral",     "§e§lHorn Coral",
         "§3§lTube Coral Fan", "§d§lBrain Coral Fan", "§9§lBubble Coral Fan",
         "§4§lFire Coral Fan", "§e§lHorn Coral Fan",
-        "§2§lKelp",           "§a§lSugar Cane"
+        "§2§lLarge Fern",     "§a§lSugar Cane"
     };
 
     // Fake block materials for sendBlockChange (client-side only — no real blocks placed).

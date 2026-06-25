@@ -42,15 +42,21 @@ public class IncomeManager {
                     double tierBonus = TierManager.getMultiplierForTier(profile.getTier());
                     BigNumber tierMultiplier = new BigNumber(tierBonus);
 
-                    // 5. Mining Multiplier Hook (FIX: Added to ensure calculation parity)
+                    // 5. Mining Multiplier Hook
                     BigNumber mineMoneyMultiplier = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
 
-                    // Compound Multiplier Formula Stacking (Base * Upgrades * Rebirth * Tier * Mining)
+                    // 6. Farm Multi (accumulated from crops) and farm upgrade multiplier
+                    BigNumber farmMultiplier    = new BigNumber(profile.getFarmMulti());
+                    BigNumber farmUpgMultiplier = multigainer.multigainer.upgrades.UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());
+
+                    // Compound Multiplier Formula Stacking
                     BigNumber totalEarned = baseIncome
                             .multiply(upgradeMultiplier)
                             .multiply(rebirthMultiplier)
                             .multiply(tierMultiplier)
-                            .multiply(mineMoneyMultiplier);
+                            .multiply(mineMoneyMultiplier)
+                            .multiply(farmMultiplier)
+                            .multiply(farmUpgMultiplier);
 
                     profile.setMoney(profile.getMoney().add(totalEarned));
 

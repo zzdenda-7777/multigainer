@@ -20,86 +20,168 @@ import java.util.List;
 
 public class UpgradeGUI implements Listener {
     private final Multigainer plugin;
-    private final String menuTitle = ChatColor.DARK_GRAY + "Money Multiplier Upgrades";
+    private static final String TITLE = "§8✦ §fUpgrades §8✦";
 
-    public UpgradeGUI(Multigainer plugin) {
-        this.plugin = plugin;
-    }
+    public UpgradeGUI(Multigainer plugin) { this.plugin = plugin; }
 
     public void openGUI(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 9, menuTitle);
+        Inventory inv = Bukkit.createInventory(null, 27, TITLE);
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
-        int currentLevel = profile.getUpgradeLevel();
 
-        ItemStack upgradeItem = new ItemStack(Material.GOLD_INGOT);
-        ItemMeta meta = upgradeItem.getItemMeta();
+        // Fill with panes
+        ItemStack pane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta pm = pane.getItemMeta();
+        if (pm != null) { pm.setDisplayName(" "); pane.setItemMeta(pm); }
+        for (int i = 0; i < 27; i++) inv.setItem(i, pane);
 
-        if (meta != null) {
-            meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Money Multiplier");
-            List<String> lore = new ArrayList<>();
-            lore.add(" ");
-            lore.add(ChatColor.GRAY + "Current Level: " + ChatColor.GOLD + currentLevel + "/" + UpgradeManager.MAX_LEVEL);
-            lore.add(ChatColor.GRAY + "Total Multiplier: " + ChatColor.GOLD + NumberFormatter.format(UpgradeManager.getTotalMultiplier(currentLevel)) + "x");
-            lore.add(" ");
-
-            if (currentLevel < UpgradeManager.MAX_LEVEL) {
-                int nextLevel = currentLevel + 1;
-                BigNumber cost = UpgradeManager.getUpgradeCost(nextLevel);
-                double nextMulti = UpgradeManager.getTierMultiplier(nextLevel);
-
-                lore.add(ChatColor.GRAY + "Next Tier Multiplier: " + ChatColor.AQUA + "x" + nextMulti);
-                lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GREEN + "$" + NumberFormatter.format(cost));
-                lore.add(" ");
-                lore.add(ChatColor.YELLOW + "Click to purchase upgrade!");
-            } else {
-                lore.add(ChatColor.RED + "✔ Max upgrade tier achieved!");
-            }
-
-            meta.setLore(lore);
-            upgradeItem.setItemMeta(meta);
-        }
-
-        inv.setItem(4, upgradeItem);
+        inv.setItem(11, buildMoneyItem(profile));
+        inv.setItem(13, buildGemItem(profile));
+        inv.setItem(15, buildFarmItem(profile));
         player.openInventory(inv);
+    }
+
+    private ItemStack buildMoneyItem(PlayerProfile profile) {
+        int lvl = profile.getUpgradeLevel();
+        ItemStack item = new ItemStack(Material.GOLD_INGOT);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Money Multi");
+        List<String> lore = new ArrayList<>();
+        lore.add(" ");
+        lore.add(ChatColor.GRAY + "Level: " + ChatColor.GOLD + lvl + "/" + UpgradeManager.MONEY_MAX_LEVEL);
+        lore.add(ChatColor.GRAY + "Total Multi: " + ChatColor.GOLD + NumberFormatter.format(UpgradeManager.getMoneyTotalMultiplier(lvl)) + "x");
+        lore.add(" ");
+        if (lvl < UpgradeManager.MONEY_MAX_LEVEL) {
+            int next = lvl + 1;
+            lore.add(ChatColor.GRAY + "Next Level Multi: " + ChatColor.AQUA + String.format("%.2fx", UpgradeManager.getMoneyTierMultiplier(next)));
+            lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GREEN + "$" + NumberFormatter.format(UpgradeManager.getMoneyUpgradeCost(next)));
+            lore.add(" ");
+            lore.add(ChatColor.YELLOW + "Click to upgrade!");
+        } else {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "MAX LEVEL");
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack buildGemItem(PlayerProfile profile) {
+        int lvl = profile.getGemUpgradeLevel();
+        ItemStack item = new ItemStack(Material.EMERALD);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Gem Multi");
+        List<String> lore = new ArrayList<>();
+        lore.add(" ");
+        lore.add(ChatColor.GRAY + "Level: " + ChatColor.GREEN + lvl + "/" + UpgradeManager.GEM_MAX_LEVEL);
+        lore.add(ChatColor.GRAY + "Total Multi: " + ChatColor.GREEN + NumberFormatter.format(UpgradeManager.getGemTotalMultiplier(lvl)) + "x");
+        lore.add(" ");
+        if (lvl < UpgradeManager.GEM_MAX_LEVEL) {
+            int next = lvl + 1;
+            lore.add(ChatColor.GRAY + "Next Level Multi: " + ChatColor.AQUA + NumberFormatter.format(UpgradeManager.getGemTotalMultiplier(next)) + "x");
+            lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GREEN + "$" + NumberFormatter.format(UpgradeManager.getGemUpgradeCost(next)));
+            lore.add(" ");
+            lore.add(ChatColor.YELLOW + "Click to upgrade!");
+        } else {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "MAX LEVEL");
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack buildFarmItem(PlayerProfile profile) {
+        int lvl = profile.getFarmMultiUpgradeLevel();
+        ItemStack item = new ItemStack(Material.WHEAT_SEEDS);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Farm Multi");
+        List<String> lore = new ArrayList<>();
+        lore.add(" ");
+        lore.add(ChatColor.GRAY + "Level: " + ChatColor.YELLOW + lvl + "/∞");
+        lore.add(ChatColor.GRAY + "Total Multi: " + ChatColor.YELLOW + NumberFormatter.format(UpgradeManager.getFarmTotalMultiplier(lvl)) + "x");
+        lore.add(ChatColor.GRAY + "Crop Bonus: +" + ChatColor.YELLOW + String.format("%.4f", 0.001 * UpgradeManager.getFarmTotalMultiplierDouble(lvl)) + " per crop");
+        lore.add(" ");
+        int next = lvl + 1;
+        lore.add(ChatColor.GRAY + "Next Level Multi: " + ChatColor.AQUA + NumberFormatter.format(UpgradeManager.getFarmTotalMultiplier(next)) + "x");
+        lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GREEN + "$" + NumberFormatter.format(UpgradeManager.getFarmUpgradeCost(next)));
+        lore.add(" ");
+        lore.add(ChatColor.YELLOW + "Click to upgrade!");
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private void refreshScoreboard(Player player, PlayerProfile profile) {
+        if (plugin.getScoreboardManager() != null)
+            plugin.getScoreboardManager().updateScoreboard(player,
+                profile.getMoney(), profile.getGems(), profile.getRubies(),
+                profile.getFarmingLevel(), profile.getFarmingXp(),
+                profile.getMiningLevel(), profile.getMiningXp());
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!event.getView().getTitle().equals(menuTitle)) return;
+        if (!event.getView().getTitle().equals(TITLE)) return;
         event.setCancelled(true);
-
-        if (!(event.getWhoClicked() instanceof Player)) return;
-        Player player = (Player) event.getWhoClicked();
-        if (event.getSlot() != 4) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
-        int currentLevel = profile.getUpgradeLevel();
+        if (profile == null) return;
 
-        if (currentLevel >= UpgradeManager.MAX_LEVEL) {
-            player.sendMessage(ChatColor.RED + "You are already at the maximum upgrade level!");
+        int slot = event.getSlot();
+        if (slot == 11) handleMoneyUpgrade(player, profile);
+        else if (slot == 13) handleGemUpgrade(player, profile);
+        else if (slot == 15) handleFarmUpgrade(player, profile);
+    }
+
+    private void handleMoneyUpgrade(Player player, PlayerProfile profile) {
+        int lvl = profile.getUpgradeLevel();
+        if (lvl >= UpgradeManager.MONEY_MAX_LEVEL) {
+            player.sendMessage(ChatColor.RED + "Money Multi is already at max level!");
             return;
         }
-
-        int nextLevel = currentLevel + 1;
-        BigNumber cost = UpgradeManager.getUpgradeCost(nextLevel);
-
-        if (profile.getMoney().compareTo(cost) >= 0) {
-            profile.setMoney(profile.getMoney().subtract(cost));
-            profile.setUpgradeLevel(nextLevel);
-            player.sendMessage(ChatColor.GREEN + "✔ Successfully upgraded to Tier " + nextLevel + "!");
-            plugin.getScoreboardManager().updateScoreboard(
-                    player,
-                    profile.getMoney(),
-                    profile.getGems(),
-                    profile.getRubies(),
-                    profile.getFarmingLevel(),
-                    profile.getFarmingXp(),
-                    profile.getMiningLevel(),
-                    profile.getMiningXp()
-            );
-            openGUI(player);
-        } else {
-            player.sendMessage(ChatColor.RED + "You need $" + NumberFormatter.format(cost) + " to buy this!");
+        BigNumber cost = UpgradeManager.getMoneyUpgradeCost(lvl + 1);
+        if (profile.getMoney().compareTo(cost) < 0) {
+            player.sendMessage(ChatColor.RED + "Need $" + NumberFormatter.format(cost));
+            return;
         }
+        profile.setMoney(profile.getMoney().subtract(cost));
+        profile.setUpgradeLevel(lvl + 1);
+        player.sendMessage(ChatColor.GREEN + "Money Multi upgraded to level " + (lvl + 1) + "!");
+        refreshScoreboard(player, profile);
+        openGUI(player);
+    }
+
+    private void handleGemUpgrade(Player player, PlayerProfile profile) {
+        int lvl = profile.getGemUpgradeLevel();
+        if (lvl >= UpgradeManager.GEM_MAX_LEVEL) {
+            player.sendMessage(ChatColor.RED + "Gem Multi is already at max level!");
+            return;
+        }
+        BigNumber cost = UpgradeManager.getGemUpgradeCost(lvl + 1);
+        if (profile.getMoney().compareTo(cost) < 0) {
+            player.sendMessage(ChatColor.RED + "Need $" + NumberFormatter.format(cost));
+            return;
+        }
+        profile.setMoney(profile.getMoney().subtract(cost));
+        profile.setGemUpgradeLevel(lvl + 1);
+        player.sendMessage(ChatColor.GREEN + "Gem Multi upgraded to level " + (lvl + 1) + "!");
+        refreshScoreboard(player, profile);
+        openGUI(player);
+    }
+
+    private void handleFarmUpgrade(Player player, PlayerProfile profile) {
+        int lvl = profile.getFarmMultiUpgradeLevel();
+        BigNumber cost = UpgradeManager.getFarmUpgradeCost(lvl + 1);
+        if (profile.getMoney().compareTo(cost) < 0) {
+            player.sendMessage(ChatColor.RED + "Need $" + NumberFormatter.format(cost));
+            return;
+        }
+        profile.setMoney(profile.getMoney().subtract(cost));
+        profile.setFarmMultiUpgradeLevel(lvl + 1);
+        player.sendMessage(ChatColor.GREEN + "Farm Multi upgraded to level " + (lvl + 1) + "!");
+        refreshScoreboard(player, profile);
+        openGUI(player);
     }
 }

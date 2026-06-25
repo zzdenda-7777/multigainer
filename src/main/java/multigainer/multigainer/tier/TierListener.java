@@ -29,12 +29,10 @@ public class TierListener implements Listener {
 
         if (profile == null) return;
 
-        double cost = TierManager.getCostForTier(profile.getTier() + 1);
+        BigNumber cost = TierManager.getCostForTierBig(profile.getTier() + 1);
 
-        // Check if player meets requirements
-        if (profile.getRebirthPoints() < cost) {
-            String formattedCost = NumberFormatter.format(new BigNumber(cost));
-            player.sendMessage(ChatColor.RED + "You need " + formattedCost + " Rebirth Points to Tier Up!");
+        if (new BigNumber(profile.getRebirthPoints()).compareTo(cost) < 0) {
+            player.sendMessage(ChatColor.RED + "You need " + NumberFormatter.format(cost) + " Rebirth Points to Tier Up!");
             player.closeInventory();
             return;
         }

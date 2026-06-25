@@ -73,6 +73,8 @@ public class PlayerDataManager {
                                 safeGetInt(rs, "enchant_msg_universe_destroyer", 1) == 1
                             };
                             profile.setEnchantMessagesEnabled(enchantMsgs);
+                            profile.setGemUpgradeLevel(safeGetInt(rs, "gem_upgrade_level", 0));
+                            profile.setFarmMultiUpgradeLevel(safeGetInt(rs, "farm_multi_upgrade_level", 0));
 
                             profileCache.put(uuid, profile);
                             future.complete(profile);
@@ -112,6 +114,7 @@ public class PlayerDataManager {
         for (int i = 0; i < 7; i++) q.append(",seed_storage_").append(i).append("=?");
         q.append(",farm_multi=?,chosen_crop=?,hoe_tier=?,auto_merge=?");
         q.append(",enchant_msg_tnt=?,enchant_msg_nuke=?,enchant_msg_world_eater=?,enchant_msg_universe_destroyer=?");
+        q.append(",gem_upgrade_level=?,farm_multi_upgrade_level=?");
         q.append(" WHERE uuid=?");
 
         try (Connection conn = storageManager.getConnection();
@@ -150,6 +153,8 @@ public class PlayerDataManager {
             stmt.setInt(base++,    profile.isEnchantMessageEnabled(1) ? 1 : 0);
             stmt.setInt(base++,    profile.isEnchantMessageEnabled(2) ? 1 : 0);
             stmt.setInt(base++,    profile.isEnchantMessageEnabled(3) ? 1 : 0);
+            stmt.setInt(base++,    profile.getGemUpgradeLevel());
+            stmt.setInt(base++,    profile.getFarmMultiUpgradeLevel());
             stmt.setString(base,   uuid.toString());
             stmt.executeUpdate();
 
