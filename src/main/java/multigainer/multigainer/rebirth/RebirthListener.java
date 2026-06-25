@@ -21,7 +21,7 @@ public class RebirthListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         // Ensure this listener only interacts with the correct GUI container[cite: 23]
-        if (!event.getView().getTitle().equals("§8Rebirth Terminal")) return;
+        if (!event.getView().getTitle().equals("§8Rebirth")) return;
         event.setCancelled(true);
 
         if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) return;
@@ -32,7 +32,7 @@ public class RebirthListener implements Listener {
 
         // Validate player account status against configuration baselines[cite: 23]
         if (profile.getMoney().toDouble() < RebirthManager.REBIRTH_THRESHOLD) {
-            player.sendMessage(ChatColor.RED + "You need at least 500,000 money to rebirth!");
+            player.sendMessage(ChatColor.RED + "You need at least 500k money to rebirth!");
             player.closeInventory();
             return;
         }
