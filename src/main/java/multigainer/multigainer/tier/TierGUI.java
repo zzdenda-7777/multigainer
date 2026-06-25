@@ -24,7 +24,6 @@ public class TierGUI {
 
         Inventory inv = Bukkit.createInventory(null, 27, "§8Tier Advancement");
 
-        // Border panes
         ItemStack pane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta pm = pane.getItemMeta();
         if (pm != null) { pm.setDisplayName(" "); pane.setItemMeta(pm); }
@@ -36,6 +35,9 @@ public class TierGUI {
         double curPoints = profile.getRebirthPoints();
         boolean canTier  = curPoints >= nextCost;
 
+        // Format tier multi properly — 2^tier can be huge
+        String tierMultiStr = NumberFormatter.format(new BigNumber(tierMulti)) + "x";
+
         // ── Slot 11: Player head with stats ──────────────────────────────────
         ItemStack stats = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta sm    = (SkullMeta) stats.getItemMeta();
@@ -44,10 +46,14 @@ public class TierGUI {
             sm.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "TIER " + tier);
             sm.setLore(Arrays.asList(
                     " ",
-                    ChatColor.GRAY + "Current Multi: " + ChatColor.YELLOW + String.format("%.0fx", tierMulti),
-                    ChatColor.GRAY + "Tier Points: "   + ChatColor.LIGHT_PURPLE + profile.getTierPoints(),
-                    ChatColor.GRAY + "Next Tier Cost: " + ChatColor.AQUA
-                            + NumberFormatter.format(new BigNumber(nextCost)) + " Points"
+                    ChatColor.GRAY + "Current Tier§8: §e" + ChatColor.BOLD + tier,
+                    ChatColor.GRAY + "Current Multi§8: §6" + tierMultiStr,
+                    ChatColor.GRAY + "Tier Points§8: §d" + NumberFormatter.format(new BigNumber(profile.getTierPoints())),
+                    " ",
+                    ChatColor.GRAY + "Next Tier Cost§8: §b"
+                            + NumberFormatter.format(new BigNumber(nextCost)) + " §7Points",
+                    ChatColor.GRAY + "Your Points§8: §b"
+                            + NumberFormatter.format(new BigNumber(curPoints))
             ));
             stats.setItemMeta(sm);
         }
@@ -64,12 +70,12 @@ public class TierGUI {
                     ChatColor.GRAY + "Resets your Money and Upgrades",
                     ChatColor.GRAY + "to gain a permanent multiplier boost.",
                     " ",
-                    ChatColor.GRAY + "Progress: " + ChatColor.AQUA
+                    ChatColor.GRAY + "Progress§8: §b"
                             + NumberFormatter.format(new BigNumber(curPoints))
-                            + ChatColor.GRAY + "/" + ChatColor.GOLD
+                            + ChatColor.GRAY + "§8/§6"
                             + NumberFormatter.format(new BigNumber(nextCost)),
                     " ",
-                    canTier ? ChatColor.YELLOW + "Click to TIER UP!" : ChatColor.RED + "Not enough points."
+                    canTier ? ChatColor.YELLOW + "✔ Click to TIER UP!" : ChatColor.RED + "✘ Not enough points."
             ));
             button.setItemMeta(bm);
         }
@@ -98,7 +104,6 @@ public class TierGUI {
         }
         inv.setItem(15, book);
 
-        // Always opens — no longer gated inside if(sm!=null)
         player.openInventory(inv);
     }
 }

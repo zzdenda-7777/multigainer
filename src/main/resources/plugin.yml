@@ -20,6 +20,10 @@ commands:
     description: Open the rebirth menu.
   tier:
     description: Open the tier advancement menu.
+  upgrades:
+    description: Open the upgrades menu.
+  grind:
+    description: Open the grinding points menu.
   multigainer:
     description: Main plugin command.
     permission: multigainer.admin

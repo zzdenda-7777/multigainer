@@ -18,12 +18,30 @@ public class PlayerProfile {
     private long[] blockStorage = new long[17];
 
     // Farming progression
-    private long[] seedStorage = new long[7];       // 7 compressed seed tiers
-    private double farmMulti = 1.0;                 // starts at 1, +0.001 per crop
-    private int chosenCrop = 0;                     // index into FarmingManager.CROP_NAMES
+    private long[] seedStorage = new long[7];
+    private double farmMulti = 1.0;
+    private int chosenCrop = 0;
     private boolean[] enchantMessagesEnabled = { true, true, true, true };
     private int hoeTier = 0;
-    private boolean autoMerge = false;              // auto-compress seeds on harvest (off by default)
+    private boolean autoMerge = false;
+
+    // Upgrade levels (reset on tier and rebirth)
+    private int gemUpgradeLevel = 0;
+    private int farmMultiUpgradeLevel = 0;
+
+    // ── Grinding Points ───────────────────────────────────────────────────────
+    private double grindingPoints = 0.0;
+    private boolean grindMessagesEnabled = true;
+
+    // Grind upgrade levels (permanent, never reset)
+    private int grindChanceLevel    = 0;  // reduces GP drop denominator by 1% compound
+    private int grindExponentLevel  = 0;  // +0.01 to money exponent per level
+    private int grindFarmMultiLevel = 0;  // 1.15x farm multi per level (money income)
+    private int grindGemMultiLevel  = 0;  // 1.05x gem multi per level
+    private int grindFarmXpLevel    = 0;  // 1.075x farm XP per level
+    private int grindMineXpLevel    = 0;  // 1.04x mine XP per level
+    private int grindSeedMultiLevel = 0;  // 1.03x seed gain per level
+    private int grindGPMultiLevel   = 0;  // 1.25x grinding points earned per level
 
     public PlayerProfile() {
         this(new BigNumber(0), new BigNumber(0), new BigNumber(0), 0, 1, 0, 1, 0.0, 1, 0.0, 0.0, 0);
@@ -39,7 +57,7 @@ public class PlayerProfile {
         this.rebirthPoints = rebirthPoints; this.rebirthCount = rebirthCount;
     }
 
-    // ── Currency ─────────────────────────────────────────────────
+    // ── Currency ──────────────────────────────────────────────────────────────
     public BigNumber getMoney() { return money; }
     public void setMoney(BigNumber money) { this.money = money; }
     public void addMoney(BigNumber amount) { this.money = this.money.add(amount); }
@@ -52,7 +70,39 @@ public class PlayerProfile {
     public void setRubies(BigNumber rubies) { this.rubies = rubies; }
     public void addRubies(BigNumber amount) { this.rubies = this.rubies.add(amount); }
 
-    // ── Core stats ────────────────────────────────────────────────
+    // ── Grinding Points ───────────────────────────────────────────────────────
+    public double getGrindingPoints() { return grindingPoints; }
+    public void setGrindingPoints(double gp) { this.grindingPoints = Math.max(0.0, gp); }
+    public void addGrindingPoints(double amount) { this.grindingPoints += amount; }
+
+    public boolean isGrindMessagesEnabled() { return grindMessagesEnabled; }
+    public void setGrindMessagesEnabled(boolean enabled) { this.grindMessagesEnabled = enabled; }
+
+    public int getGrindChanceLevel()    { return grindChanceLevel; }
+    public void setGrindChanceLevel(int l)    { this.grindChanceLevel    = Math.max(0, l); }
+
+    public int getGrindExponentLevel()  { return grindExponentLevel; }
+    public void setGrindExponentLevel(int l)  { this.grindExponentLevel  = Math.max(0, l); }
+
+    public int getGrindFarmMultiLevel() { return grindFarmMultiLevel; }
+    public void setGrindFarmMultiLevel(int l) { this.grindFarmMultiLevel = Math.max(0, l); }
+
+    public int getGrindGemMultiLevel()  { return grindGemMultiLevel; }
+    public void setGrindGemMultiLevel(int l)  { this.grindGemMultiLevel  = Math.max(0, l); }
+
+    public int getGrindFarmXpLevel()    { return grindFarmXpLevel; }
+    public void setGrindFarmXpLevel(int l)    { this.grindFarmXpLevel    = Math.max(0, l); }
+
+    public int getGrindMineXpLevel()    { return grindMineXpLevel; }
+    public void setGrindMineXpLevel(int l)    { this.grindMineXpLevel    = Math.max(0, l); }
+
+    public int getGrindSeedMultiLevel() { return grindSeedMultiLevel; }
+    public void setGrindSeedMultiLevel(int l) { this.grindSeedMultiLevel = Math.max(0, l); }
+
+    public int getGrindGPMultiLevel()   { return grindGPMultiLevel; }
+    public void setGrindGPMultiLevel(int l)   { this.grindGPMultiLevel   = Math.max(0, l); }
+
+    // ── Core stats ────────────────────────────────────────────────────────────
     public int getUpgradeLevel() { return upgradeLevel; }
     public void setUpgradeLevel(int level) { this.upgradeLevel = level; }
 
@@ -77,7 +127,7 @@ public class PlayerProfile {
     public int getTierPoints() { return this.tierPoints; }
     public void setTierPoints(int tierPoints) { this.tierPoints = tierPoints; }
 
-    // ── Pickaxe ───────────────────────────────────────────────────
+    // ── Pickaxe ───────────────────────────────────────────────────────────────
     public int getPickaxeTier() { return pickaxeTier; }
     public void setPickaxeTier(int pickaxeTier) { this.pickaxeTier = Math.max(0, Math.min(6, pickaxeTier)); }
 
@@ -103,7 +153,7 @@ public class PlayerProfile {
     public long[] getBlockStorageArray() { return blockStorage; }
     public void setBlockStorageArray(long[] storage) { this.blockStorage = storage; }
 
-    // ── Farming (seed currencies) ─────────────────────────────────
+    // ── Farming ───────────────────────────────────────────────────────────────
     public long getSeedStorage(int tier) {
         if (tier < 0 || tier >= seedStorage.length) return 0;
         return seedStorage[tier];
@@ -141,10 +191,7 @@ public class PlayerProfile {
     public boolean isAutoMerge() { return autoMerge; }
     public void setAutoMerge(boolean autoMerge) { this.autoMerge = autoMerge; }
 
-    // ── Upgrade levels (reset on tier and rebirth) ────────────────
-    private int gemUpgradeLevel = 0;
-    private int farmMultiUpgradeLevel = 0;
-
+    // ── Upgrade levels ────────────────────────────────────────────────────────
     public int getGemUpgradeLevel() { return gemUpgradeLevel; }
     public void setGemUpgradeLevel(int level) { this.gemUpgradeLevel = Math.max(0, level); }
     public int getFarmMultiUpgradeLevel() { return farmMultiUpgradeLevel; }

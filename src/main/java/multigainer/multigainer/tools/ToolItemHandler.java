@@ -40,8 +40,9 @@ public class ToolItemHandler implements Listener {
         ItemStack hoe  = new ItemStack(mat);
         ItemMeta  meta = hoe.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color + "§l" + name + " Multigainer Hoe ");
-            meta.setLore(profile != null ? ToolGUI.buildHoeLore(profile) : List.of("§7Right click to open menu!"));
+            // Name format: "MATERIAL HOE" bold capitals (e.g. "WOODEN HOE")
+            meta.setDisplayName(color + "§l" + name.toUpperCase() + " HOE");
+            meta.setLore(profile != null ? ToolGUI.buildInventoryHoeLore(profile) : List.of("§7Right-click to open menu!"));
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES);
             meta.getPersistentDataContainer().set(

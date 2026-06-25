@@ -76,6 +76,18 @@ public class PlayerDataManager {
                             profile.setGemUpgradeLevel(safeGetInt(rs, "gem_upgrade_level", 0));
                             profile.setFarmMultiUpgradeLevel(safeGetInt(rs, "farm_multi_upgrade_level", 0));
 
+                            // Grinding Points
+                            profile.setGrindingPoints(safeGetDouble(rs, "grinding_points", 0.0));
+                            profile.setGrindMessagesEnabled(safeGetInt(rs, "grind_messages", 1) == 1);
+                            profile.setGrindChanceLevel(safeGetInt(rs, "grind_chance_level", 0));
+                            profile.setGrindExponentLevel(safeGetInt(rs, "grind_exponent_level", 0));
+                            profile.setGrindFarmMultiLevel(safeGetInt(rs, "grind_farm_multi_level", 0));
+                            profile.setGrindGemMultiLevel(safeGetInt(rs, "grind_gem_multi_level", 0));
+                            profile.setGrindFarmXpLevel(safeGetInt(rs, "grind_farm_xp_level", 0));
+                            profile.setGrindMineXpLevel(safeGetInt(rs, "grind_mine_xp_level", 0));
+                            profile.setGrindSeedMultiLevel(safeGetInt(rs, "grind_seed_multi_level", 0));
+                            profile.setGrindGPMultiLevel(safeGetInt(rs, "grind_gp_multi_level", 0));
+
                             profileCache.put(uuid, profile);
                             future.complete(profile);
                             return;
@@ -115,6 +127,11 @@ public class PlayerDataManager {
         q.append(",farm_multi=?,chosen_crop=?,hoe_tier=?,auto_merge=?");
         q.append(",enchant_msg_tnt=?,enchant_msg_nuke=?,enchant_msg_world_eater=?,enchant_msg_universe_destroyer=?");
         q.append(",gem_upgrade_level=?,farm_multi_upgrade_level=?");
+        q.append(",grinding_points=?,grind_messages=?");
+        q.append(",grind_chance_level=?,grind_exponent_level=?");
+        q.append(",grind_farm_multi_level=?,grind_gem_multi_level=?");
+        q.append(",grind_farm_xp_level=?,grind_mine_xp_level=?");
+        q.append(",grind_seed_multi_level=?,grind_gp_multi_level=?");
         q.append(" WHERE uuid=?");
 
         try (Connection conn = storageManager.getConnection();
@@ -155,6 +172,16 @@ public class PlayerDataManager {
             stmt.setInt(base++,    profile.isEnchantMessageEnabled(3) ? 1 : 0);
             stmt.setInt(base++,    profile.getGemUpgradeLevel());
             stmt.setInt(base++,    profile.getFarmMultiUpgradeLevel());
+            stmt.setDouble(base++, profile.getGrindingPoints());
+            stmt.setInt(base++,    profile.isGrindMessagesEnabled() ? 1 : 0);
+            stmt.setInt(base++,    profile.getGrindChanceLevel());
+            stmt.setInt(base++,    profile.getGrindExponentLevel());
+            stmt.setInt(base++,    profile.getGrindFarmMultiLevel());
+            stmt.setInt(base++,    profile.getGrindGemMultiLevel());
+            stmt.setInt(base++,    profile.getGrindFarmXpLevel());
+            stmt.setInt(base++,    profile.getGrindMineXpLevel());
+            stmt.setInt(base++,    profile.getGrindSeedMultiLevel());
+            stmt.setInt(base++,    profile.getGrindGPMultiLevel());
             stmt.setString(base,   uuid.toString());
             stmt.executeUpdate();
 

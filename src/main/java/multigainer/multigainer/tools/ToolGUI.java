@@ -26,10 +26,6 @@ public class ToolGUI implements Listener {
 
     public static final String HOE_TITLE = "§fHoe Menu";
 
-    // 27-slot layout
-    // Row 0: panes
-    // Row 1: [P][STORAGE][P][P][HOE][P][P][CROP][P]
-    // Row 2: [P][P][P][P][ENCHANT][P][P][P][P]
     private static final int SLOT_STORAGE = 10;
     private static final int SLOT_HOE     = 13;
     private static final int SLOT_CROP    = 16;
@@ -59,22 +55,24 @@ public class ToolGUI implements Listener {
         ItemMeta sm = storage.getItemMeta();
         sm.setDisplayName("§b§lFARMING STORAGE");
         sm.setLore(Arrays.asList(
+            "§8§m──────────────────────",
             "§7Stores all your seed currencies",
             "§7collected from farming.",
-            "",
+            "§8 ",
             "§7Total Seeds§8: §e" + NumberFormatter.format(totalSeeds),
-            "",
-            "§eClick to open farming storage!"
+            "§8§m──────────────────────",
+            "§e▶ §7Click to open storage"
         ));
         storage.setItemMeta(sm);
         inv.setItem(SLOT_STORAGE, storage);
 
-        // ── Slot 13: Hoe center display ───────────────────────────
+        // ── Slot 13: Hoe center display (detailed GUI lore) ───────
         int hoeTier = profile.getHoeTier();
         ItemStack hoe = new ItemStack(FarmingManager.HOE_MATERIALS[hoeTier]);
         ItemMeta hm = hoe.getItemMeta();
-        hm.setDisplayName(FarmingManager.HOE_TIER_COLORS[hoeTier] + "§lYOUR HOE");
-        hm.setLore(buildHoeLore(profile));
+        hm.setDisplayName(FarmingManager.HOE_TIER_COLORS[hoeTier] + "§l"
+                + FarmingManager.HOE_TIER_NAMES[hoeTier].toUpperCase() + " HOE");
+        hm.setLore(buildGuiHoeLore(profile));
         hoe.setItemMeta(hm);
         inv.setItem(SLOT_HOE, hoe);
 
@@ -84,10 +82,11 @@ public class ToolGUI implements Listener {
         ItemMeta cm = cropBtn.getItemMeta();
         cm.setDisplayName("§e§lCROP SELECTION");
         cm.setLore(Arrays.asList(
+            "§8§m──────────────────────",
             "§7Current§8: " + FarmingManager.CROP_NAMES[chosen],
             "§7Seed Multi§8: §6×" + FarmingManager.fmtCount(FarmingManager.getSeedMultiplier(chosen)),
-            "",
-            "§eClick to choose a crop!"
+            "§8§m──────────────────────",
+            "§e▶ §7Click to choose a crop!"
         ));
         cropBtn.setItemMeta(cm);
         inv.setItem(SLOT_CROP, cropBtn);
@@ -97,15 +96,16 @@ public class ToolGUI implements Listener {
         ItemMeta em = enchBtn.getItemMeta();
         em.setDisplayName("§d§lENCHANT MESSAGES");
         em.setLore(Arrays.asList(
+            "§8§m──────────────────────",
             "§7Toggle chat notifications",
             "§7for hoe enchant activations.",
-            "",
-            "§7💥 TNT: " + status(profile, 0),
-            "§7💣 Nuke: " + status(profile, 1),
-            "§7🌍 World Eater: " + status(profile, 2),
-            "§7🌌 Universe Destroyer: " + status(profile, 3),
-            "",
-            "§eClick to manage!"
+            "§8 ",
+            "§7💥 TNT§8: " + status(profile, 0),
+            "§7💣 Nuke§8: " + status(profile, 1),
+            "§7🌍 World Eater§8: " + status(profile, 2),
+            "§7🌌 Universe Destroyer§8: " + status(profile, 3),
+            "§8§m──────────────────────",
+            "§e▶ §7Click to manage!"
         ));
         enchBtn.setItemMeta(em);
         inv.setItem(SLOT_ENCHANT, enchBtn);
@@ -132,26 +132,59 @@ public class ToolGUI implements Listener {
         }
     }
 
-    // Clean hoe lore with 2dp farm multi and formatted numbers
-    public static List<String> buildHoeLore(PlayerProfile profile) {
+    // ── Lore for inventory hover (compact) ────────────────────────────────────
+    public static List<String> buildInventoryHoeLore(PlayerProfile profile) {
         int    farmLevel = profile.getFarmingLevel();
         double farmMulti = profile.getFarmMulti();
         List<String> lore = new ArrayList<>();
-        lore.add("§7Level: §e" + NumberFormatter.format(new BigNumber(farmLevel)));
-        lore.add("§7Multi: §6" + FarmingManager.formatFarmMulti(farmMulti));
-        lore.add("");
-        lore.add("§c§lEnchants");
-        lore.add("§7💥 TNT: §f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(0, farmLevel)) + " §8(§c×10§8)");
-        lore.add("§7💣 Nuke: §f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(1, farmLevel)) + " §8(§c×250§8)");
-        lore.add("§7🌍 World Eater:§f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(2, farmLevel)) + " §8(§c×7.5k§8)");
-        lore.add("§7🌌 Universe Dest: §f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(3, farmLevel)) + " §8(§c×100k§8)");
-        lore.add("");
-        lore.add("§eRight-click §7to open");
+        lore.add("§8§m──────────────────────");
+        lore.add("§7Farm Level§8: §e" + NumberFormatter.format(new BigNumber(farmLevel)));
+        lore.add("§7Farm Multi§8: §6" + NumberFormatter.format(new BigNumber(farmMulti)) + "x");
+        lore.add("§8§m──────────────────────");
+        lore.add("§c✦ §lEnchant Chances");
+        lore.add("§7💥 TNT§8:              §f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(0, farmLevel)) + " §8(§cx10§8)");
+        lore.add("§7💣 Nuke§8:             §f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(1, farmLevel)) + " §8(§cx250§8)");
+        lore.add("§7🌍 World Eater§8:      §f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(2, farmLevel)) + " §8(§cx7.5k§8)");
+        lore.add("§7🌌 Universe Dest§8:    §f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(3, farmLevel)) + " §8(§cx100k§8)");
+        lore.add("§8§m──────────────────────");
+        lore.add("§e▶ §7Right-click to open menu");
         return lore;
     }
 
+    // ── Lore for GUI slot 13 (detailed) ──────────────────────────────────────
+    public static List<String> buildGuiHoeLore(PlayerProfile profile) {
+        int    farmLevel = profile.getFarmingLevel();
+        double farmMulti = profile.getFarmMulti();
+        List<String> lore = new ArrayList<>();
+        lore.add("§8§m══════════════════════");
+        lore.add("§e⭐ §f§lFarming Tool Information");
+        lore.add("§8§m══════════════════════");
+        lore.add("§7Farm Level§8:  §a§l" + NumberFormatter.format(new BigNumber(farmLevel)));
+        lore.add("§7Farm Multi§8:  §6§l" + NumberFormatter.format(new BigNumber(farmMulti)) + "x");
+        lore.add("§8 ");
+        lore.add("§c§l✦ ENCHANT DETAILS");
+        lore.add("§8§m──────────────────────");
+        addEnchantDetail(lore, "💥 TNT",              FarmingManager.getEnchantChance(0, farmLevel), "×10",     farmLevel);
+        addEnchantDetail(lore, "💣 Nuke",             FarmingManager.getEnchantChance(1, farmLevel), "×250",    farmLevel);
+        addEnchantDetail(lore, "🌍 World Eater",      FarmingManager.getEnchantChance(2, farmLevel), "×7,500",  farmLevel);
+        addEnchantDetail(lore, "🌌 Universe Destroyer", FarmingManager.getEnchantChance(3, farmLevel), "×100,000", farmLevel);
+        lore.add("§8§m══════════════════════");
+        return lore;
+    }
+
+    private static void addEnchantDetail(List<String> lore, String name, double chance, String reward, int farmLevel) {
+        lore.add("§7" + name);
+        lore.add("  §8└ §7Chance§8: §f" + FarmingManager.formatChance(chance));
+        lore.add("  §8└ §7Reward§8: §c" + reward + " §7seeds");
+    }
+
+    // Keep backward-compat alias (used nowhere else now, but safe to keep)
+    public static List<String> buildHoeLore(PlayerProfile profile) {
+        return buildInventoryHoeLore(profile);
+    }
+
     private static String status(PlayerProfile p, int i) {
-        return p.isEnchantMessageEnabled(i) ? "§a✔" : "§c✘";
+        return p.isEnchantMessageEnabled(i) ? "§a✔ ON" : "§c✘ OFF";
     }
 
     private static ItemStack makePane() {

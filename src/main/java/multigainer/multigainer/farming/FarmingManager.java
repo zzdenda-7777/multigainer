@@ -187,11 +187,8 @@ public class FarmingManager {
     }
 
     public static String formatChance(double chance) {
-        if (chance == 0.0) return "§70%";
-        if (chance >= 1.0)     return String.format("§a%.2f%%", chance);
-        if (chance >= 0.01)    return String.format("§e%.4f%%", chance);
-        if (chance >= 0.00001) return String.format("§6%.7f%%", chance);
-        return String.format("§c%.9f%%", chance);
+        if (chance == 0.0) return "§70.00%";
+        return String.format("%.2f%%", chance);
     }
 
     public static String formatFarmMulti(double multi) {

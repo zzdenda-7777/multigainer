@@ -115,7 +115,18 @@ public class StorageManager {
                     "ALTER TABLE mg_player_profiles ADD COLUMN hoe_tier INTEGER DEFAULT 0;",
                     "ALTER TABLE mg_player_profiles ADD COLUMN auto_merge INTEGER DEFAULT 0;",
                     "ALTER TABLE mg_player_profiles ADD COLUMN gem_upgrade_level INTEGER DEFAULT 0;",
-                    "ALTER TABLE mg_player_profiles ADD COLUMN farm_multi_upgrade_level INTEGER DEFAULT 0;"
+                    "ALTER TABLE mg_player_profiles ADD COLUMN farm_multi_upgrade_level INTEGER DEFAULT 0;",
+                    // Grinding Points system
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grinding_points REAL DEFAULT 0.0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_messages INTEGER DEFAULT 1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_chance_level INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_exponent_level INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_farm_multi_level INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_gem_multi_level INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_farm_xp_level INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_mine_xp_level INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_seed_multi_level INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_gp_multi_level INTEGER DEFAULT 0;"
             };
             for (String sql : all) {
                 try { stmt.execute(sql); } catch (SQLException ignored) {}

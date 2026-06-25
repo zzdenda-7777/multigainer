@@ -3,6 +3,7 @@ package multigainer.multigainer.listeners;
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.formatting.NumberFormatter;
+import multigainer.multigainer.grind.GrindManager;
 import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.tools.PickaxeManager;
@@ -32,7 +33,13 @@ import java.util.*;
 public class MiningListener implements Listener {
     private final Multigainer plugin;
     private final Map<UUID, Set<Location>> brokenCobbleCache = new HashMap<>();
-    private final Map<UUID, Long> titleCooldown = new HashMap<>();
+    private final Map<UUID, Long> tierMsgCooldown = new HashMap<>();
+    private final Random random = new Random();
+
+    // Player-tier requirements for each of the 17 mineable blocks (index matches PickaxeManager.BLOCKS)
+    public static final int[] BLOCK_TIER_REQUIREMENTS = {
+        0, 1, 3, 5, 7, 10, 12, 15, 25, 35, 45, 70, 100, 150, 200, 250, 300
+    };
 
     public MiningListener(Multigainer plugin) { this.plugin = plugin; }
 
@@ -54,13 +61,9 @@ public class MiningListener implements Listener {
         if (world == null) return;
 
         Location restingLoc = blockLocation.clone().add(0.5, 1.05, 0.5);
-
         final Transformation smallScale = new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(0.4f, 0.4f, 0.4f),
-                new AxisAngle4f(0, 0, 0, 1)
-        );
+                new Vector3f(0, 0, 0), new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(0.4f, 0.4f, 0.4f), new AxisAngle4f(0, 0, 0, 1));
 
         ItemDisplay display = world.spawn(restingLoc, ItemDisplay.class, d -> {
             d.setItemStack(new ItemStack(dropMaterial));
@@ -105,36 +108,24 @@ public class MiningListener implements Listener {
 
         display.setInterpolationDuration(4);
         display.setBillboard(Display.Billboard.CENTER);
-
         Location spawnLoc = blockLocation.clone().add(0.5, 1.0, 0.5);
-        final int totalTicks = 60;
-        final int stepEvery  = 4;
+        final int totalTicks = 60, stepEvery = 4;
 
         new BukkitRunnable() {
             int ticks = 0;
             @Override public void run() {
                 if (ticks >= totalTicks || !display.isValid()) {
-                    player.hideEntity(plugin, display);
-                    display.remove();
-                    cancel();
-                    return;
+                    player.hideEntity(plugin, display); display.remove(); cancel(); return;
                 }
                 if (!player.isOnline()) { display.remove(); cancel(); return; }
-
                 float progress = (float) ticks / totalTicks;
                 display.teleport(spawnLoc.clone().add(0, 1.5 * progress, 0));
-
-                // Reset interpolation so transformation animates immediately
                 display.setInterpolationDelay(-1);
                 display.setInterpolationDuration(stepEvery);
-                float rotation = ticks * 0.35f;
-                float scale    = 1.0f + progress;
+                float rotation = ticks * 0.35f, scale = 1.0f + progress;
                 display.setTransformation(new Transformation(
-                        new Vector3f(0, 0, 0),
-                        new AxisAngle4f(rotation, 0, 1, 0),
-                        new Vector3f(scale, scale, scale),
-                        new AxisAngle4f(0, 0, 0, 1)
-                ));
+                        new Vector3f(0, 0, 0), new AxisAngle4f(rotation, 0, 1, 0),
+                        new Vector3f(scale, scale, scale), new AxisAngle4f(0, 0, 0, 1)));
                 ticks += stepEvery;
             }
         }.runTaskTimer(plugin, 0L, stepEvery);
@@ -152,8 +143,8 @@ public class MiningListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         if (event.isCancelled()) return;
 
-        Block block       = event.getBlock();
-        Player player     = event.getPlayer();
+        Block block      = event.getBlock();
+        Player player    = event.getPlayer();
         Material blockType = block.getType();
 
         int blockIndex = PickaxeManager.getBlockIndex(blockType);
@@ -167,9 +158,15 @@ public class MiningListener implements Listener {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
-        int minTier = PickaxeManager.getMinTierForBlock(blockIndex);
-        if (profile.getPickaxeTier() < minTier) {
-            sendUpgradeTitle(player, minTier);
+        // ── Tier requirement check ─────────────────────────────────────────────
+        int requiredTier = BLOCK_TIER_REQUIREMENTS[blockIndex];
+        if (profile.getTier() < requiredTier) {
+            long now = System.currentTimeMillis();
+            if (now - tierMsgCooldown.getOrDefault(player.getUniqueId(), 0L) >= 2000L) {
+                tierMsgCooldown.put(player.getUniqueId(), now);
+                player.sendMessage("§c§lLOCKED §8│ §7You need §eTier " + requiredTier
+                        + " §7to mine this block!");
+            }
             new BukkitRunnable() {
                 @Override public void run() {
                     if (player.isOnline()) sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
@@ -190,20 +187,24 @@ public class MiningListener implements Listener {
 
         double blockGemsMultiplier = getBlockGemsMultiplier(blockType);
         double blockXpMultiplier   = getBlockXpMultiplier(blockType);
-        double gemUpgradeMulti = PickaxeManager.getGemMultiplier(profile.getGemMultiLevel());
-        double xpUpgradeMulti  = PickaxeManager.getXpMultiplier(profile.getXpMultiLevel());
+        double gemUpgradeMulti     = PickaxeManager.getGemMultiplier(profile.getGemMultiLevel());
+        double xpUpgradeMulti      = PickaxeManager.getXpMultiplier(profile.getXpMultiLevel());
+        double grindGemMulti       = GrindManager.getGemMulti(profile.getGrindGemMultiLevel());
 
         BigNumber payout = new BigNumber(blockGemsMultiplier)
                 .multiply(MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()))
-                .multiply(new BigNumber(gemUpgradeMulti));
+                .multiply(new BigNumber(gemUpgradeMulti))
+                .multiply(new BigNumber(grindGemMulti));
 
         profile.setGems(profile.getGems().add(payout));
 
-        double xpGain     = blockXpMultiplier * xpUpgradeMulti;
-        double currentXp  = profile.getMiningXp() + xpGain;
+        // ── Mining XP (× grind XP multi) ─────────────────────────────────────
+        double grindMineXpMulti = GrindManager.getMineXpMulti(profile.getGrindMineXpLevel());
+        double xpGain      = blockXpMultiplier * xpUpgradeMulti * grindMineXpMulti;
+        double currentXp   = profile.getMiningXp() + xpGain;
         int    currentLevel = profile.getMiningLevel();
-        double requiredXp = MiningLevelManager.getRequiredXpForNextLevel(currentLevel);
-        boolean leveledUp = false;
+        double requiredXp  = MiningLevelManager.getRequiredXpForNextLevel(currentLevel);
+        boolean leveledUp  = false;
 
         while (currentXp >= requiredXp) {
             currentXp -= requiredXp;
@@ -214,6 +215,17 @@ public class MiningListener implements Listener {
         profile.setMiningXp(currentXp);
         profile.setMiningLevel(currentLevel);
         profile.incrementBlockStorage(blockIndex);
+
+        // ── Grinding Points (1/500 chance, reduced by upgrade) ────────────────
+        double mineDenominator = GrindManager.getMiningChanceDenominator(profile.getGrindChanceLevel());
+        if (random.nextDouble() * mineDenominator < 1.0) {
+            double gpEarned = GrindManager.getGPMulti(profile.getGrindGPMultiLevel());
+            profile.addGrindingPoints(gpEarned);
+            if (profile.isGrindMessagesEnabled()) {
+                player.sendMessage("§2§l[+] §a" + NumberFormatter.format(new BigNumber(gpEarned))
+                        + " §2Grinding Points §8(§7Mining§8)");
+            }
+        }
 
         if (plugin.getScoreboardManager() != null) {
             plugin.getScoreboardManager().updateScoreboard(player,
@@ -254,16 +266,6 @@ public class MiningListener implements Listener {
         }.runTaskLater(plugin, 60L);
     }
 
-    private void sendUpgradeTitle(Player player, int requiredTier) {
-        long now = System.currentTimeMillis();
-        if (now - titleCooldown.getOrDefault(player.getUniqueId(), 0L) < 2000L) return;
-        titleCooldown.put(player.getUniqueId(), now);
-        player.sendTitle("§c§lPickaxe Required",
-                "§7Reach a " + PickaxeManager.TIER_COLORS[requiredTier]
-                        + "§l" + PickaxeManager.TIER_NAMES[requiredTier] + " Pickaxe §7to mine this!",
-                5, 50, 10);
-    }
-
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
@@ -280,7 +282,7 @@ public class MiningListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         brokenCobbleCache.remove(uuid);
-        titleCooldown.remove(uuid);
+        tierMsgCooldown.remove(uuid);
     }
 
     private double getBlockGemsMultiplier(Material m) {

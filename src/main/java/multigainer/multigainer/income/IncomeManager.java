@@ -2,7 +2,8 @@ package multigainer.multigainer.income;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
-import multigainer.multigainer.levels.MiningLevelManager; // IMPORTED
+import multigainer.multigainer.grind.GrindManager;
+import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.rebirth.RebirthManager;
 import multigainer.multigainer.tier.TierManager;
@@ -24,43 +25,34 @@ public class IncomeManager {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (player == null || !player.isOnline()) continue; // Pojistka
+                    if (player == null || !player.isOnline()) continue;
                     PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
                     if (profile == null) continue;
 
-                    // 1. Base Configuration Value
-                    BigNumber baseIncome = new BigNumber(1.0);
-
-                    // 2. Upgrades Multiplier
-                    BigNumber upgradeMultiplier = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
-
-                    // 3. Rebirth Multiplier Hook
-                    double rebirthBonus = RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints());
-                    BigNumber rebirthMultiplier = new BigNumber(rebirthBonus);
-
-                    // 4. Tier Multiplier Hook
-                    double tierBonus = TierManager.getMultiplierForTier(profile.getTier());
-                    BigNumber tierMultiplier = new BigNumber(tierBonus);
-
-                    // 5. Mining Multiplier Hook
+                    // All money multipliers combined
+                    BigNumber upgradeMultiplier  = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
+                    double rebirthBonus          = RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints());
+                    double tierBonus             = TierManager.getMultiplierForTier(profile.getTier());
                     BigNumber mineMoneyMultiplier = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
+                    BigNumber farmMultiplier      = new BigNumber(profile.getFarmMulti());
+                    BigNumber farmUpgMultiplier   = UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());
+                    BigNumber grindFarmMultiplier = new BigNumber(GrindManager.getFarmMulti(profile.getGrindFarmMultiLevel()));
 
-                    // 6. Farm Multi (accumulated from crops) and farm upgrade multiplier
-                    BigNumber farmMultiplier    = new BigNumber(profile.getFarmMulti());
-                    BigNumber farmUpgMultiplier = multigainer.multigainer.upgrades.UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());
-
-                    // Compound Multiplier Formula Stacking
-                    BigNumber totalEarned = baseIncome
-                            .multiply(upgradeMultiplier)
-                            .multiply(rebirthMultiplier)
-                            .multiply(tierMultiplier)
+                    BigNumber allMulti = upgradeMultiplier
+                            .multiply(new BigNumber(rebirthBonus))
+                            .multiply(new BigNumber(tierBonus))
                             .multiply(mineMoneyMultiplier)
                             .multiply(farmMultiplier)
-                            .multiply(farmUpgMultiplier);
+                            .multiply(farmUpgMultiplier)
+                            .multiply(grindFarmMultiplier);
+
+                    // Apply money exponent: totalEarned = allMulti ^ exponent
+                    double exponent = GrindManager.getMoneyExponent(profile.getGrindExponentLevel());
+                    double log10 = Math.log10(allMulti.getMantissa()) + allMulti.getExponent();
+                    BigNumber totalEarned = UpgradeManager.fromLog10(exponent * log10);
 
                     profile.setMoney(profile.getMoney().add(totalEarned));
 
-                    // Re-render visual text interfaces instantly for the player
                     if (plugin.getScoreboardManager() != null) {
                         plugin.getScoreboardManager().updateScoreboard(
                                 player,

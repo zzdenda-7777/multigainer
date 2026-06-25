@@ -4,6 +4,7 @@ import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.farming.FarmingManager;
 import multigainer.multigainer.formatting.NumberFormatter;
+import multigainer.multigainer.grind.GrindManager;
 import multigainer.multigainer.levels.FarmingLevelManager;
 import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.math.BigNumber;
@@ -106,7 +107,7 @@ public class ScoreboardManager {
         double farmMulti = profile != null ? profile.getFarmMulti() : 1.0;
         int farmUpgLvl   = profile != null ? profile.getFarmMultiUpgradeLevel() : 0;
         BigNumber farmUpgBig = UpgradeManager.getFarmTotalMultiplier(farmUpgLvl);
-        String farmMultiSuffix = FarmingManager.formatFarmMulti(farmMulti)
+        String farmMultiSuffix = NumberFormatter.format(new BigNumber(farmMulti)) + "x"
                 + (farmUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(farmUpgBig) + "x§8)" : "");
         Team farmMultiTeam = board.registerNewTeam("sb_farmmulti");
         farmMultiTeam.addEntry(ChatColor.YELLOW.toString());
@@ -167,7 +168,7 @@ public class ScoreboardManager {
         if (t != null && profile != null) {
             int fUpgLvl = profile.getFarmMultiUpgradeLevel();
             BigNumber fUpgBig = UpgradeManager.getFarmTotalMultiplier(fUpgLvl);
-            String fSuffix = FarmingManager.formatFarmMulti(profile.getFarmMulti())
+            String fSuffix = NumberFormatter.format(new BigNumber(profile.getFarmMulti())) + "x"
                     + (fUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(fUpgBig) + "x§8)" : "");
             t.setSuffix(fSuffix);
         }
@@ -181,8 +182,9 @@ public class ScoreboardManager {
         if (board.getObjective("currency_sb") == null) return;
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
+        double grindGemMulti = profile != null ? GrindManager.getGemMulti(profile.getGrindGemMultiLevel()) : 1.0;
         BigNumber totalGemsMulti = profile != null
-                ? MiningLevelManager.getGemsMultiplier(profile.getMiningLevel())
+                ? MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()).multiply(new BigNumber(grindGemMulti))
                 : new BigNumber(1.0);
 
         Team t = board.getTeam("sb_gems");
@@ -197,21 +199,30 @@ public class ScoreboardManager {
         if (t != null) t.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
     }
 
-    // Returns [totalMoneyMulti, totalGemsMulti] including farm multi
+    // Returns [totalMoneyMulti (with exponent applied), totalGemsMulti]
     private BigNumber[] calcMultipliers(PlayerProfile profile) {
         BigNumber money = new BigNumber(1.0);
         BigNumber gems  = new BigNumber(1.0);
         if (profile != null) {
-            BigNumber upgrade    = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
-            BigNumber rebirth    = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
-            BigNumber tier       = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
-            BigNumber mine       = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
-            BigNumber farmMult   = new BigNumber(profile.getFarmMulti());
+            BigNumber upgrade     = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
+            BigNumber rebirth     = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
+            BigNumber tier        = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
+            BigNumber mine        = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
+            BigNumber farmMult    = new BigNumber(profile.getFarmMulti());
             BigNumber farmUpgMult = UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());
-            money = upgrade.multiply(rebirth).multiply(tier).multiply(mine).multiply(farmMult).multiply(farmUpgMult);
-            BigNumber gemPickaxe = new BigNumber(multigainer.multigainer.tools.PickaxeManager.getGemMultiplier(profile.getGemMultiLevel()));
-            BigNumber gemUpgMult = UpgradeManager.getGemTotalMultiplier(profile.getGemUpgradeLevel());
-            gems  = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()).multiply(gemPickaxe).multiply(gemUpgMult);
+            BigNumber grindFarm   = new BigNumber(GrindManager.getFarmMulti(profile.getGrindFarmMultiLevel()));
+
+            BigNumber allMoney = upgrade.multiply(rebirth).multiply(tier).multiply(mine).multiply(farmMult).multiply(farmUpgMult).multiply(grindFarm);
+
+            // Apply money exponent
+            double exponent = GrindManager.getMoneyExponent(profile.getGrindExponentLevel());
+            double log10 = Math.log10(allMoney.getMantissa()) + allMoney.getExponent();
+            money = UpgradeManager.fromLog10(exponent * log10);
+
+            BigNumber gemPickaxe  = new BigNumber(multigainer.multigainer.tools.PickaxeManager.getGemMultiplier(profile.getGemMultiLevel()));
+            BigNumber gemUpgMult  = UpgradeManager.getGemTotalMultiplier(profile.getGemUpgradeLevel());
+            BigNumber grindGem    = new BigNumber(GrindManager.getGemMulti(profile.getGrindGemMultiLevel()));
+            gems = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()).multiply(gemPickaxe).multiply(gemUpgMult).multiply(grindGem);
         }
         return new BigNumber[]{ money, gems };
     }

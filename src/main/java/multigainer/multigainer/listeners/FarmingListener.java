@@ -4,6 +4,7 @@ import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.farming.FarmingManager;
 import multigainer.multigainer.formatting.NumberFormatter;
+import multigainer.multigainer.grind.GrindManager;
 import multigainer.multigainer.levels.FarmingLevelManager;
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.upgrades.UpgradeManager;
@@ -73,24 +74,25 @@ public class FarmingListener implements Listener {
         event.setCancelled(true);
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(uuid);
-        // Override Paper's WHEAT resend immediately so client sees chosen crop, not wheat
         player.sendBlockChange(loc, FarmingManager.getCropBlockData(profile != null ? profile.getChosenCrop() : 0));
         if (profile == null) return;
 
-        // ── Farm multi increment (+0.001 × farmUpgradeMulti per crop) ──
+        // ── Farm multi increment ──────────────────────────────────────────────
         double farmUpgDouble = UpgradeManager.getFarmTotalMultiplierDouble(profile.getFarmMultiUpgradeLevel());
         profile.setFarmMulti(profile.getFarmMulti() + 0.001 * farmUpgDouble);
 
-        // ── Seeds (cropMulti × enchantMulti) ─────────────────────
+        // ── Seeds (crop × enchant × grind seed multi) ─────────────────────────
         long cropSeedMulti = FarmingManager.getSeedMultiplier(profile.getChosenCrop());
         long enchantMulti  = rollEnchants(player, profile);
-        profile.addSeeds(cropSeedMulti * enchantMulti);
+        double seedMulti   = GrindManager.getSeedMulti(profile.getGrindSeedMultiLevel());
+        long seedsToAdd    = (long)(cropSeedMulti * enchantMulti * seedMulti);
+        profile.addSeeds(Math.max(1L, seedsToAdd));
 
-        // Auto-merge if enabled
         if (profile.isAutoMerge()) FarmingManager.runAutoMerge(profile);
 
-        // ── Farming XP & level ────────────────────────────────────
-        double currentXp = profile.getFarmingXp() + 1.0;
+        // ── Farming XP (× grind XP multi) ────────────────────────────────────
+        double xpGain    = 1.0 * GrindManager.getFarmXpMulti(profile.getGrindFarmXpLevel());
+        double currentXp = profile.getFarmingXp() + xpGain;
         int    oldLevel  = profile.getFarmingLevel();
         int    level     = oldLevel;
         double reqXp     = FarmingLevelManager.getRequiredXpForNextLevel(level);
@@ -109,7 +111,18 @@ public class FarmingListener implements Listener {
             plugin.getToolHandler().checkHoeTierUp(player, profile, oldLevel, level);
         }
 
-        // ── Scoreboard refresh ────────────────────────────────────
+        // ── Grinding Points (1/100 chance, reduced by upgrade) ────────────────
+        double farmDenominator = GrindManager.getFarmingChanceDenominator(profile.getGrindChanceLevel());
+        if (random.nextDouble() * farmDenominator < 1.0) {
+            double gpEarned = GrindManager.getGPMulti(profile.getGrindGPMultiLevel());
+            profile.addGrindingPoints(gpEarned);
+            if (profile.isGrindMessagesEnabled()) {
+                player.sendMessage("§2§l[+] §a" + NumberFormatter.format(new BigNumber(gpEarned))
+                        + " §2Grinding Points §8(§7Farming§8)");
+            }
+        }
+
+        // ── Scoreboard refresh ────────────────────────────────────────────────
         if (plugin.getScoreboardManager() != null) {
             plugin.getScoreboardManager().updateScoreboard(player,
                     profile.getMoney(), profile.getGems(), profile.getRubies(),
@@ -117,7 +130,7 @@ public class FarmingListener implements Listener {
                     profile.getMiningLevel(), profile.getMiningXp());
         }
 
-        // ── Fake block: briefly hide then restore chosen crop ─────
+        // ── Fake block: briefly hide then restore chosen crop ─────────────────
         cooldowns.add(loc);
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) player.sendBlockChange(loc, Material.AIR.createBlockData());
@@ -129,7 +142,6 @@ public class FarmingListener implements Listener {
         }, 60L);
     }
 
-    // Roll enchants rarest→common; return multiplier of first proc (or 1 if none)
     private long rollEnchants(Player player, PlayerProfile profile) {
         int farmLevel = profile.getFarmingLevel();
         for (int i = FarmingManager.ENCHANT_NAMES.length - 1; i >= 0; i--) {

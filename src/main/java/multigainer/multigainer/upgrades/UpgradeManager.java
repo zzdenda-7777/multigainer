@@ -11,9 +11,9 @@ public class UpgradeManager {
     public static BigNumber getTotalMultiplier(int level)  { return getMoneyTotalMultiplier(level); }
     public static double    getTierMultiplier(int level)   { return getMoneyTierMultiplier(level); }
 
-    // Money: cost(n) = 500^(1.5^(n-1))
+    // Money: cost(n) = 500^(1.3^(n-1))  [was 1.5, reduced for easier progression]
     public static BigNumber getMoneyUpgradeCost(int level) {
-        double logCost = Math.pow(1.5, level - 1) * Math.log10(500.0);
+        double logCost = Math.pow(1.3, level - 1) * Math.log10(500.0);
         return fromLog10(logCost);
     }
 
@@ -35,9 +35,9 @@ public class UpgradeManager {
         return fromLog10(totalLog);
     }
 
-    // Gem: cost(n) = 2500^(1.4^(n-1)), total = 1.25^level
+    // Gem: cost(n) = 2500^(1.2^(n-1)), total = 1.25^level  [was 1.4, reduced]
     public static BigNumber getGemUpgradeCost(int level) {
-        double logCost = Math.pow(1.4, level - 1) * Math.log10(2500.0);
+        double logCost = Math.pow(1.2, level - 1) * Math.log10(2500.0);
         return fromLog10(logCost);
     }
     public static BigNumber getGemTotalMultiplier(int level) {
@@ -45,9 +45,9 @@ public class UpgradeManager {
         return fromLog10(level * Math.log10(1.25));
     }
 
-    // Farm: cost(n) = 2500^(1.3^(n-1)), total = 2^level
+    // Farm: cost(n) = 2500^(1.1^(n-1)), total = 2^level  [was 1.3, reduced]
     public static BigNumber getFarmUpgradeCost(int level) {
-        double logCost = Math.pow(1.3, level - 1) * Math.log10(2500.0);
+        double logCost = Math.pow(1.1, level - 1) * Math.log10(2500.0);
         return fromLog10(logCost);
     }
     public static BigNumber getFarmTotalMultiplier(int level) {

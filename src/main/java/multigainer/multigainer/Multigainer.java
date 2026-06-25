@@ -3,6 +3,8 @@ package multigainer.multigainer;
 import multigainer.multigainer.commands.StatsCommand;
 import multigainer.multigainer.commands.ReloadCommand;
 import multigainer.multigainer.commands.GiveCommand;
+import multigainer.multigainer.commands.ResetCommand;
+import multigainer.multigainer.grind.GrindGUI;
 import multigainer.multigainer.farming.CropSelectionGUI;
 import multigainer.multigainer.farming.EnchantToggleGUI;
 import multigainer.multigainer.farming.FarmingStorageGUI;
@@ -46,6 +48,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
     private FarmingStorageGUI farmingStorageGUI;
     private CropSelectionGUI cropSelectionGUI;
     private EnchantToggleGUI enchantToggleGUI;
+    private GrindGUI grindGUI;
 
     @Override
     public void onEnable() {
@@ -63,6 +66,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
         this.farmingStorageGUI      = new FarmingStorageGUI(this);
         this.cropSelectionGUI       = new CropSelectionGUI(this);
         this.enchantToggleGUI       = new EnchantToggleGUI(this);
+        this.grindGUI               = new GrindGUI(this);
 
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new MiningListener(this), this);
@@ -79,6 +83,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(farmingStorageGUI, this);
         getServer().getPluginManager().registerEvents(cropSelectionGUI, this);
         getServer().getPluginManager().registerEvents(enchantToggleGUI, this);
+        getServer().getPluginManager().registerEvents(grindGUI, this);
 
         if (getCommand("upgrades") != null) getCommand("upgrades").setExecutor(upgradeHandler);
         if (getCommand("stats") != null) getCommand("stats").setExecutor(new StatsCommand(this));
@@ -90,7 +95,18 @@ public final class Multigainer extends JavaPlugin implements Listener {
                     System.arraycopy(args, 1, newArgs, 0, args.length - 1);
                     return new GiveCommand(this).onCommand(sender, command, label, newArgs);
                 }
+                if (args.length > 0 && args[0].equalsIgnoreCase("reset")) {
+                    return new ResetCommand(this).onCommand(sender, command, label, args);
+                }
                 return new ReloadCommand(this).onCommand(sender, command, label, args);
+            });
+        }
+
+        if (getCommand("grind") != null) {
+            getCommand("grind").setExecutor((sender, cmd, label, args) -> {
+                if (!(sender instanceof Player p)) return true;
+                grindGUI.open(p);
+                return true;
             });
         }
 
