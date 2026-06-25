@@ -3,6 +3,9 @@ package multigainer.multigainer;
 import multigainer.multigainer.commands.StatsCommand;
 import multigainer.multigainer.commands.ReloadCommand;
 import multigainer.multigainer.commands.GiveCommand;
+import multigainer.multigainer.farming.CropSelectionGUI;
+import multigainer.multigainer.farming.EnchantToggleGUI;
+import multigainer.multigainer.farming.FarmingStorageGUI;
 import multigainer.multigainer.rebirth.RebirthListener;
 import multigainer.multigainer.rebirth.RebirthGUI;
 import multigainer.multigainer.tier.TierGUI;
@@ -40,20 +43,26 @@ public final class Multigainer extends JavaPlugin implements Listener {
     private PickaxeGUI pickaxeGUI;
     private PickaxeUpgradeGUI pickaxeUpgradeGUI;
     private PickaxeBlockStorageGUI pickaxeBlockStorageGUI;
+    private FarmingStorageGUI farmingStorageGUI;
+    private CropSelectionGUI cropSelectionGUI;
+    private EnchantToggleGUI enchantToggleGUI;
 
     @Override
     public void onEnable() {
-        this.storageManager = new StorageManager(this);
+        this.storageManager    = new StorageManager(this);
         this.storageManager.init();
         this.playerDataManager = new PlayerDataManager(this, storageManager);
         this.scoreboardManager = new ScoreboardManager(this);
 
-        this.upgradeHandler = new UpgradeItemHandler(this);
-        this.toolHandler = new ToolItemHandler(this);
-        this.toolGUI = new ToolGUI(this);
-        this.pickaxeGUI = new PickaxeGUI(this);
-        this.pickaxeUpgradeGUI = new PickaxeUpgradeGUI(this);
+        this.upgradeHandler         = new UpgradeItemHandler(this);
+        this.toolHandler            = new ToolItemHandler(this);
+        this.toolGUI                = new ToolGUI(this);
+        this.pickaxeGUI             = new PickaxeGUI(this);
+        this.pickaxeUpgradeGUI      = new PickaxeUpgradeGUI(this);
         this.pickaxeBlockStorageGUI = new PickaxeBlockStorageGUI(this);
+        this.farmingStorageGUI      = new FarmingStorageGUI(this);
+        this.cropSelectionGUI       = new CropSelectionGUI(this);
+        this.enchantToggleGUI       = new EnchantToggleGUI(this);
 
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new MiningListener(this), this);
@@ -67,6 +76,9 @@ public final class Multigainer extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(pickaxeBlockStorageGUI, this);
         getServer().getPluginManager().registerEvents(new RebirthListener(this), this);
         getServer().getPluginManager().registerEvents(new TierListener(this), this);
+        getServer().getPluginManager().registerEvents(farmingStorageGUI, this);
+        getServer().getPluginManager().registerEvents(cropSelectionGUI, this);
+        getServer().getPluginManager().registerEvents(enchantToggleGUI, this);
 
         if (getCommand("upgrades") != null) getCommand("upgrades").setExecutor(upgradeHandler);
         if (getCommand("stats") != null) getCommand("stats").setExecutor(new StatsCommand(this));
@@ -86,7 +98,9 @@ public final class Multigainer extends JavaPlugin implements Listener {
             getCommand("rebirth").setExecutor((sender, cmd, label, args) -> {
                 if (!(sender instanceof Player)) return true;
                 Player p = (Player) sender;
-                RebirthGUI.open(p, getPlayerDataManager().getProfile(p.getUniqueId()));
+                PlayerProfile prof = getPlayerDataManager().getProfile(p.getUniqueId());
+                if (prof == null) { p.sendMessage("§cProfile loading, please try again!"); return true; }
+                RebirthGUI.open(p, prof);
                 return true;
             });
         }
@@ -95,13 +109,26 @@ public final class Multigainer extends JavaPlugin implements Listener {
             getCommand("tier").setExecutor((sender, cmd, label, args) -> {
                 if (!(sender instanceof Player)) return true;
                 Player p = (Player) sender;
-                TierGUI.open(p, getPlayerDataManager().getProfile(p.getUniqueId()));
+                PlayerProfile prof = getPlayerDataManager().getProfile(p.getUniqueId());
+                if (prof == null) { p.sendMessage("§cProfile loading, please try again!"); return true; }
+                TierGUI.open(p, prof);
+                return true;
+            });
+        }
+
+        if (getCommand("relo") != null) {
+            getCommand("relo").setExecutor((sender, cmd, label, args) -> {
+                sender.sendMessage("§e[Multigainer] §7Saving data and reloading...");
+                playerDataManager.saveAllOnlinePlayersSynchronously();
+                Bukkit.getScheduler().runTaskLater(this, () ->
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "reload confirm"), 3L);
                 return true;
             });
         }
 
         new IncomeManager(this);
 
+        // Scoreboard refresh every second
         new org.bukkit.scheduler.BukkitRunnable() {
             @Override
             public void run() {
@@ -109,12 +136,22 @@ public final class Multigainer extends JavaPlugin implements Listener {
                     PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
                     if (profile != null) {
                         scoreboardManager.updateScoreboard(p, profile.getMoney(), profile.getGems(),
-                                profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
-                                profile.getMiningLevel(), profile.getMiningXp());
+                            profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
+                            profile.getMiningLevel(), profile.getMiningXp());
                     }
                 }
             }
         }.runTaskTimer(this, 20L, 20L);
+
+        // Hoe lore refresh every minute (1200 ticks)
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    toolHandler.updateHoeInInventory(p);
+                }
+            }
+        }.runTaskTimer(this, 1200L, 1200L);
 
         getLogger().info("§a✓ Multigainer data systems successfully loaded!");
     }
@@ -130,16 +167,21 @@ public final class Multigainer extends JavaPlugin implements Listener {
         Player p = event.getPlayer();
         PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
         if (profile != null) {
-            if (profile.getTier() < 0 || profile.getMoney().toDouble() == 0 && profile.getRebirthPoints() == 0 && profile.getTier() == 1) {
+            if (profile.getTier() < 0 || profile.getMoney().toDouble() == 0
+                    && profile.getRebirthPoints() == 0 && profile.getTier() == 1) {
                 profile.setTier(0);
             }
             scoreboardManager.createScoreboard(p, profile.getMoney(), profile.getGems(),
-                    profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
-                    profile.getMiningLevel(), profile.getMiningXp());
+                profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
+                profile.getMiningLevel(), profile.getMiningXp());
         }
-        p.getInventory().setItem(0, toolHandler.getCustomHoe());
+        p.getInventory().setItem(0, toolHandler.getHoeForProfile(profile));
         p.getInventory().setItem(1, toolHandler.getPickaxeForProfile(profile));
         p.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
+
+        if (profile != null) {
+            CropSelectionGUI.sendFakeCrops(p, profile.getChosenCrop(), this);
+        }
     }
 
     @EventHandler

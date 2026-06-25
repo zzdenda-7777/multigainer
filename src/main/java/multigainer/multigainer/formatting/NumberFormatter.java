@@ -23,7 +23,7 @@ public class NumberFormatter {
             if (raw % 1 == 0) {
                 return String.format(Locale.US, "%.0f", raw);
             }
-            return String.format(Locale.US, "%.3f", raw).replaceAll("\\.?0+$", "");
+            return String.format(Locale.US, "%.2f", raw).replaceAll("\\.?0+$", "");
         }
 
         double indexFloor = Math.floor(exp / 3.0);
@@ -33,14 +33,14 @@ public class NumberFormatter {
         double displayedMantissa = value.getMantissa() * Math.pow(10, remainder);
 
         if (indexFloor <= SUFFIXES.length) {
-            return String.format(Locale.US, "%.3f%s", displayedMantissa, SUFFIXES[(int) indexFloor - 1]);
+            return String.format(Locale.US, "%.2f%s", displayedMantissa, SUFFIXES[(int) indexFloor - 1]);
         } else {
             double engineeringExponent = indexFloor * 3.0;
             String expStr = (engineeringExponent < 1000000)
                     ? String.format(Locale.US, "%.0f", engineeringExponent)
                     : format(new BigNumber(engineeringExponent));
 
-            return String.format(Locale.US, "%.3fe%s", displayedMantissa, expStr);
+            return String.format(Locale.US, "%.2fe%s", displayedMantissa, expStr);
         }
     }
 }

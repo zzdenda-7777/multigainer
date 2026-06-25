@@ -2,12 +2,10 @@ package multigainer.multigainer.listeners;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.farming.FarmingManager;
+import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.levels.FarmingLevelManager;
-import multigainer.multigainer.levels.MiningLevelManager; // IMPORTED
 import multigainer.multigainer.math.BigNumber;
-import multigainer.multigainer.upgrades.UpgradeManager;
-import multigainer.multigainer.rebirth.RebirthManager;
-import multigainer.multigainer.tier.TierManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -28,126 +26,122 @@ import java.util.*;
 
 public class FarmingListener implements Listener {
     private final Multigainer plugin;
-    private final Map<UUID, Set<Location>> brokenWheatCache = new HashMap<>();
+    private final Map<UUID, Set<Location>> brokenCropCache = new HashMap<>();
+    private final Random random = new Random();
 
-    public FarmingListener(Multigainer plugin) {
-        this.plugin = plugin;
-    }
+    public FarmingListener(Multigainer plugin) { this.plugin = plugin; }
 
     @EventHandler
     public void onFarmlandMoistureLoss(MoistureChangeEvent event) {
-        if (event.getBlock().getType() == Material.FARMLAND) {
-            event.setCancelled(true);
-        }
+        if (event.getBlock().getType() == Material.FARMLAND) event.setCancelled(true);
     }
 
     @EventHandler
     public void onFarmlandTrample(PlayerInteractEvent event) {
         if (event.getAction() == Action.PHYSICAL) {
-            Block block = event.getClickedBlock();
-            if (block != null && block.getType() == Material.FARMLAND) {
-                event.setCancelled(true);
-            }
+            Block b = event.getClickedBlock();
+            if (b != null && b.getType() == Material.FARMLAND) event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        brokenWheatCache.remove(event.getPlayer().getUniqueId());
+        brokenCropCache.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onCropPlace(BlockPlaceEvent event) {
         Block block = event.getBlock();
-        if (block.getType() == Material.WHEAT) {
-            Ageable wheatData = (Ageable) block.getBlockData();
-            wheatData.setAge(wheatData.getMaximumAge());
-            block.setBlockData(wheatData);
+        if (block.getBlockData() instanceof Ageable ageable) {
+            ageable.setAge(ageable.getMaximumAge());
+            block.setBlockData(ageable);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCropBreak(BlockBreakEvent event) {
-        Block block = event.getBlock();
+        Block  block  = event.getBlock();
         Player player = event.getPlayer();
-
         if (block.getType() != Material.WHEAT) return;
 
         UUID uuid = player.getUniqueId();
-        Set<Location> cooldowns = brokenWheatCache.computeIfAbsent(uuid, k -> new HashSet<>());
+        Set<Location> cooldowns = brokenCropCache.computeIfAbsent(uuid, k -> new HashSet<>());
         Location loc = block.getLocation();
-
-        if (cooldowns.contains(loc)) {
-            event.setCancelled(true);
-            return;
-        }
+        if (cooldowns.contains(loc)) { event.setCancelled(true); return; }
 
         event.setCancelled(true);
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(uuid);
+        if (profile == null) return;
 
-        // --- Money Calculations with Global Cross-System Multipliers ---
-        BigNumber baseMoney = new BigNumber(0.25);
-        BigNumber activeMultiplier = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
+        // ── Farm multi increment (+0.001 per crop) ────────────────
+        profile.incrementFarmMulti();
 
-        // Dynamic Global Multiplier Hooks
-        BigNumber rebirthMultiplier = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
-        BigNumber tierMultiplier = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
+        // ── Seeds (cropMulti × enchantMulti) ─────────────────────
+        long cropSeedMulti = FarmingManager.getSeedMultiplier(profile.getChosenCrop());
+        long enchantMulti  = rollEnchants(player, profile);
+        profile.addSeeds(cropSeedMulti * enchantMulti);
 
-        // FIX: Grab Mining Multiplier to match the Scoreboard & Passive Income math
-        BigNumber mineMoneyMultiplier = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
+        // Auto-merge if enabled
+        if (profile.isAutoMerge()) FarmingManager.runAutoMerge(profile);
 
-        // Stacked Calculation Formula (Base * Upgrades * Rebirth * Tier * Mining)
-        BigNumber finalPayout = baseMoney.multiply(activeMultiplier)
-                .multiply(rebirthMultiplier)
-                .multiply(tierMultiplier)
-                .multiply(mineMoneyMultiplier);
-
-        profile.setMoney(profile.getMoney().add(finalPayout));
-
-        // --- Farming XP & Leveling Logic ---
+        // ── Farming XP & level ────────────────────────────────────
         double currentXp = profile.getFarmingXp() + 1.0;
-        int currentLevel = profile.getFarmingLevel();
-        double requiredXp = FarmingLevelManager.getRequiredXpForNextLevel(currentLevel);
+        int    oldLevel  = profile.getFarmingLevel();
+        int    level     = oldLevel;
+        double reqXp     = FarmingLevelManager.getRequiredXpForNextLevel(level);
 
-        while (currentXp >= requiredXp) {
-            currentXp -= requiredXp;
-            currentLevel++;
-            requiredXp = FarmingLevelManager.getRequiredXpForNextLevel(currentLevel);
-            player.sendMessage("§a§l[!] LEVEL UP! §7Your Farming Level is now §e" + currentLevel + "§7!");
+        while (currentXp >= reqXp) {
+            currentXp -= reqXp;
+            level++;
+            reqXp = FarmingLevelManager.getRequiredXpForNextLevel(level);
+            player.sendMessage("§a§l[!] §7Farm Level Up! Now §e"
+                + NumberFormatter.format(new BigNumber(level)) + "§7!");
         }
-
         profile.setFarmingXp(currentXp);
-        profile.setFarmingLevel(currentLevel);
+        profile.setFarmingLevel(level);
 
-        // Update the scoreboard UI with the modified stats
-        if (plugin.getScoreboardManager() != null) {
-            plugin.getScoreboardManager().updateScoreboard(
-                    player,
-                    profile.getMoney(),
-                    profile.getGems(),
-                    profile.getRubies(),
-                    profile.getFarmingLevel(),
-                    profile.getFarmingXp(),
-                    profile.getMiningLevel(),
-                    profile.getMiningXp()
-            );
+        if (level > oldLevel) {
+            plugin.getToolHandler().checkHoeTierUp(player, profile, oldLevel, level);
         }
 
+        // ── Scoreboard refresh ────────────────────────────────────
+        if (plugin.getScoreboardManager() != null) {
+            plugin.getScoreboardManager().updateScoreboard(player,
+                profile.getMoney(), profile.getGems(), profile.getRubies(),
+                profile.getFarmingLevel(), profile.getFarmingXp(),
+                profile.getMiningLevel(), profile.getMiningXp());
+        }
+
+        // ── Fake block: briefly hide then restore chosen crop ─────
         cooldowns.add(loc);
-
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline()) {
-                player.sendBlockChange(loc, Material.AIR.createBlockData());
-            }
+            if (player.isOnline()) player.sendBlockChange(loc, Material.AIR.createBlockData());
         }, 1L);
-
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             cooldowns.remove(loc);
-            if (player.isOnline() && loc.getBlock().getType() == Material.WHEAT) {
-                player.sendBlockChange(loc, loc.getBlock().getBlockData());
-            }
+            if (!player.isOnline()) return;
+            player.sendBlockChange(loc, FarmingManager.getCropBlockData(profile.getChosenCrop()));
         }, 60L);
+    }
+
+    // Roll enchants rarest→common; return multiplier of first proc (or 1 if none)
+    private long rollEnchants(Player player, PlayerProfile profile) {
+        int farmLevel = profile.getFarmingLevel();
+        for (int i = FarmingManager.ENCHANT_NAMES.length - 1; i >= 0; i--) {
+            double chance = FarmingManager.getEnchantChance(i, farmLevel);
+            if (chance <= 0) continue;
+            if (random.nextDouble() * 100.0 < chance) {
+                long multi = FarmingManager.ENCHANT_SEED_MULTI[i];
+                if (profile.isEnchantMessageEnabled(i)) {
+                    player.sendMessage("§8[§e⚡§8] §6§l" + FarmingManager.ENCHANT_NAMES[i]
+                        + " §7activated! §e+"
+                        + NumberFormatter.format(new BigNumber((double) multi)) + "x §7seeds!");
+                }
+                return multi;
+            }
+        }
+        return 1L;
     }
 
     @EventHandler
@@ -157,10 +151,12 @@ public class FarmingListener implements Listener {
         if (block == null) return;
 
         Player player = event.getPlayer();
-        Set<Location> cooldowns = brokenWheatCache.get(player.getUniqueId());
+        Set<Location> cooldowns = brokenCropCache.get(player.getUniqueId());
         if (cooldowns != null && cooldowns.contains(block.getLocation())) {
             event.setCancelled(true);
-            player.sendBlockChange(block.getLocation(), Material.AIR.createBlockData());
+            PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
+            if (profile != null)
+                player.sendBlockChange(block.getLocation(), FarmingManager.getCropBlockData(profile.getChosenCrop()));
         }
     }
 }

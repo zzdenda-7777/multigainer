@@ -15,81 +15,90 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.Arrays;
 
 public class TierGUI {
+
     public static void open(Player player, PlayerProfile profile) {
+        if (profile == null) {
+            player.sendMessage("§cProfile not loaded yet. Please wait a moment and try again.");
+            return;
+        }
+
         Inventory inv = Bukkit.createInventory(null, 27, "§8Tier Advancement");
 
-        // Decorative Fill
+        // Border panes
         ItemStack pane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta pm = pane.getItemMeta();
-        pm.setDisplayName(" ");
-        pane.setItemMeta(pm);
+        if (pm != null) { pm.setDisplayName(" "); pane.setItemMeta(pm); }
         for (int i = 0; i < 27; i++) inv.setItem(i, pane);
 
-        // Tier Info Item (Beacon)
+        int tier         = profile.getTier();
+        double tierMulti = TierManager.getMultiplierForTier(tier);
+        double nextCost  = TierManager.getCostForTier(tier + 1);
+        double curPoints = profile.getRebirthPoints();
+        boolean canTier  = curPoints >= nextCost;
+
+        // ── Slot 11: Player head with stats ──────────────────────────────────
         ItemStack stats = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta sm = (SkullMeta) stats.getItemMeta(); // Změněno na SkullMeta a přetypováno
-
+        SkullMeta sm    = (SkullMeta) stats.getItemMeta();
         if (sm != null) {
-            // Nastavení hlavy hráče
             sm.setOwningPlayer(player);
-        sm.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "TIER " + profile.getTier());
-        sm.setLore(Arrays.asList(
+            sm.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "TIER " + tier);
+            sm.setLore(Arrays.asList(
                 " ",
-                ChatColor.GRAY + "Current Multi: " + ChatColor.YELLOW +
-                        String.format("%.0fx", TierManager.getMultiplierForTier(profile.getTier())),
-                // ADDED: Displays the user's current accumulated Tier Points directly on the Beacon
-                ChatColor.GRAY + "Tier Points: " + ChatColor.LIGHT_PURPLE + profile.getTierPoints(),
-                ChatColor.GRAY + "Next Tier Cost: " + ChatColor.AQUA +
-                        NumberFormatter.format(new BigNumber(TierManager.getCostForTier(profile.getTier() + 1))) + " Points"
-        ));
-        stats.setItemMeta(sm);
+                ChatColor.GRAY + "Current Multi: " + ChatColor.YELLOW + String.format("%.0fx", tierMulti),
+                ChatColor.GRAY + "Tier Points: "   + ChatColor.LIGHT_PURPLE + profile.getTierPoints(),
+                ChatColor.GRAY + "Next Tier Cost: " + ChatColor.AQUA
+                    + NumberFormatter.format(new BigNumber(nextCost)) + " Points"
+            ));
+            stats.setItemMeta(sm);
+        }
+        inv.setItem(11, stats);
 
-        // Metrics calculations
-        double currentPoints = profile.getRebirthPoints();
-        double nextCost = TierManager.getCostForTier(profile.getTier() + 1);
-        boolean canTier = currentPoints >= nextCost;
-
-        String formattedCurrent = NumberFormatter.format(new BigNumber(currentPoints));
-        String formattedCost = NumberFormatter.format(new BigNumber(nextCost));
-
-        // Tier Up Button
+        // ── Slot 13: Tier up button ───────────────────────────────────────────
         ItemStack button = new ItemStack(canTier ? Material.NETHER_STAR : Material.BARRIER);
-        ItemMeta bm = button.getItemMeta();
-        bm.setDisplayName(canTier ? ChatColor.GREEN + "" + ChatColor.BOLD + "TIER UP" : ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
-        bm.setLore(Arrays.asList(
+        ItemMeta  bm     = button.getItemMeta();
+        if (bm != null) {
+            bm.setDisplayName(canTier
+                ? ChatColor.GREEN + "" + ChatColor.BOLD + "TIER UP"
+                : ChatColor.RED   + "" + ChatColor.BOLD + "LOCKED");
+            bm.setLore(Arrays.asList(
                 ChatColor.GRAY + "Resets your Money and Upgrades",
                 ChatColor.GRAY + "to gain a permanent multiplier boost.",
                 " ",
-                ChatColor.GRAY + "Progress: " + ChatColor.AQUA + formattedCurrent + ChatColor.GRAY + "/" + ChatColor.GOLD + formattedCost,
+                ChatColor.GRAY + "Progress: " + ChatColor.AQUA
+                    + NumberFormatter.format(new BigNumber(curPoints))
+                    + ChatColor.GRAY + "/" + ChatColor.GOLD
+                    + NumberFormatter.format(new BigNumber(nextCost)),
                 " ",
                 canTier ? ChatColor.YELLOW + "Click to TIER UP!" : ChatColor.RED + "Not enough points."
-        ));
-        button.setItemMeta(bm);
+            ));
+            button.setItemMeta(bm);
+        }
+        inv.setItem(13, button);
 
-        // Explanatory Guide Book Item
-        ItemStack book = new ItemStack(Material.BOOK);
-        ItemMeta bookMeta = book.getItemMeta();
-            bookMeta.setDisplayName(ChatColor.WHITE + "");
+        // ── Slot 15: Guide book ───────────────────────────────────────────────
+        ItemStack book     = new ItemStack(Material.BOOK);
+        ItemMeta  bookMeta = book.getItemMeta();
+        if (bookMeta != null) {
+            bookMeta.setDisplayName(ChatColor.WHITE + "Tier Guide");
             bookMeta.setLore(Arrays.asList(
-                    " ",
-                    ChatColor.YELLOW + "TIER ADVANCEMENT",
-                    ChatColor.GRAY + "A milestone that doubles your money.",
-                    ChatColor.GRAY + "The final reset layer for progression.",
-                    " ",
-                    ChatColor.RED + "ON ADVANCEMENT",
-                    ChatColor.GRAY + "All money is reset and",
-                    ChatColor.GRAY + "pickaxe upgrades are cleared.",
-                    " ",
-                    ChatColor.GREEN + "WHAT REMAINS",
-                    ChatColor.GRAY + "All other progress is saved",
-                    ChatColor.GRAY + "and stays with you.",
-                    " "
+                " ",
+                ChatColor.YELLOW + "TIER ADVANCEMENT",
+                ChatColor.GRAY   + "A milestone that doubles your money.",
+                ChatColor.GRAY   + "The final reset layer for progression.",
+                " ",
+                ChatColor.RED  + "ON ADVANCEMENT",
+                ChatColor.GRAY + "All money is reset and",
+                ChatColor.GRAY + "pickaxe upgrades are cleared.",
+                " ",
+                ChatColor.GREEN + "WHAT REMAINS",
+                ChatColor.GRAY  + "All other progress is saved.",
+                " "
             ));
             book.setItemMeta(bookMeta);
-
-        inv.setItem(11, stats);
-        inv.setItem(13, button);
+        }
         inv.setItem(15, book);
+
+        // Always opens — no longer gated inside if(sm!=null)
         player.openInventory(inv);
     }
-};}
+}

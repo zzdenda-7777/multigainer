@@ -2,6 +2,7 @@ package multigainer.multigainer.scoreboard;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.farming.FarmingManager;
 import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.levels.FarmingLevelManager;
 import multigainer.multigainer.levels.MiningLevelManager;
@@ -22,85 +23,61 @@ public class ScoreboardManager {
 
     private final Multigainer plugin;
 
-    // Added constructor hook to safely fetch profile data without breaking signatures
     public ScoreboardManager(Multigainer plugin) {
         this.plugin = plugin;
     }
 
-    public void createScoreboard(Player player, BigNumber money, BigNumber gems, BigNumber rubies, int farmLvl, double farmXp, int mineLvl, double mineXp) {
+    public void createScoreboard(Player player, BigNumber money, BigNumber gems, BigNumber rubies,
+                                  int farmLvl, double farmXp, int mineLvl, double mineXp) {
         org.bukkit.scoreboard.ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
 
-
-// Royal Gold (#FFC125) -> Dark Bronze (#8B5A2B) -> Royal Gold (#FFC125)
         Scoreboard board = manager.getNewScoreboard();
 
-// Klasická zlatá (#FFD700) -> Střední oranžovo-zlatá (#D2691E)
-// Plynulý gradient (zářivá zlatá -> střední oranžová -> zářivá zlatá)
-        String title = "§x§F§F§D§7§0§0§lM" + // Zlatá
-                "§x§F§F§D§7§0§0§lU" +
-                "§x§F§D§C§9§0§B§lL" +
-                "§x§F§C§B§C§1§6§lT" +
-                "§x§F§A§A§F§1§C§lI" +
-                "§x§E§D§9§E§4§4§lG" +
-                "§x§F§A§A§F§1§C§lA" +
-                "§x§F§C§B§C§1§6§lI" +
-                "§x§F§D§C§9§0§B§lN" +
-                "§x§F§F§D§7§0§0§lE" +
-                "§x§F§F§D§7§0§0§lR";
+        String title = "§x§F§F§D§7§0§0§lM§x§F§F§D§7§0§0§lU§x§F§D§C§9§0§B§lL" +
+                       "§x§F§C§B§C§1§6§lT§x§F§A§A§F§1§C§lI§x§E§D§9§E§4§4§lG" +
+                       "§x§F§A§A§F§1§C§lA§x§F§C§B§C§1§6§lI§x§F§D§C§9§0§B§lN" +
+                       "§x§F§F§D§7§0§0§lE§x§F§F§D§7§0§0§lR";
 
         Objective objective = board.registerNewObjective("currency_sb", Criteria.DUMMY, title);
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-
-        // Hide the numbers (1-14) shown on the right side of the scoreboard
         objective.numberFormat(io.papermc.paper.scoreboard.numbers.NumberFormat.blank());
-
         objective.getScore(" ").setScore(14);
 
-        // Calculate compounding incremental game multipliers dynamically
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
-        BigNumber totalMoneyMulti = new BigNumber(1.0);
-        BigNumber totalGemsMulti = new BigNumber(1.0);
+        BigNumber[] multis = calcMultipliers(profile);
+        BigNumber totalMoneyMulti = multis[0];
+        BigNumber totalGemsMulti  = multis[1];
 
-        if (profile != null) {
-            BigNumber upgradeMulti = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
-            BigNumber rebirthMulti = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
-            BigNumber tierMulti = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
-            BigNumber mineMoneyMulti = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
-
-            // Money Multipliers stack exponentially (Upgrades * Rebirth * Tier * Mine Money Multiplier)
-            totalMoneyMulti = upgradeMulti.multiply(rebirthMulti).multiply(tierMulti).multiply(mineMoneyMulti);
-            // Gems Multipliers scale by mining tier progression
-            totalGemsMulti = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
-        }
-
-        // Economy Section
+        // ── Economy ───────────────────────────────────────────────
         Team moneyTeam = board.registerNewTeam("sb_money");
         moneyTeam.addEntry(ChatColor.GREEN.toString());
-        moneyTeam.setPrefix("§a⛃ §8| §aMoney: §f$");
-        moneyTeam.setSuffix(NumberFormatter.format(money) + " §8(x" + NumberFormatter.format(totalMoneyMulti) + ")");
+        moneyTeam.setPrefix("§a⛃ §8│ §aMoney§8: §f$");
+        moneyTeam.setSuffix(NumberFormatter.format(money) + " §8(§ax" + NumberFormatter.format(totalMoneyMulti) + "§8)");
         objective.getScore(ChatColor.GREEN.toString()).setScore(13);
 
         Team gemsTeam = board.registerNewTeam("sb_gems");
         gemsTeam.addEntry(ChatColor.AQUA.toString());
-        gemsTeam.setPrefix("§b✦ §8| §bGems: §f");
-        gemsTeam.setSuffix(NumberFormatter.format(gems) + " §8(x" + NumberFormatter.format(totalGemsMulti) + ")");
+        gemsTeam.setPrefix("§b✦ §8│ §bGems§8: §f");
+        gemsTeam.setSuffix(NumberFormatter.format(gems) + " §8(§bx" + NumberFormatter.format(totalGemsMulti) + "§8)");
         objective.getScore(ChatColor.AQUA.toString()).setScore(12);
 
         Team rubiesTeam = board.registerNewTeam("sb_rubies");
         rubiesTeam.addEntry(ChatColor.RED.toString());
-        rubiesTeam.setPrefix("§4♦ §8| §4Rubies: §f");
+        rubiesTeam.setPrefix("§4♦ §8│ §4Rubies§8: §f");
         rubiesTeam.setSuffix(NumberFormatter.format(rubies));
         objective.getScore(ChatColor.RED.toString()).setScore(11);
 
         objective.getScore("  ").setScore(10);
 
-        // Progression Panels
+        // ── Farming ───────────────────────────────────────────────
         double reqFarmXp = FarmingLevelManager.getRequiredXpForNextLevel(farmLvl);
         Team farmLvlTeam = board.registerNewTeam("sb_farmlvl");
         farmLvlTeam.addEntry(ChatColor.GOLD.toString());
-        farmLvlTeam.setPrefix("§e🌾 §8| §eFarm Lvl: ");
-        farmLvlTeam.setSuffix(farmLvl + " §8(" + (int) farmXp + "/" + (int) reqFarmXp + ")");
+        farmLvlTeam.setPrefix("§e🌾 §8│ §eFarm Lvl§8: ");
+        farmLvlTeam.setSuffix(NumberFormatter.format(new BigNumber(farmLvl))
+            + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp))
+            + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp)) + "§8)");
         objective.getScore(ChatColor.GOLD.toString()).setScore(9);
 
         Team farmXpTeam = board.registerNewTeam("sb_farmxp");
@@ -109,11 +86,14 @@ public class ScoreboardManager {
         farmXpTeam.setSuffix(FarmingLevelManager.generateXpBar(farmXp, reqFarmXp));
         objective.getScore(ChatColor.LIGHT_PURPLE.toString()).setScore(8);
 
+        // ── Mining ────────────────────────────────────────────────
         double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
         Team mineLvlTeam = board.registerNewTeam("sb_minelvl");
         mineLvlTeam.addEntry(ChatColor.BLUE.toString());
-        mineLvlTeam.setPrefix("§7⛏ §8| §7Mine Lvl: ");
-        mineLvlTeam.setSuffix(mineLvl + " §8(" + (int) mineXp + "/" + (int) reqMineXp + ")");
+        mineLvlTeam.setPrefix("§7⛏ §8│ §7Mine Lvl§8: ");
+        mineLvlTeam.setSuffix(NumberFormatter.format(new BigNumber(mineLvl))
+            + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
+            + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
         objective.getScore(ChatColor.BLUE.toString()).setScore(7);
 
         Team mineXpTeam = board.registerNewTeam("sb_minexp");
@@ -122,11 +102,19 @@ public class ScoreboardManager {
         mineXpTeam.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
         objective.getScore(ChatColor.DARK_PURPLE.toString()).setScore(6);
 
-        // Temporary Debug MSPT
+        // ── Farm Multi ────────────────────────────────────────────
+        double farmMulti = profile != null ? profile.getFarmMulti() : 1.0;
+        Team farmMultiTeam = board.registerNewTeam("sb_farmmulti");
+        farmMultiTeam.addEntry(ChatColor.YELLOW.toString());
+        farmMultiTeam.setPrefix("§e🌾 §8│ §eFarm Multi§8: §f");
+        farmMultiTeam.setSuffix(FarmingManager.formatFarmMulti(farmMulti));
+        objective.getScore(ChatColor.YELLOW.toString()).setScore(5);
+
+        // ── Performance ───────────────────────────────────────────
         objective.getScore("   ").setScore(3);
         Team msptTeam = board.registerNewTeam("sb_mspt");
         msptTeam.addEntry(ChatColor.WHITE.toString());
-        msptTeam.setPrefix("§f⚡ MSPT: §e");
+        msptTeam.setPrefix("§f⚡ MSPT§8: §e");
         msptTeam.setSuffix(String.format("%.2f", Bukkit.getAverageTickTime()));
         objective.getScore(ChatColor.WHITE.toString()).setScore(2);
 
@@ -135,59 +123,48 @@ public class ScoreboardManager {
         player.setScoreboard(board);
     }
 
-    public void updateScoreboard(Player player, BigNumber money, BigNumber gems, BigNumber rubies, int farmLvl, double farmXp, int mineLvl, double mineXp) {
+    public void updateScoreboard(Player player, BigNumber money, BigNumber gems, BigNumber rubies,
+                                  int farmLvl, double farmXp, int mineLvl, double mineXp) {
         Scoreboard board = player.getScoreboard();
         if (board.getObjective("currency_sb") == null) return;
 
-        // Recalculate compounding incremental multipliers on runtime updates
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
-        BigNumber totalMoneyMulti = new BigNumber(1.0);
-        BigNumber totalGemsMulti = new BigNumber(1.0);
+        BigNumber[] multis = calcMultipliers(profile);
+        BigNumber totalMoneyMulti = multis[0];
+        BigNumber totalGemsMulti  = multis[1];
 
-        if (profile != null) {
-            BigNumber upgradeMulti = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
-            BigNumber rebirthMulti = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
-            BigNumber tierMulti = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
-            BigNumber mineMoneyMulti = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
+        Team t;
+        t = board.getTeam("sb_money");
+        if (t != null) t.setSuffix(NumberFormatter.format(money) + " §8(§ax" + NumberFormatter.format(totalMoneyMulti) + "§8)");
 
-            // Money Multipliers stack exponentially (Upgrades * Rebirth * Tier * Mine Money Multiplier)
-            totalMoneyMulti = upgradeMulti.multiply(rebirthMulti).multiply(tierMulti).multiply(mineMoneyMulti);
-            totalGemsMulti = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
-        }
+        t = board.getTeam("sb_gems");
+        if (t != null) t.setSuffix(NumberFormatter.format(gems) + " §8(§bx" + NumberFormatter.format(totalGemsMulti) + "§8)");
 
-        // Update Economy Display Elements
-        Team moneyTeam = board.getTeam("sb_money");
-        if (moneyTeam != null) {
-            moneyTeam.setSuffix(NumberFormatter.format(money) + " §7(x" + NumberFormatter.format(totalMoneyMulti) + ")");
-        }
+        t = board.getTeam("sb_rubies");
+        if (t != null) t.setSuffix(NumberFormatter.format(rubies));
 
-        Team gemsTeam = board.getTeam("sb_gems");
-        if (gemsTeam != null) {
-            gemsTeam.setSuffix(NumberFormatter.format(gems) + " §7(x" + NumberFormatter.format(totalGemsMulti) + ")");
-        }
-
-        Team rubiesTeam = board.getTeam("sb_rubies");
-        if (rubiesTeam != null) rubiesTeam.setSuffix(NumberFormatter.format(rubies));
-
-        // Update Farming Displays
         double reqFarmXp = FarmingLevelManager.getRequiredXpForNextLevel(farmLvl);
-        Team farmLvlTeam = board.getTeam("sb_farmlvl");
-        if (farmLvlTeam != null) farmLvlTeam.setSuffix(farmLvl + " §7(" + (int) farmXp + "/" + (int) reqFarmXp + ")");
-        Team farmXpTeam = board.getTeam("sb_farmxp");
-        if (farmXpTeam != null) farmXpTeam.setSuffix(FarmingLevelManager.generateXpBar(farmXp, reqFarmXp));
+        t = board.getTeam("sb_farmlvl");
+        if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(farmLvl))
+            + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp))
+            + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp)) + "§8)");
+        t = board.getTeam("sb_farmxp");
+        if (t != null) t.setSuffix(FarmingLevelManager.generateXpBar(farmXp, reqFarmXp));
 
-        // Update Mining Displays
         double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
-        Team mineLvlTeam = board.getTeam("sb_minelvl");
-        if (mineLvlTeam != null) mineLvlTeam.setSuffix(mineLvl + " §7(" + (int) mineXp + "/" + (int) reqMineXp + ")");
-        Team mineXpTeam = board.getTeam("sb_minexp");
-        if (mineXpTeam != null) mineXpTeam.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
+        t = board.getTeam("sb_minelvl");
+        if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(mineLvl))
+            + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
+            + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
+        t = board.getTeam("sb_minexp");
+        if (t != null) t.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
 
-        // Update Performance Metrics
-        Team msptTeam = board.getTeam("sb_mspt");
-        if (msptTeam != null) {
-            msptTeam.setSuffix(String.format("%.2f", Bukkit.getAverageTickTime()));
-        }
+        t = board.getTeam("sb_farmmulti");
+        if (t != null && profile != null)
+            t.setSuffix(FarmingManager.formatFarmMulti(profile.getFarmMulti()));
+
+        t = board.getTeam("sb_mspt");
+        if (t != null) t.setSuffix(String.format("%.2f", Bukkit.getAverageTickTime()));
     }
 
     public void updateGemsOnly(Player player, BigNumber gems, int mineLvl, double mineXp) {
@@ -195,21 +172,35 @@ public class ScoreboardManager {
         if (board.getObjective("currency_sb") == null) return;
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
-        BigNumber totalGemsMulti = new BigNumber(1.0);
+        BigNumber totalGemsMulti = profile != null
+            ? MiningLevelManager.getGemsMultiplier(profile.getMiningLevel())
+            : new BigNumber(1.0);
 
-        if (profile != null) {
-            totalGemsMulti = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
-        }
-
-        Team gemsTeam = board.getTeam("sb_gems");
-        if (gemsTeam != null) {
-            gemsTeam.setSuffix(NumberFormatter.format(gems) + " §7(x" + NumberFormatter.format(totalGemsMulti) + ")");
-        }
+        Team t = board.getTeam("sb_gems");
+        if (t != null) t.setSuffix(NumberFormatter.format(gems) + " §8(§bx" + NumberFormatter.format(totalGemsMulti) + "§8)");
 
         double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
-        Team mineLvlTeam = board.getTeam("sb_minelvl");
-        if (mineLvlTeam != null) mineLvlTeam.setSuffix(mineLvl + " §7(" + (int) mineXp + "/" + (int) reqMineXp + ")");
-        Team mineXpTeam = board.getTeam("sb_minexp");
-        if (mineXpTeam != null) mineXpTeam.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
+        t = board.getTeam("sb_minelvl");
+        if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(mineLvl))
+            + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
+            + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
+        t = board.getTeam("sb_minexp");
+        if (t != null) t.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
+    }
+
+    // Returns [totalMoneyMulti, totalGemsMulti] including farm multi
+    private BigNumber[] calcMultipliers(PlayerProfile profile) {
+        BigNumber money = new BigNumber(1.0);
+        BigNumber gems  = new BigNumber(1.0);
+        if (profile != null) {
+            BigNumber upgrade  = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
+            BigNumber rebirth  = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
+            BigNumber tier     = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
+            BigNumber mine     = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
+            BigNumber farmMult = new BigNumber(profile.getFarmMulti());
+            money = upgrade.multiply(rebirth).multiply(tier).multiply(mine).multiply(farmMult);
+            gems  = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel());
+        }
+        return new BigNumber[]{ money, gems };
     }
 }

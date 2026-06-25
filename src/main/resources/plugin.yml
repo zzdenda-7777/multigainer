@@ -23,3 +23,7 @@ commands:
   multigainer:
     description: Main plugin command.
     permission: multigainer.admin
+  relo:
+    description: Save all data and reload the server (dev reload).
+    permission: multigainer.admin
+    permission-message: §cNo permission.

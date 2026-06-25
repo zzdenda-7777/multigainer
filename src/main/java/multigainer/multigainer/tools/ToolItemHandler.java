@@ -2,6 +2,7 @@ package multigainer.multigainer.tools;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.farming.FarmingManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -19,27 +20,28 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Collections;
+import java.util.List;
 
 public class ToolItemHandler implements Listener {
     private final Multigainer plugin;
 
-    // PDC key used to identify the custom pickaxe regardless of enchantments or tier
     public static final String PDC_PICKAXE_KEY = "multigainer_pickaxe";
-    public static final String PDC_HOE_KEY = "multigainer_hoe";
+    public static final String PDC_HOE_KEY     = "multigainer_hoe";
 
-    private final String hoeName = "§a§lCustom Wooden Hoe §7(Right Click)";
+    public ToolItemHandler(Multigainer plugin) { this.plugin = plugin; }
 
-    public ToolItemHandler(Multigainer plugin) {
-        this.plugin = plugin;
-    }
+    // Build the hoe from a player's live profile (join, tier-up, lore refresh)
+    public ItemStack getHoeForProfile(PlayerProfile profile) {
+        int hoeTier  = profile != null ? profile.getHoeTier() : 0;
+        Material mat = FarmingManager.HOE_MATERIALS[hoeTier];
+        String color = FarmingManager.HOE_TIER_COLORS[hoeTier];
+        String name  = FarmingManager.HOE_TIER_NAMES[hoeTier];
 
-    public ItemStack getCustomHoe() {
-        ItemStack hoe = new ItemStack(Material.WOODEN_HOE);
-        ItemMeta meta = hoe.getItemMeta();
+        ItemStack hoe  = new ItemStack(mat);
+        ItemMeta  meta = hoe.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(hoeName);
-            meta.setLore(Collections.singletonList("§7Right click to view upgrades!"));
+            meta.setDisplayName(color + "§l✦ " + name + " Multigainer Hoe ✦");
+            meta.setLore(profile != null ? ToolGUI.buildHoeLore(profile) : List.of("§7Right click to open menu!"));
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES);
             meta.getPersistentDataContainer().set(
@@ -50,32 +52,36 @@ public class ToolItemHandler implements Listener {
         return hoe;
     }
 
-    // Builds the pickaxe item using the player's current tier and mining speed level
-    public ItemStack getPickaxeForProfile(PlayerProfile profile) {
-        int tier = profile != null ? profile.getPickaxeTier() : 0;
-        int speedLevel = profile != null ? profile.getMiningSpeedLevel() : 0;
-        int xpLvl = profile != null ? profile.getXpMultiLevel() : 0;
-        int gemLvl = profile != null ? profile.getGemMultiLevel() : 0;
+    // Fallback — no profile data
+    public ItemStack getCustomHoe() {
+        ItemStack hoe  = new ItemStack(Material.WOODEN_HOE);
+        ItemMeta  meta = hoe.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§f§l✦ Wooden Multigainer Hoe ✦");
+            meta.setLore(List.of("§7Right click to open menu!"));
+            meta.setUnbreakable(true);
+            meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES);
+            meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, PDC_HOE_KEY), PersistentDataType.BYTE, (byte) 1
+            );
+            hoe.setItemMeta(meta);
+        }
+        return hoe;
+    }
 
-        Material mat = PickaxeManager.TIER_MATERIALS[tier];
-        String color = PickaxeManager.TIER_COLORS[tier];
-        String tierName = PickaxeManager.TIER_NAMES[tier];
+    public ItemStack getPickaxeForProfile(PlayerProfile profile) {
+        int tier       = profile != null ? profile.getPickaxeTier() : 0;
+        int speedLevel = profile != null ? profile.getMiningSpeedLevel() : 0;
+
+        Material mat      = PickaxeManager.TIER_MATERIALS[tier];
+        String   color    = PickaxeManager.TIER_COLORS[tier];
+        String   tierName = PickaxeManager.TIER_NAMES[tier];
 
         ItemStack pickaxe = new ItemStack(mat);
-        ItemMeta meta = pickaxe.getItemMeta();
+        ItemMeta  meta    = pickaxe.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color + "§l" + tierName + " Pickaxe");
-
-            // Build lore with upgrade stats
-            java.util.List<String> lore = new java.util.ArrayList<>();
-            lore.add("");
-            lore.add("§7Mining speed: §f" + speedLevel + " level");
-            lore.add("§7XP Multi: §ax" + String.format("%.2f", PickaxeManager.getXpMultiplier(xpLvl)));
-            lore.add("§7Gem Multi: §bx" + String.format("%.2f", PickaxeManager.getGemMultiplier(gemLvl)));
-            lore.add("");
-            lore.add("§7Right click to open the pickaxe menu!");
-            meta.setLore(lore);
-
+            meta.setDisplayName(color + "§l" + tierName + " Pickaxe §8(Right Click)");
+            meta.setLore(List.of("§7Right click to open the pickaxe menu!"));
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
 
@@ -104,10 +110,30 @@ public class ToolItemHandler implements Listener {
             .has(new NamespacedKey(plugin, PDC_HOE_KEY), PersistentDataType.BYTE);
     }
 
-    // Updates the pickaxe in the player's inventory slot 1 to reflect current profile state
     public void updatePickaxeInInventory(Player player) {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         player.getInventory().setItem(1, getPickaxeForProfile(profile));
+    }
+
+    public void updateHoeInInventory(Player player) {
+        PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
+        if (profile != null) player.getInventory().setItem(0, getHoeForProfile(profile));
+    }
+
+    // Broadcast hoe tier-up if a farm level threshold was crossed
+    public void checkHoeTierUp(Player player, PlayerProfile profile, int oldFarmLevel, int newFarmLevel) {
+        int[] reqs = FarmingManager.HOE_TIER_REQUIREMENTS;
+        for (int tier = reqs.length - 1; tier > 0; tier--) {
+            if (oldFarmLevel < reqs[tier] && newFarmLevel >= reqs[tier]) {
+                profile.setHoeTier(tier);
+                updateHoeInInventory(player);
+                String msg = "§8[§e🌾§8] §e" + player.getName()
+                    + " §7has reached a " + FarmingManager.HOE_TIER_COLORS[tier]
+                    + "§l" + FarmingManager.HOE_TIER_NAMES[tier] + " Hoe§7!";
+                Bukkit.broadcastMessage(msg);
+                break;
+            }
+        }
     }
 
     @EventHandler
@@ -130,16 +156,12 @@ public class ToolItemHandler implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         ItemStack currentItem = event.getCurrentItem();
         if (currentItem == null) return;
-        if (isCustomHoe(currentItem) || isCustomPickaxe(currentItem)) {
-            event.setCancelled(true);
-        }
+        if (isCustomHoe(currentItem) || isCustomPickaxe(currentItem)) event.setCancelled(true);
     }
 
     @EventHandler
     public void onPlayerDrop(PlayerDropItemEvent event) {
         ItemStack droppedItem = event.getItemDrop().getItemStack();
-        if (isCustomHoe(droppedItem) || isCustomPickaxe(droppedItem)) {
-            event.setCancelled(true);
-        }
+        if (isCustomHoe(droppedItem) || isCustomPickaxe(droppedItem)) event.setCancelled(true);
     }
 }
