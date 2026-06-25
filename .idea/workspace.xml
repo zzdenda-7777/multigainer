@@ -82,12 +82,12 @@
     &quot;assignee&quot;: &quot;kilerradoslav1&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/zzdenda-7777/multigainer.git",
-    "accountId": "1912f1a8-1d90-4a14-b682-a92f5c725591"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/zzdenda-7777/multigainer.git&quot;,
+    &quot;accountId&quot;: &quot;1912f1a8-1d90-4a14-b682-a92f5c725591&quot;
   }
-}]]></component>
+}</component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
