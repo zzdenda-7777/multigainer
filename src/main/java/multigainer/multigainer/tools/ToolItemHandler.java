@@ -69,19 +69,32 @@ public class ToolItemHandler implements Listener {
         return hoe;
     }
 
+    // Builds the pickaxe item using the player's current tier and mining speed level
     public ItemStack getPickaxeForProfile(PlayerProfile profile) {
-        int tier       = profile != null ? profile.getPickaxeTier() : 0;
+        int tier = profile != null ? profile.getPickaxeTier() : 0;
         int speedLevel = profile != null ? profile.getMiningSpeedLevel() : 0;
+        int xpLvl = profile != null ? profile.getXpMultiLevel() : 0;
+        int gemLvl = profile != null ? profile.getGemMultiLevel() : 0;
 
-        Material mat      = PickaxeManager.TIER_MATERIALS[tier];
-        String   color    = PickaxeManager.TIER_COLORS[tier];
-        String   tierName = PickaxeManager.TIER_NAMES[tier];
+        Material mat = PickaxeManager.TIER_MATERIALS[tier];
+        String color = PickaxeManager.TIER_COLORS[tier];
+        String tierName = PickaxeManager.TIER_NAMES[tier];
 
         ItemStack pickaxe = new ItemStack(mat);
-        ItemMeta  meta    = pickaxe.getItemMeta();
+        ItemMeta meta = pickaxe.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color + "§l" + tierName + " Pickaxe §8(Right Click)");
-            meta.setLore(List.of("§7Right click to open the pickaxe menu!"));
+            meta.setDisplayName(color + "§l" + tierName + " Pickaxe");
+
+            // Build lore with upgrade stats
+            java.util.List<String> lore = new java.util.ArrayList<>();
+            lore.add("");
+            lore.add("§7Mining speed: §f" + speedLevel + " level");
+            lore.add("§7XP Multi: §ax" + String.format("%.2f", PickaxeManager.getXpMultiplier(xpLvl)));
+            lore.add("§7Gem Multi: §bx" + String.format("%.2f", PickaxeManager.getGemMultiplier(gemLvl)));
+            lore.add("");
+            lore.add("§7Right click to open the pickaxe menu!");
+            meta.setLore(lore);
+
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
 
