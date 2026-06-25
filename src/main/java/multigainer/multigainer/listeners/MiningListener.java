@@ -34,6 +34,7 @@ import static multigainer.multigainer.tools.PickaxeManager.getBlockIndex;
 public class MiningListener implements Listener {
     private final Multigainer plugin;
     private final Map<UUID, Set<Location>> brokenCobbleCache = new HashMap<>();
+    private final Map<UUID, Boolean> isLevelingUp = new HashMap<>();
 
     // Title cooldown to avoid spamming the "upgrade pickaxe" title
     private final Map<UUID, Long> titleCooldown = new HashMap<>();
@@ -253,34 +254,38 @@ public class MiningListener implements Listener {
 
         String gemsFormatted = NumberFormatter.format(payout);
         String xpFormatted = NumberFormatter.format(new BigNumber(xpGain));
+        if (isLevelingUp.getOrDefault(player.getUniqueId(), false)) {
+            return;
+        }
 
-
-
-        // Zkus tam dát 10 až 20 mezer na konec.
-// Čím víc mezer na konci, tím víc se text posune doleva.
-
-        player.sendActionBar(net.kyori.adventure.text.Component.text()
-                .append(LegacyComponentSerializer.legacySection().deserialize("§7+ §b" + gemsFormatted + " Gems"))
-                .append(net.kyori.adventure.text.Component.text(" §8| "))
-                .append(LegacyComponentSerializer.legacySection().deserialize("§7+ §a" + xpFormatted + " XP"))
-                // Přidáme velký balík mezer na konec, který "vytlačí" text doleva
-                .append(net.kyori.adventure.text.Component.text("   "))
-                .font(org.bukkit.NamespacedKey.minecraft("uniform"))
-                .build());
+        // Jinak pošli běžný ActionBar
+        sendFixedActionBar(player, gemsFormatted, xpFormatted);
+        sendFixedActionBar(player, gemsFormatted, xpFormatted);
 
         if (leveledUp) {
             spawnLevelUpItemEffect(player, block.getLocation());
             final int finalLevel = currentLevel;
+
+            // Zamkneme ActionBar pro tohoto hráče
+            isLevelingUp.put(player.getUniqueId(), true);
+
             new BukkitRunnable() {
                 int count = 0;
-                final String msg = "§b§l[!] §7Mining Level Up! §7Your level is now §e" + finalLevel + "§7!";
-                @Override public void run() {
-                    if (count >= 30) { this.cancel(); return; }
-                    player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
-                            .deserialize(msg));
+                final String msg = "§7MINING LEVEL UP! YOUR LEVEL IS NOW §e" + finalLevel + "§7!";
+
+                @Override
+                public void run() {
+                    // Po 1.5 sekundách (30 ticků celkem / 10 ticků interval = 3 průběhy)
+                    // Tady máš count 30 (30 ticků = 1.5 sekundy při intervalu 10L)
+                    if (count >= 60) {
+                        isLevelingUp.put(player.getUniqueId(), false); // Odemkneme
+                        this.cancel();
+                        return;
+                    }
+                    player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(msg));
                     count += 10;
                 }
-            }.runTaskTimer(plugin, 20L, 10L);
+            }.runTaskTimer(plugin, 0L, 10L); // Začne hned (0L)
         }
 
         new BukkitRunnable() {
@@ -311,6 +316,19 @@ public class MiningListener implements Listener {
                 td.remove();
             }
         }.runTaskLater(plugin, 40L); // 40 ticků = 2 sekundy
+    }
+    private void sendFixedActionBar(Player player, String gems, String xp) {
+        int sideWidth = 22; // Uprav podle toho, jak moc to chceš roztáhnout
+
+        String leftSide = String.format("%" + sideWidth + "s", "§7+ §b" + gems + " Gems");
+        String rightSide = String.format("%-" + sideWidth + "s", "§7+ §a" + xp + " XP");
+
+        player.sendActionBar(net.kyori.adventure.text.Component.text()
+                .append(LegacyComponentSerializer.legacySection().deserialize(leftSide))
+                .append(net.kyori.adventure.text.Component.text(" §8| "))
+                .append(net.kyori.adventure.text.Component.text(rightSide))
+                .font(org.bukkit.NamespacedKey.minecraft("uniform"))
+                .build());
     }
 
     @EventHandler

@@ -22,7 +22,7 @@ import java.util.Collections;
 public class UpgradeItemHandler implements Listener, CommandExecutor {
     private final Multigainer plugin;
     private final UpgradeGUI upgradeGUI;
-    private final String itemDisplayName = "§a§lUpgrades §7(Right Click)";
+    private final String itemDisplayName = "§a§lUpgrades";
 
     public UpgradeItemHandler(Multigainer plugin) {
         this.plugin = plugin;

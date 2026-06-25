@@ -68,11 +68,12 @@ public class ToolItemHandler implements Listener {
 
             // Build lore with upgrade stats
             java.util.List<String> lore = new java.util.ArrayList<>();
-            lore.add("§7Right click to open the pickaxe menu!");
             lore.add("");
             lore.add("§7Mining speed: §f" + speedLevel + " level");
             lore.add("§7XP Multi: §ax" + String.format("%.2f", PickaxeManager.getXpMultiplier(xpLvl)));
             lore.add("§7Gem Multi: §bx" + String.format("%.2f", PickaxeManager.getGemMultiplier(gemLvl)));
+            lore.add("");
+            lore.add("§7Right click to open the pickaxe menu!");
             meta.setLore(lore);
 
             meta.setUnbreakable(true);
