@@ -171,10 +171,10 @@ public class MiningListener implements Listener {
         int minTier = PickaxeManager.getMinTierForBlock(blockIndex);
 
         if (profile.getPickaxeTier() < minTier) {
-            // 1. ZobrazenĂ­ hologramu nad blokem mĂ­sto Title na obrazovce
+            // 1. Zobrazení hologramu nad blokem místo Title na obrazovce
             spawnUpgradeHologram(block.getLocation(), minTier);
 
-            // 2. VizuĂˇlnĂ­ efekt BEDROCK pro hrĂˇÄŤe
+            // 2. Vizuální efekt BEDROCK pro hráče
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -182,7 +182,7 @@ public class MiningListener implements Listener {
                 }
             }.runTaskLater(plugin, 1L);
 
-            // 3. VrĂˇcenĂ­ bloku po 3 sekundĂˇch (60 tickĹŻ)
+            // 3. Vrácení bloku po 3 sekundách (60 ticků)
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -250,7 +250,7 @@ public class MiningListener implements Listener {
         }.runTaskLater(plugin, 1L);
 
         spawnDropEffect(player, block.getLocation(), blockType);
-        // PĹ™edpoklĂˇdĂˇm, Ĺľe mĂˇĹˇ nÄ›kde: double xpGained = ...;
+        // Předpokládám, že máš někde: double xpGained = ...;
 
         String gemsFormatted = NumberFormatter.format(payout);
         String xpFormatted = NumberFormatter.format(new BigNumber(xpGain));
@@ -258,7 +258,7 @@ public class MiningListener implements Listener {
             return;
         }
 
-        // Jinak poĹˇli bÄ›ĹľnĂ˝ ActionBar
+        // Jinak pošli běžný ActionBar
         sendFixedActionBar(player, gemsFormatted, xpFormatted);
         sendFixedActionBar(player, gemsFormatted, xpFormatted);
 
@@ -266,17 +266,17 @@ public class MiningListener implements Listener {
             spawnLevelUpItemEffect(player, block.getLocation());
             final int finalLevel = currentLevel;
 
-            // Zamkneme ActionBar pro tohoto hrĂˇÄŤe
+            // Zamkneme ActionBar pro tohoto hráče
             isLevelingUp.put(player.getUniqueId(), true);
 
             new BukkitRunnable() {
                 int count = 0;
-                final String msg = "Â§7MINING LEVEL UP! YOUR LEVEL IS NOW Â§e" + finalLevel + "Â§7!";
+                final String msg = "§7MINING LEVEL UP! YOUR LEVEL IS NOW §e" + finalLevel + "§7!";
 
                 @Override
                 public void run() {
-                    // Po 1.5 sekundĂˇch (30 tickĹŻ celkem / 10 tickĹŻ interval = 3 prĹŻbÄ›hy)
-                    // Tady mĂˇĹˇ count 30 (30 tickĹŻ = 1.5 sekundy pĹ™i intervalu 10L)
+                    // Po 1.5 sekundách (30 ticků celkem / 10 ticků interval = 3 průběhy)
+                    // Tady máš count 30 (30 ticků = 1.5 sekundy při intervalu 10L)
                     if (count >= 60) {
                         isLevelingUp.put(player.getUniqueId(), false); // Odemkneme
                         this.cancel();
@@ -285,7 +285,7 @@ public class MiningListener implements Listener {
                     player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(msg));
                     count += 10;
                 }
-            }.runTaskTimer(plugin, 0L, 10L); // ZaÄŤne hned (0L)
+            }.runTaskTimer(plugin, 0L, 10L); // Začne hned (0L)
         }
 
         new BukkitRunnable() {
@@ -300,32 +300,32 @@ public class MiningListener implements Listener {
         String tierName = PickaxeManager.TIER_NAMES[requiredTier];
         String tierColor = PickaxeManager.TIER_COLORS[requiredTier];
 
-        // VytvoĹ™enĂ­ TextDisplay entity
+        // Vytvoření TextDisplay entity
         Location spawnLoc = loc.clone().add(0.5, 1.5, 0.5); // Trochu nad blokem
         TextDisplay td = loc.getWorld().spawn(spawnLoc, TextDisplay.class);
 
-        td.setText("Â§cÂ§lPickaxe Required: " + tierColor + "Â§l" + tierName);
-        td.setBillboard(Display.Billboard.CENTER); // Bude se vĹľdy natĂˇÄŤet k hrĂˇÄŤi
-        td.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0)); // PrĹŻhlednĂ© pozadĂ­
+        td.setText("§c§lPickaxe Required: " + tierColor + "§l" + tierName);
+        td.setBillboard(Display.Billboard.CENTER); // Bude se vždy natáčet k hráči
+        td.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0)); // Průhledné pozadí
         td.setShadowed(true);
 
-        // Po 2 sekundĂˇch hologram smaĹľeme
+        // Po 2 sekundách hologram smažeme
         new BukkitRunnable() {
             @Override
             public void run() {
                 td.remove();
             }
-        }.runTaskLater(plugin, 40L); // 40 tickĹŻ = 2 sekundy
+        }.runTaskLater(plugin, 40L); // 40 ticků = 2 sekundy
     }
     private void sendFixedActionBar(Player player, String gems, String xp) {
-        int sideWidth = 22; // Uprav podle toho, jak moc to chceĹˇ roztĂˇhnout
+        int sideWidth = 22; // Uprav podle toho, jak moc to chceš roztáhnout
 
-        String leftSide = String.format("%" + sideWidth + "s", "Â§7+ Â§b" + gems + " Gems");
-        String rightSide = String.format("%-" + sideWidth + "s", "Â§7+ Â§a" + xp + " XP");
+        String leftSide = String.format("%" + sideWidth + "s", "§7+ §b" + gems + " Gems");
+        String rightSide = String.format("%-" + sideWidth + "s", "§7+ §a" + xp + " XP");
 
         player.sendActionBar(net.kyori.adventure.text.Component.text()
                 .append(LegacyComponentSerializer.legacySection().deserialize(leftSide))
-                .append(net.kyori.adventure.text.Component.text(" Â§8| "))
+                .append(net.kyori.adventure.text.Component.text(" §8| "))
                 .append(net.kyori.adventure.text.Component.text(rightSide))
                 .font(org.bukkit.NamespacedKey.minecraft("uniform"))
                 .build());
@@ -333,33 +333,33 @@ public class MiningListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        // 1. Zkontroluj, zda hrĂˇÄŤ klikl na blok
+        // 1. Zkontroluj, zda hráč klikl na blok
         if (event.getClickedBlock() == null) return;
 
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
 
-        // 2. Ochrana proti pravĂ©mu kliknutĂ­ na "faleĹˇnĂ˝" Bedrock
-        // Pokud je blok v cache (tedy je to Bedrock), zruĹˇĂ­me jakĂ˝koliv pravĂ˝ klik
+        // 2. Ochrana proti pravému kliknutí na "falešný" Bedrock
+        // Pokud je blok v cache (tedy je to Bedrock), zrušíme jakýkoliv pravý klik
         if (brokenCobbleCache.getOrDefault(player.getUniqueId(), Collections.emptySet()).contains(block.getLocation())) {
             event.setCancelled(true);
-            return; // HrĂˇÄŤ nemĹŻĹľe nic dÄ›lat, dokud se blok neobnovĂ­
+            return; // Hráč nemůže nic dělat, dokud se blok neobnoví
         }
 
-        // 3. Kontrola tieru (pouze pro levĂ© kliknutĂ­ pro tÄ›ĹľenĂ­)
+        // 3. Kontrola tieru (pouze pro levé kliknutí pro těžení)
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-            int blockIndex = getBlockIndex(block.getType()); // PĹ™edpoklĂˇdĂˇm, Ĺľe mĂˇĹˇ metodu pro index
+            int blockIndex = getBlockIndex(block.getType()); // Předpokládám, že máš metodu pro index
             int minTier = PickaxeManager.getMinTierForBlock(blockIndex);
             PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
 
             if (profile.getPickaxeTier() < minTier) {
                 event.setCancelled(true);
 
-                // ZobrazenĂ­ hologramu a efektu
+                // Zobrazení hologramu a efektu
                 spawnUpgradeHologram(block.getLocation(), minTier);
                 sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
 
-                // AutomatickĂ© vrĂˇcenĂ­ bloku po 3 sekundĂˇch (pokud mĂˇĹˇ takovou logiku)
+                // Automatické vrácení bloku po 3 sekundách (pokud máš takovou logiku)
                 new BukkitRunnable() {
                     @Override public void run() { revertFakeBlockChange(player, block); }
                 }.runTaskLater(plugin, 60L);
@@ -369,10 +369,10 @@ public class MiningListener implements Listener {
         }
 
     }
-    // Tuto metodu si pĹ™idej do tĹ™Ă­dy (napĹ™. do Utils)
+    // Tuto metodu si přidej do třídy (např. do Utils)
     public String formatStable(String input, int length) {
         if (input.length() >= length) return input;
-        // DoplnÄ›nĂ­ mezer zleva
+        // Doplnění mezer zleva
         return String.format("%" + length + "s", input);
     }
 
