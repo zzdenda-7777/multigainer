@@ -100,7 +100,7 @@ public class FarmingListener implements Listener {
             level++;
             reqXp = FarmingLevelManager.getRequiredXpForNextLevel(level);
             player.sendMessage("§a§l[!] §7Farm Level Up! Now §e"
-                + NumberFormatter.format(new BigNumber(level)) + "§7!");
+                    + NumberFormatter.format(new BigNumber(level)) + "§7!");
         }
         profile.setFarmingXp(currentXp);
         profile.setFarmingLevel(level);
@@ -112,9 +112,9 @@ public class FarmingListener implements Listener {
         // ── Scoreboard refresh ────────────────────────────────────
         if (plugin.getScoreboardManager() != null) {
             plugin.getScoreboardManager().updateScoreboard(player,
-                profile.getMoney(), profile.getGems(), profile.getRubies(),
-                profile.getFarmingLevel(), profile.getFarmingXp(),
-                profile.getMiningLevel(), profile.getMiningXp());
+                    profile.getMoney(), profile.getGems(), profile.getRubies(),
+                    profile.getFarmingLevel(), profile.getFarmingXp(),
+                    profile.getMiningLevel(), profile.getMiningXp());
         }
 
         // ── Fake block: briefly hide then restore chosen crop ─────
@@ -139,8 +139,8 @@ public class FarmingListener implements Listener {
                 long multi = FarmingManager.ENCHANT_SEED_MULTI[i];
                 if (profile.isEnchantMessageEnabled(i)) {
                     player.sendMessage("§8[§e⚡§8] §6§l" + FarmingManager.ENCHANT_NAMES[i]
-                        + " §7activated! §e+"
-                        + NumberFormatter.format(new BigNumber((double) multi)) + "x §7seeds!");
+                            + " §7activated! §e+"
+                            + NumberFormatter.format(new BigNumber((double) multi)) + "x §7seeds!");
                 }
                 return multi;
             }

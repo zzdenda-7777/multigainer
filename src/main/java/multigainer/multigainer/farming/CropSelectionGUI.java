@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CropSelectionGUI implements Listener {
 
-    public static final String TITLE = "§8🌾 §fCrop Selection";
+    public static final String TITLE = "§fCrop Selection";
 
     // 36-slot layout (4 rows)
     // Row 0 (0-8):   border panes
@@ -94,14 +94,14 @@ public class CropSelectionGUI implements Listener {
         Long last = switchCooldown.get(player.getUniqueId());
         if (last != null && now - last < COOLDOWN_MS) {
             long remaining = (COOLDOWN_MS - (now - last) + 999) / 1000;
-            player.sendMessage("§c⏳ §7Crop switch cooldown: §e" + remaining + "s §7remaining.");
+            player.sendMessage("§7Crop switch cooldown: §e" + remaining + "s §7remaining.");
             return;
         }
         switchCooldown.put(player.getUniqueId(), now);
 
         profile.setChosenCrop(cropIndex);
         sendFakeCrops(player, cropIndex, plugin);
-        player.sendMessage("§8[§e🌾§8] §7Selected " + FarmingManager.CROP_NAMES[cropIndex] + " §7as your crop!");
+        player.sendMessage("§7Selected " + FarmingManager.CROP_NAMES[cropIndex] + " §7as your crop!");
 
         // Refresh highlights
         Inventory inv  = event.getInventory();
@@ -131,11 +131,10 @@ public class CropSelectionGUI implements Listener {
             meta = item.getItemMeta();
             meta.setDisplayName("§c§l🔒 Locked");
             meta.setLore(List.of(
-                "§8———————————————",
                 "§7Requires§8: §eTier " + FarmingManager.CROP_UNLOCK_TIERS[cropIndex],
                 "§7Your Tier§8:  §f" + playerTier,
-                "§8———————————————",
-                FarmingManager.CROP_NAMES[cropIndex] + " §8(locked)"
+                "",
+                FarmingManager.CROP_NAMES[cropIndex] + " §8(LOCKED)"
             ));
         } else {
             item = new ItemStack(FarmingManager.CROP_DISPLAY_ITEMS[cropIndex]);
@@ -143,14 +142,13 @@ public class CropSelectionGUI implements Listener {
             meta.setDisplayName(FarmingManager.CROP_NAMES[cropIndex]);
 
             long   multi    = FarmingManager.getSeedMultiplier(cropIndex);
-            String multiStr = "§6" + FarmingManager.fmtCount(multi) + "x";
+            String multiStr = "§6×" + FarmingManager.fmtCount(multi);
 
             List<String> lore = new ArrayList<>();
-            lore.add("§8———————————————");
             lore.add("§7Seed Multiplier§8: " + multiStr + " §7Seeds");
-            lore.add("§7Unlock Tier§8:     §e" + FarmingManager.CROP_UNLOCK_TIERS[cropIndex]);
-            lore.add("§8———————————————");
-            lore.add(selected ? "§a✔ §7Currently selected!" : "§eClick §7to select!");
+            lore.add("§7Unlock Tier§8: §e" + FarmingManager.CROP_UNLOCK_TIERS[cropIndex]);
+            lore.add("");
+            lore.add(selected ? "§aCurrently selected!" : "§eClick to select!");
             meta.setLore(lore);
         }
         item.setItemMeta(meta);

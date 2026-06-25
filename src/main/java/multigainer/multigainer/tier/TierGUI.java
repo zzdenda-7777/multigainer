@@ -43,11 +43,11 @@ public class TierGUI {
             sm.setOwningPlayer(player);
             sm.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "TIER " + tier);
             sm.setLore(Arrays.asList(
-                " ",
-                ChatColor.GRAY + "Current Multi: " + ChatColor.YELLOW + String.format("%.0fx", tierMulti),
-                ChatColor.GRAY + "Tier Points: "   + ChatColor.LIGHT_PURPLE + profile.getTierPoints(),
-                ChatColor.GRAY + "Next Tier Cost: " + ChatColor.AQUA
-                    + NumberFormatter.format(new BigNumber(nextCost)) + " Points"
+                    " ",
+                    ChatColor.GRAY + "Current Multi: " + ChatColor.YELLOW + String.format("%.0fx", tierMulti),
+                    ChatColor.GRAY + "Tier Points: "   + ChatColor.LIGHT_PURPLE + profile.getTierPoints(),
+                    ChatColor.GRAY + "Next Tier Cost: " + ChatColor.AQUA
+                            + NumberFormatter.format(new BigNumber(nextCost)) + " Points"
             ));
             stats.setItemMeta(sm);
         }
@@ -58,18 +58,18 @@ public class TierGUI {
         ItemMeta  bm     = button.getItemMeta();
         if (bm != null) {
             bm.setDisplayName(canTier
-                ? ChatColor.GREEN + "" + ChatColor.BOLD + "TIER UP"
-                : ChatColor.RED   + "" + ChatColor.BOLD + "LOCKED");
+                    ? ChatColor.GREEN + "" + ChatColor.BOLD + "TIER UP"
+                    : ChatColor.RED   + "" + ChatColor.BOLD + "LOCKED");
             bm.setLore(Arrays.asList(
-                ChatColor.GRAY + "Resets your Money and Upgrades",
-                ChatColor.GRAY + "to gain a permanent multiplier boost.",
-                " ",
-                ChatColor.GRAY + "Progress: " + ChatColor.AQUA
-                    + NumberFormatter.format(new BigNumber(curPoints))
-                    + ChatColor.GRAY + "/" + ChatColor.GOLD
-                    + NumberFormatter.format(new BigNumber(nextCost)),
-                " ",
-                canTier ? ChatColor.YELLOW + "Click to TIER UP!" : ChatColor.RED + "Not enough points."
+                    ChatColor.GRAY + "Resets your Money and Upgrades",
+                    ChatColor.GRAY + "to gain a permanent multiplier boost.",
+                    " ",
+                    ChatColor.GRAY + "Progress: " + ChatColor.AQUA
+                            + NumberFormatter.format(new BigNumber(curPoints))
+                            + ChatColor.GRAY + "/" + ChatColor.GOLD
+                            + NumberFormatter.format(new BigNumber(nextCost)),
+                    " ",
+                    canTier ? ChatColor.YELLOW + "Click to TIER UP!" : ChatColor.RED + "Not enough points."
             ));
             button.setItemMeta(bm);
         }
@@ -81,18 +81,18 @@ public class TierGUI {
         if (bookMeta != null) {
             bookMeta.setDisplayName(ChatColor.WHITE + "Tier Guide");
             bookMeta.setLore(Arrays.asList(
-                " ",
-                ChatColor.YELLOW + "TIER ADVANCEMENT",
-                ChatColor.GRAY   + "A milestone that doubles your money.",
-                ChatColor.GRAY   + "The final reset layer for progression.",
-                " ",
-                ChatColor.RED  + "ON ADVANCEMENT",
-                ChatColor.GRAY + "All money is reset and",
-                ChatColor.GRAY + "pickaxe upgrades are cleared.",
-                " ",
-                ChatColor.GREEN + "WHAT REMAINS",
-                ChatColor.GRAY  + "All other progress is saved.",
-                " "
+                    " ",
+                    ChatColor.YELLOW + "TIER ADVANCEMENT",
+                    ChatColor.GRAY   + "A milestone that doubles your money.",
+                    ChatColor.GRAY   + "The final reset layer for progression.",
+                    " ",
+                    ChatColor.RED  + "ON ADVANCEMENT",
+                    ChatColor.GRAY + "All money is reset and",
+                    ChatColor.GRAY + "pickaxe upgrades are cleared.",
+                    " ",
+                    ChatColor.GREEN + "WHAT REMAINS",
+                    ChatColor.GRAY  + "All other progress is saved.",
+                    " "
             ));
             book.setItemMeta(bookMeta);
         }

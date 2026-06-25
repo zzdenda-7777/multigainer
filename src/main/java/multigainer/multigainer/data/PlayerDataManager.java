@@ -36,13 +36,13 @@ public class PlayerDataManager {
                     try (ResultSet rs = stmt.executeQuery()) {
                         if (rs.next()) {
                             PlayerProfile profile = new PlayerProfile(
-                                new BigNumber(rs.getDouble("money_mantissa"), rs.getDouble("money_exponent")),
-                                new BigNumber(rs.getDouble("gems_mantissa"),  rs.getDouble("gems_exponent")),
-                                new BigNumber(rs.getDouble("rubies_mantissa"),rs.getDouble("rubies_exponent")),
-                                rs.getInt("upgrade_level"), rs.getInt("tier"), rs.getInt("tier_points"),
-                                rs.getInt("farming_level"), rs.getDouble("farming_xp"),
-                                rs.getInt("mining_level"),  rs.getDouble("mining_xp"),
-                                rs.getDouble("rebirth_points"), rs.getInt("rebirth_count")
+                                    new BigNumber(rs.getDouble("money_mantissa"), rs.getDouble("money_exponent")),
+                                    new BigNumber(rs.getDouble("gems_mantissa"),  rs.getDouble("gems_exponent")),
+                                    new BigNumber(rs.getDouble("rubies_mantissa"),rs.getDouble("rubies_exponent")),
+                                    rs.getInt("upgrade_level"), rs.getInt("tier"), rs.getInt("tier_points"),
+                                    rs.getInt("farming_level"), rs.getDouble("farming_xp"),
+                                    rs.getInt("mining_level"),  rs.getDouble("mining_xp"),
+                                    rs.getDouble("rebirth_points"), rs.getInt("rebirth_count")
                             );
 
                             // Pickaxe
@@ -67,10 +67,10 @@ public class PlayerDataManager {
                             profile.setHoeTier(safeGetInt(rs, "hoe_tier", 0));
                             profile.setAutoMerge(safeGetInt(rs, "auto_merge", 0) == 1);
                             boolean[] enchantMsgs = {
-                                safeGetInt(rs, "enchant_msg_tnt", 1) == 1,
-                                safeGetInt(rs, "enchant_msg_nuke", 1) == 1,
-                                safeGetInt(rs, "enchant_msg_world_eater", 1) == 1,
-                                safeGetInt(rs, "enchant_msg_universe_destroyer", 1) == 1
+                                    safeGetInt(rs, "enchant_msg_tnt", 1) == 1,
+                                    safeGetInt(rs, "enchant_msg_nuke", 1) == 1,
+                                    safeGetInt(rs, "enchant_msg_world_eater", 1) == 1,
+                                    safeGetInt(rs, "enchant_msg_universe_destroyer", 1) == 1
                             };
                             profile.setEnchantMessagesEnabled(enchantMsgs);
                             profile.setGemUpgradeLevel(safeGetInt(rs, "gem_upgrade_level", 0));
@@ -103,12 +103,12 @@ public class PlayerDataManager {
 
     public void saveProfileSynchronously(UUID uuid, PlayerProfile profile) {
         StringBuilder q = new StringBuilder(
-            "UPDATE mg_player_profiles SET "
-            + "money_mantissa=?,money_exponent=?,gems_mantissa=?,gems_exponent=?,"
-            + "rubies_mantissa=?,rubies_exponent=?,upgrade_level=?,tier=?,tier_points=?,"
-            + "farming_level=?,farming_xp=?,mining_level=?,mining_xp=?,"
-            + "rebirth_points=?,rebirth_count=?,"
-            + "pickaxe_tier=?,mining_speed_level=?,xp_multi_level=?,gem_multi_level=?"
+                "UPDATE mg_player_profiles SET "
+                        + "money_mantissa=?,money_exponent=?,gems_mantissa=?,gems_exponent=?,"
+                        + "rubies_mantissa=?,rubies_exponent=?,upgrade_level=?,tier=?,tier_points=?,"
+                        + "farming_level=?,farming_xp=?,mining_level=?,mining_xp=?,"
+                        + "rebirth_points=?,rebirth_count=?,"
+                        + "pickaxe_tier=?,mining_speed_level=?,xp_multi_level=?,gem_multi_level=?"
         );
         for (String col : PickaxeManager.BLOCK_COLUMN_NAMES) q.append(",").append(col).append("=?");
         for (int i = 0; i < 7; i++) q.append(",seed_storage_").append(i).append("=?");

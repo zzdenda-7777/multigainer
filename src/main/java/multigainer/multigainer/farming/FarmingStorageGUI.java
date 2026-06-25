@@ -21,7 +21,7 @@ import java.util.List;
 
 public class FarmingStorageGUI implements Listener {
 
-    public static final String TITLE = "§8🌾 §fFarming Storage";
+    public static final String TITLE = "§fFarming Storage";
 
     // 36-slot layout (4 rows)
     // Row 0 (0-8):  border panes
@@ -71,7 +71,7 @@ public class FarmingStorageGUI implements Listener {
             boolean newState = !profile.isAutoMerge();
             profile.setAutoMerge(newState);
             event.getInventory().setItem(SLOT_AUTO, buildAutoMergeButton(newState));
-            player.sendMessage("§8[§e🌾§8] §7Auto-merge " + (newState ? "§aenabled" : "§cdisabled") + "§7.");
+            player.sendMessage("§7Auto-merge " + (newState ? "§anabled" : "§cdisabled") + "§7.");
             return;
         }
 
@@ -121,19 +121,17 @@ public class FarmingStorageGUI implements Listener {
         if (tier < TIER_COUNT - 1) {
             long need = FarmingManager.COMPRESS_RATIO - (count % FarmingManager.COMPRESS_RATIO);
             meta.setLore(Arrays.asList(
-                "§8———————————————————",
                 "§7Amount§8: §f" + countStr,
                 "§7Until next§8: §e" + FarmingManager.fmtCount(need == FarmingManager.COMPRESS_RATIO ? 0 : need)
                     + " §8/ §e" + FarmingManager.COMPRESS_RATIO,
-                "§8———————————————————",
+                "",
                 "§7Left Click §8» §eCompress 64 → 1",
                 "§7Right Click §8» §eCompress All"
             ));
         } else {
             meta.setLore(Arrays.asList(
-                "§8———————————————————",
                 "§7Amount§8: §f" + countStr,
-                "§8———————————————————",
+                "",
                 "§7This is the highest tier."
             ));
         }
@@ -144,13 +142,13 @@ public class FarmingStorageGUI implements Listener {
     private static ItemStack buildAutoMergeButton(boolean enabled) {
         ItemStack item = new ItemStack(enabled ? Material.LIME_STAINED_GLASS_PANE : Material.RED_STAINED_GLASS_PANE);
         ItemMeta meta  = item.getItemMeta();
-        meta.setDisplayName((enabled ? "§a§l" : "§c§l") + "Auto-Merge");
+        meta.setDisplayName((enabled ? "§a§l" : "§c§l") + "AUTO COMPRESSOR");
         meta.setLore(Arrays.asList(
-            "§8———————————————————",
             "§7Automatically compresses seeds",
             "§7into higher tiers on every harvest.",
-            "§8———————————————————",
+            "",
             "§7Status§8: " + (enabled ? "§a✔ ON" : "§c✘ OFF"),
+            "",
             "§eClick to toggle!"
         ));
         item.setItemMeta(meta);

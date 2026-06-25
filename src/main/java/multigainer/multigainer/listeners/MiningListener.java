@@ -56,10 +56,10 @@ public class MiningListener implements Listener {
         Location restingLoc = blockLocation.clone().add(0.5, 1.05, 0.5);
 
         final Transformation smallScale = new Transformation(
-            new Vector3f(0, 0, 0),
-            new AxisAngle4f(0, 0, 0, 1),
-            new Vector3f(0.4f, 0.4f, 0.4f),
-            new AxisAngle4f(0, 0, 0, 1)
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(0.4f, 0.4f, 0.4f),
+                new AxisAngle4f(0, 0, 0, 1)
         );
 
         ItemDisplay display = world.spawn(restingLoc, ItemDisplay.class, d -> {
@@ -99,8 +99,8 @@ public class MiningListener implements Listener {
 
     private void spawnLevelUpItemEffect(Player player, Location blockLocation) {
         ItemDisplay display = spawnHiddenItemDisplay(player,
-            blockLocation.clone().add(0.5, 1.0, 0.5),
-            new ItemStack(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
+                blockLocation.clone().add(0.5, 1.0, 0.5),
+                new ItemStack(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
         if (display == null) return;
 
         display.setInterpolationDuration(4);
@@ -130,10 +130,10 @@ public class MiningListener implements Listener {
                 float rotation = ticks * 0.35f;
                 float scale    = 1.0f + progress;
                 display.setTransformation(new Transformation(
-                    new Vector3f(0, 0, 0),
-                    new AxisAngle4f(rotation, 0, 1, 0),
-                    new Vector3f(scale, scale, scale),
-                    new AxisAngle4f(0, 0, 0, 1)
+                        new Vector3f(0, 0, 0),
+                        new AxisAngle4f(rotation, 0, 1, 0),
+                        new Vector3f(scale, scale, scale),
+                        new AxisAngle4f(0, 0, 0, 1)
                 ));
                 ticks += stepEvery;
             }
@@ -194,8 +194,8 @@ public class MiningListener implements Listener {
         double xpUpgradeMulti  = PickaxeManager.getXpMultiplier(profile.getXpMultiLevel());
 
         BigNumber payout = new BigNumber(blockGemsMultiplier)
-            .multiply(MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()))
-            .multiply(new BigNumber(gemUpgradeMulti));
+                .multiply(MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()))
+                .multiply(new BigNumber(gemUpgradeMulti));
 
         profile.setGems(profile.getGems().add(payout));
 
@@ -217,9 +217,9 @@ public class MiningListener implements Listener {
 
         if (plugin.getScoreboardManager() != null) {
             plugin.getScoreboardManager().updateScoreboard(player,
-                profile.getMoney(), profile.getGems(), profile.getRubies(),
-                profile.getFarmingLevel(), profile.getFarmingXp(),
-                profile.getMiningLevel(), profile.getMiningXp());
+                    profile.getMoney(), profile.getGems(), profile.getRubies(),
+                    profile.getFarmingLevel(), profile.getFarmingXp(),
+                    profile.getMiningLevel(), profile.getMiningXp());
         }
 
         new BukkitRunnable() {
@@ -230,7 +230,7 @@ public class MiningListener implements Listener {
 
         spawnDropEffect(player, block.getLocation(), blockType);
         player.sendActionBar(LegacyComponentSerializer.legacySection()
-            .deserialize("§7+ §b" + NumberFormatter.format(payout) + " Gems"));
+                .deserialize("§7+ §b" + NumberFormatter.format(payout) + " Gems"));
 
         if (leveledUp) {
             spawnLevelUpItemEffect(player, block.getLocation());
@@ -259,9 +259,9 @@ public class MiningListener implements Listener {
         if (now - titleCooldown.getOrDefault(player.getUniqueId(), 0L) < 2000L) return;
         titleCooldown.put(player.getUniqueId(), now);
         player.sendTitle("§c§lPickaxe Required",
-            "§7Reach a " + PickaxeManager.TIER_COLORS[requiredTier]
-                + "§l" + PickaxeManager.TIER_NAMES[requiredTier] + " Pickaxe §7to mine this!",
-            5, 50, 10);
+                "§7Reach a " + PickaxeManager.TIER_COLORS[requiredTier]
+                        + "§l" + PickaxeManager.TIER_NAMES[requiredTier] + " Pickaxe §7to mine this!",
+                5, 50, 10);
     }
 
     @EventHandler

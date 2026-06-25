@@ -40,7 +40,7 @@ public class ToolItemHandler implements Listener {
         ItemStack hoe  = new ItemStack(mat);
         ItemMeta  meta = hoe.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color + "§l✦ " + name + " Multigainer Hoe ✦");
+            meta.setDisplayName(color + "§l" + name + " Multigainer Hoe ");
             meta.setLore(profile != null ? ToolGUI.buildHoeLore(profile) : List.of("§7Right click to open menu!"));
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES);
@@ -57,7 +57,7 @@ public class ToolItemHandler implements Listener {
         ItemStack hoe  = new ItemStack(Material.WOODEN_HOE);
         ItemMeta  meta = hoe.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§f§l✦ Wooden Multigainer Hoe ✦");
+            meta.setDisplayName("§f§lWooden Multigainer Hoe ");
             meta.setLore(List.of("§7Right click to open menu!"));
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES);
@@ -112,9 +112,10 @@ public class ToolItemHandler implements Listener {
     }
 
     public boolean isCustomPickaxe(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer()
-            .has(new NamespacedKey(plugin, PDC_PICKAXE_KEY), PersistentDataType.BYTE);
+        if (item == null || item.getType() == Material.AIR) return false;
+        if (!item.hasItemMeta()) return false;
+
+        return item.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, PDC_PICKAXE_KEY), PersistentDataType.BYTE);
     }
 
     public boolean isCustomHoe(ItemStack item) {
@@ -140,7 +141,7 @@ public class ToolItemHandler implements Listener {
             if (oldFarmLevel < reqs[tier] && newFarmLevel >= reqs[tier]) {
                 profile.setHoeTier(tier);
                 updateHoeInInventory(player);
-                String msg = "§8[§e🌾§8] §e" + player.getName()
+                String msg = "§e" + player.getName()
                     + " §7has reached a " + FarmingManager.HOE_TIER_COLORS[tier]
                     + "§l" + FarmingManager.HOE_TIER_NAMES[tier] + " Hoe§7!";
                 Bukkit.broadcastMessage(msg);

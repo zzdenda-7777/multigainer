@@ -115,9 +115,9 @@ public class UpgradeGUI implements Listener {
     private void refreshScoreboard(Player player, PlayerProfile profile) {
         if (plugin.getScoreboardManager() != null)
             plugin.getScoreboardManager().updateScoreboard(player,
-                profile.getMoney(), profile.getGems(), profile.getRubies(),
-                profile.getFarmingLevel(), profile.getFarmingXp(),
-                profile.getMiningLevel(), profile.getMiningXp());
+                    profile.getMoney(), profile.getGems(), profile.getRubies(),
+                    profile.getFarmingLevel(), profile.getFarmingXp(),
+                    profile.getMiningLevel(), profile.getMiningXp());
     }
 
     @EventHandler

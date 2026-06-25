@@ -28,16 +28,16 @@ public class ScoreboardManager {
     }
 
     public void createScoreboard(Player player, BigNumber money, BigNumber gems, BigNumber rubies,
-                                  int farmLvl, double farmXp, int mineLvl, double mineXp) {
+                                 int farmLvl, double farmXp, int mineLvl, double mineXp) {
         org.bukkit.scoreboard.ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
 
         Scoreboard board = manager.getNewScoreboard();
 
         String title = "§x§F§F§D§7§0§0§lM§x§F§F§D§7§0§0§lU§x§F§D§C§9§0§B§lL" +
-                       "§x§F§C§B§C§1§6§lT§x§F§A§A§F§1§C§lI§x§E§D§9§E§4§4§lG" +
-                       "§x§F§A§A§F§1§C§lA§x§F§C§B§C§1§6§lI§x§F§D§C§9§0§B§lN" +
-                       "§x§F§F§D§7§0§0§lE§x§F§F§D§7§0§0§lR";
+                "§x§F§C§B§C§1§6§lT§x§F§A§A§F§1§C§lI§x§E§D§9§E§4§4§lG" +
+                "§x§F§A§A§F§1§C§lA§x§F§C§B§C§1§6§lI§x§F§D§C§9§0§B§lN" +
+                "§x§F§F§D§7§0§0§lE§x§F§F§D§7§0§0§lR";
 
         Objective objective = board.registerNewObjective("currency_sb", Criteria.DUMMY, title);
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -76,8 +76,8 @@ public class ScoreboardManager {
         farmLvlTeam.addEntry(ChatColor.GOLD.toString());
         farmLvlTeam.setPrefix("§e🌾 §8│ §eFarm Lvl§8: ");
         farmLvlTeam.setSuffix(NumberFormatter.format(new BigNumber(farmLvl))
-            + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp))
-            + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp)) + "§8)");
+                + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp))
+                + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp)) + "§8)");
         objective.getScore(ChatColor.GOLD.toString()).setScore(9);
 
         Team farmXpTeam = board.registerNewTeam("sb_farmxp");
@@ -92,8 +92,8 @@ public class ScoreboardManager {
         mineLvlTeam.addEntry(ChatColor.BLUE.toString());
         mineLvlTeam.setPrefix("§7⛏ §8│ §7Mine Lvl§8: ");
         mineLvlTeam.setSuffix(NumberFormatter.format(new BigNumber(mineLvl))
-            + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
-            + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
+                + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
+                + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
         objective.getScore(ChatColor.BLUE.toString()).setScore(7);
 
         Team mineXpTeam = board.registerNewTeam("sb_minexp");
@@ -107,7 +107,7 @@ public class ScoreboardManager {
         int farmUpgLvl   = profile != null ? profile.getFarmMultiUpgradeLevel() : 0;
         BigNumber farmUpgBig = UpgradeManager.getFarmTotalMultiplier(farmUpgLvl);
         String farmMultiSuffix = FarmingManager.formatFarmMulti(farmMulti)
-            + (farmUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(farmUpgBig) + "x§8)" : "");
+                + (farmUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(farmUpgBig) + "x§8)" : "");
         Team farmMultiTeam = board.registerNewTeam("sb_farmmulti");
         farmMultiTeam.addEntry(ChatColor.YELLOW.toString());
         farmMultiTeam.setPrefix("§e🌾 §8│ §eFarm Multi§8: §f");
@@ -128,7 +128,7 @@ public class ScoreboardManager {
     }
 
     public void updateScoreboard(Player player, BigNumber money, BigNumber gems, BigNumber rubies,
-                                  int farmLvl, double farmXp, int mineLvl, double mineXp) {
+                                 int farmLvl, double farmXp, int mineLvl, double mineXp) {
         Scoreboard board = player.getScoreboard();
         if (board.getObjective("currency_sb") == null) return;
 
@@ -150,16 +150,16 @@ public class ScoreboardManager {
         double reqFarmXp = FarmingLevelManager.getRequiredXpForNextLevel(farmLvl);
         t = board.getTeam("sb_farmlvl");
         if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(farmLvl))
-            + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp))
-            + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp)) + "§8)");
+                + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp))
+                + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp)) + "§8)");
         t = board.getTeam("sb_farmxp");
         if (t != null) t.setSuffix(FarmingLevelManager.generateXpBar(farmXp, reqFarmXp));
 
         double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
         t = board.getTeam("sb_minelvl");
         if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(mineLvl))
-            + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
-            + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
+                + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
+                + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
         t = board.getTeam("sb_minexp");
         if (t != null) t.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
 
@@ -168,7 +168,7 @@ public class ScoreboardManager {
             int fUpgLvl = profile.getFarmMultiUpgradeLevel();
             BigNumber fUpgBig = UpgradeManager.getFarmTotalMultiplier(fUpgLvl);
             String fSuffix = FarmingManager.formatFarmMulti(profile.getFarmMulti())
-                + (fUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(fUpgBig) + "x§8)" : "");
+                    + (fUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(fUpgBig) + "x§8)" : "");
             t.setSuffix(fSuffix);
         }
 
@@ -182,8 +182,8 @@ public class ScoreboardManager {
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         BigNumber totalGemsMulti = profile != null
-            ? MiningLevelManager.getGemsMultiplier(profile.getMiningLevel())
-            : new BigNumber(1.0);
+                ? MiningLevelManager.getGemsMultiplier(profile.getMiningLevel())
+                : new BigNumber(1.0);
 
         Team t = board.getTeam("sb_gems");
         if (t != null) t.setSuffix(NumberFormatter.format(gems) + " §8(§bx" + NumberFormatter.format(totalGemsMulti) + "§8)");
@@ -191,8 +191,8 @@ public class ScoreboardManager {
         double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
         t = board.getTeam("sb_minelvl");
         if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(mineLvl))
-            + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
-            + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
+                + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
+                + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
         t = board.getTeam("sb_minexp");
         if (t != null) t.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
     }

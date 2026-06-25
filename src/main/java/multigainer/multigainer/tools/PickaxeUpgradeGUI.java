@@ -178,7 +178,7 @@ public class PickaxeUpgradeGUI implements Listener {
         plugin.getToolHandler().updatePickaxeInInventory(player);
         updateScoreboard(player, profile);
 
-        player.sendMessage("§8[§f⚡§8] §7Mining Speed upgraded to §flevel "
+        player.sendMessage("§7Mining Speed upgraded to §flevel "
             + profile.getMiningSpeedLevel() + "§7!");
         open(player, profile, plugin);
     }
@@ -193,7 +193,7 @@ public class PickaxeUpgradeGUI implements Listener {
         profile.setXpMultiLevel(profile.getXpMultiLevel() + 1);
         updateScoreboard(player, profile);
 
-        player.sendMessage("§8[§a⭐§8] §7XP Multiplier upgraded to §alevel "
+        player.sendMessage("§7XP Multiplier upgraded to §alevel "
             + profile.getXpMultiLevel() + " §8(§ax"
             + String.format("%.4f", PickaxeManager.getXpMultiplier(profile.getXpMultiLevel())) + "§8)§7!");
         open(player, profile, plugin);
@@ -209,7 +209,7 @@ public class PickaxeUpgradeGUI implements Listener {
         profile.setGemMultiLevel(profile.getGemMultiLevel() + 1);
         updateScoreboard(player, profile);
 
-        player.sendMessage("§8[§b✦§8] §7Gem Multiplier upgraded to §blevel "
+        player.sendMessage("§7Gem Multiplier upgraded to §blevel "
             + profile.getGemMultiLevel() + " §8(§bx"
             + String.format("%.4f", PickaxeManager.getGemMultiplier(profile.getGemMultiLevel())) + "§8)§7!");
         open(player, profile, plugin);

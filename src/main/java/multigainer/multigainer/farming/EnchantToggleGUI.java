@@ -20,7 +20,7 @@ import java.util.List;
 
 public class EnchantToggleGUI implements Listener {
 
-    public static final String TITLE = "§8⚡ §fEnchant Messages";
+    public static final String TITLE = "§fEnchant Messages";
 
     // 27-slot layout
     // Row 0 (0-8):   border panes
@@ -85,13 +85,12 @@ public class EnchantToggleGUI implements Listener {
         String  seedAmt  = NumberFormatter.format(new BigNumber((double) FarmingManager.ENCHANT_SEED_MULTI[idx]));
         String[] maxLvls = { "2,500", "25,000", "500,000", "25,000,000" };
         meta.setLore(Arrays.asList(
-            "§8———————————————",
             "§7Grants §c" + seedAmt + "x Seeds §7on proc.",
-            "§8———————————————",
             "§7Current Chance §8» " + FarmingManager.formatChance(chance),
             "§7Max Chance §8»     §a25% §8(Lvl §f" + maxLvls[idx] + "§8)",
-            "§8———————————————",
+            "",
             "§7Chat Message §8» " + (enabled ? "§a✔ Enabled" : "§c✘ Disabled"),
+            "",
             "§eClick to toggle!"
         ));
         item.setItemMeta(meta);
