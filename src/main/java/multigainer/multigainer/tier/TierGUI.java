@@ -32,9 +32,9 @@ public class TierGUI {
 
         int tier         = profile.getTier();
         double tierMulti = TierManager.getMultiplierForTier(tier);
-        BigNumber nextCostBig = TierManager.getCostForTierBig(tier + 1);
+        double nextCost  = TierManager.getCostForTier(tier + 1);
         double curPoints = profile.getRebirthPoints();
-        boolean canTier  = new BigNumber(curPoints).compareTo(nextCostBig) >= 0;
+        boolean canTier  = curPoints >= nextCost;
 
         // ── Slot 11: Player head with stats ──────────────────────────────────
         ItemStack stats = new ItemStack(Material.PLAYER_HEAD);
@@ -47,7 +47,7 @@ public class TierGUI {
                 ChatColor.GRAY + "Current Multi: " + ChatColor.YELLOW + String.format("%.0fx", tierMulti),
                 ChatColor.GRAY + "Tier Points: "   + ChatColor.LIGHT_PURPLE + profile.getTierPoints(),
                 ChatColor.GRAY + "Next Tier Cost: " + ChatColor.AQUA
-                    + NumberFormatter.format(nextCostBig) + " Points"
+                    + NumberFormatter.format(new BigNumber(nextCost)) + " Points"
             ));
             stats.setItemMeta(sm);
         }
@@ -67,7 +67,7 @@ public class TierGUI {
                 ChatColor.GRAY + "Progress: " + ChatColor.AQUA
                     + NumberFormatter.format(new BigNumber(curPoints))
                     + ChatColor.GRAY + "/" + ChatColor.GOLD
-                    + NumberFormatter.format(nextCostBig),
+                    + NumberFormatter.format(new BigNumber(nextCost)),
                 " ",
                 canTier ? ChatColor.YELLOW + "Click to TIER UP!" : ChatColor.RED + "Not enough points."
             ));

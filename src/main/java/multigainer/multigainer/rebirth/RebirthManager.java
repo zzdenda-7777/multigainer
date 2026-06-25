@@ -7,7 +7,11 @@ public class RebirthManager {
 
     // Calculation: Math.cbrt(money) (Cube root of 3rd power/Money)
     public static double calculateRebirthPoints(double money) {
-        return Math.cbrt(money);
+        // Pokud je money 0 nebo méně, vracíme 0, nebudeme dělit
+        if (money <= 0) return 0.0;
+
+        // Zde teprve proveď svůj výpočet, např.:
+        return Math.pow(money, 1.0 / 3.0);
     }
 
     // Calculation: Sqrt(15) of Rebirth Points

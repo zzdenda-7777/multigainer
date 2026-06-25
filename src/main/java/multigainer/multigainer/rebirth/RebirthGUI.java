@@ -31,7 +31,7 @@ public class RebirthGUI {
             sm.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR PROGRESS");
             sm.setLore(Arrays.asList(
                     " ",
-                    ChatColor.GRAY + "Money" + ChatColor.GREEN + NumberFormatter.format(profile.getMoney()),
+                    ChatColor.GRAY + "Money: " + ChatColor.GREEN + NumberFormatter.format(profile.getMoney()),
                     ChatColor.GRAY + "Rebirth Points: " + ChatColor.AQUA + NumberFormatter.format(new BigNumber(profile.getRebirthPoints())),
                     ChatColor.GRAY + "Active Multiplier: " + ChatColor.YELLOW + NumberFormatter.format(new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()))) + "x",
                     " "

@@ -6,7 +6,6 @@ import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.tools.PickaxeManager;
-import multigainer.multigainer.upgrades.UpgradeManager;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -191,14 +190,12 @@ public class MiningListener implements Listener {
 
         double blockGemsMultiplier = getBlockGemsMultiplier(blockType);
         double blockXpMultiplier   = getBlockXpMultiplier(blockType);
-        double gemPickaxeMulti     = PickaxeManager.getGemMultiplier(profile.getGemMultiLevel());
-        double xpUpgradeMulti      = PickaxeManager.getXpMultiplier(profile.getXpMultiLevel());
-        BigNumber gemUpgradeMult   = UpgradeManager.getGemTotalMultiplier(profile.getGemUpgradeLevel());
+        double gemUpgradeMulti = PickaxeManager.getGemMultiplier(profile.getGemMultiLevel());
+        double xpUpgradeMulti  = PickaxeManager.getXpMultiplier(profile.getXpMultiLevel());
 
         BigNumber payout = new BigNumber(blockGemsMultiplier)
             .multiply(MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()))
-            .multiply(new BigNumber(gemPickaxeMulti))
-            .multiply(gemUpgradeMult);
+            .multiply(new BigNumber(gemUpgradeMulti));
 
         profile.setGems(profile.getGems().add(payout));
 
@@ -232,7 +229,8 @@ public class MiningListener implements Listener {
         }.runTaskLater(plugin, 1L);
 
         spawnDropEffect(player, block.getLocation(), blockType);
-        sendFixedActionBar(player, NumberFormatter.format(payout), NumberFormatter.format(new BigNumber(xpGain)));
+        player.sendActionBar(LegacyComponentSerializer.legacySection()
+            .deserialize("§7+ §b" + NumberFormatter.format(payout) + " Gems"));
 
         if (leveledUp) {
             spawnLevelUpItemEffect(player, block.getLocation());
@@ -254,18 +252,6 @@ public class MiningListener implements Listener {
                 cobbleCooldowns.remove(block.getLocation());
             }
         }.runTaskLater(plugin, 60L);
-    }
-
-    private void sendFixedActionBar(Player player, String gems, String xp) {
-        int sideWidth = 22;
-        String leftSide  = String.format("%" + sideWidth + "s", "§7+ §b" + gems + " Gems");
-        String rightSide = String.format("%-" + sideWidth + "s", "§7+ §a" + xp + " XP");
-        player.sendActionBar(net.kyori.adventure.text.Component.text()
-            .append(LegacyComponentSerializer.legacySection().deserialize(leftSide))
-            .append(net.kyori.adventure.text.Component.text(" §8| "))
-            .append(LegacyComponentSerializer.legacySection().deserialize(rightSide))
-            .font(org.bukkit.NamespacedKey.minecraft("uniform"))
-            .build());
     }
 
     private void sendUpgradeTitle(Player player, int requiredTier) {
