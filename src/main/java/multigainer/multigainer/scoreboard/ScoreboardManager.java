@@ -10,6 +10,7 @@ import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.rebirth.RebirthManager;
 import multigainer.multigainer.tier.TierManager;
+import multigainer.multigainer.perks.PerkManager;
 import multigainer.multigainer.upgrades.UpgradeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -38,7 +39,7 @@ public class ScoreboardManager {
         String title = "§x§F§F§D§7§0§0§lM§x§F§F§D§7§0§0§lU§x§F§D§C§9§0§B§lL" +
                 "§x§F§C§B§C§1§6§lT§x§F§A§A§F§1§C§lI§x§E§D§9§E§4§4§lG" +
                 "§x§F§A§A§F§1§C§lA§x§F§C§B§C§1§6§lI§x§F§D§C§9§0§B§lN" +
-                "§x§F§F§D§7§0§0§lE§x§F§F§D§7§0§0§lR";
+                "§x§F§F§D§7§0§0§lE§x§F§F§D§7§0§0§lR 2";
 
         Objective objective = board.registerNewObjective("currency_sb", Criteria.DUMMY, title);
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -212,7 +213,8 @@ public class ScoreboardManager {
             BigNumber farmUpgMult = UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());
             BigNumber grindFarm   = new BigNumber(GrindManager.getFarmMulti(profile.getGrindFarmMultiLevel()));
 
-            BigNumber allMoney = upgrade.multiply(rebirth).multiply(tier).multiply(mine).multiply(farmMult).multiply(farmUpgMult).multiply(grindFarm);
+            BigNumber perkMult = PerkManager.getTotalPerkMultiplierBig(profile.getPerkCounts());
+            BigNumber allMoney = upgrade.multiply(rebirth).multiply(tier).multiply(mine).multiply(farmMult).multiply(farmUpgMult).multiply(grindFarm).multiply(perkMult);
 
             // Apply money exponent
             double exponent = GrindManager.getMoneyExponent(profile.getGrindExponentLevel());

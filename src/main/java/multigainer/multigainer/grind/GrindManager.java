@@ -11,7 +11,7 @@ public class GrindManager {
     public static double getFarmXpCost(int nextLevel)    { return 5.0  * Math.pow(nextLevel, 1.075);  }
     public static double getMineXpCost(int nextLevel)    { return 10.0 * Math.pow(nextLevel, 1.01);   }
     public static double getSeedMultiCost(int nextLevel) { return 10.0 * Math.pow(nextLevel, 1.02);   }
-    public static double getGPMultiCost(int nextLevel)   { return 25.0 * Math.pow(nextLevel, 1.05);   }
+    public static double getGPMultiCost(int nextLevel)   { return nextLevel <= 1 ? 25.0 : 25.0 * Math.pow(1.75, nextLevel - 1); }
 
     // ── Drop chance denominators ───────────────────────────────────────────────
     // Farming: 1/500 base, Mining: 1/100 base.

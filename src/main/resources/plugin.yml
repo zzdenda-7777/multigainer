@@ -14,8 +14,10 @@ libraries:
 
 
 commands:
-  stats:
+  statsmine:
     description: Shows your current mining level and resource multipliers!
+  statsmoney:
+    description: Shows all money multipliers and the current exponent.
   rebirth:
     description: Open the rebirth menu.
   tier:
@@ -24,6 +26,8 @@ commands:
     description: Open the upgrades menu.
   grind:
     description: Open the grinding points menu.
+  perks:
+    description: Open the perks menu.
   multigainer:
     description: Main plugin command.
     permission: multigainer.admin

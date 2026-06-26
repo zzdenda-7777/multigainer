@@ -73,12 +73,12 @@ public class PickaxeManager {
 
     // [requiredTier, requiredMiningLevel] to upgrade FROM this tier index to the next
     public static final int[][] TIER_UP_REQUIREMENTS = {
-        {1,   15},       // Wooden (0) -> Stone (1)
-        {5,   150},      // Stone  (1) -> Copper (2)
-        {15,  1500},     // Copper (2) -> Iron (3)
-        {45,  10000},    // Iron   (3) -> Diamond (4)
-        {100, 50000},    // Diamond(4) -> Netherite (5)
-        {200, 100000}    // Netherite(5)-> Golden (6)
+        {1,   10},       // Wooden (0) -> Stone (1)
+        {5,   45},      // Stone  (1) -> Copper (2)
+        {15,  150},     // Copper (2) -> Iron (3)
+        {45,  750},    // Iron   (3) -> Diamond (4)
+        {100, 4000},    // Diamond(4) -> Netherite (5)
+        {200, 50000}    // Netherite(5)-> Golden (6)
     };
 
     public static int getBlockIndex(Material material) {

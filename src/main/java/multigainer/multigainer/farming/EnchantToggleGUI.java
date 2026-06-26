@@ -25,8 +25,9 @@ public class EnchantToggleGUI implements Listener {
     // 27-slot layout
     // Row 0 (0-8):   border panes
     // Row 1 (9-17):  [P][TNT][P][NUKE][P][WE][P][UD][P]
-    // Row 2 (18-26): panes, BACK at slot 26
+    // Row 2 (18-26): [P][P][P][P][LvlUp][P][P][P][Back]
     private static final int[] ENCHANT_SLOTS = { 10, 12, 14, 16 };
+    private static final int   SLOT_LEVEL_UP = 22;
     private static final int   SLOT_BACK     = 26;
 
     private final Multigainer plugin;
@@ -42,6 +43,7 @@ public class EnchantToggleGUI implements Listener {
         for (int i = 0; i < 4; i++) {
             inv.setItem(ENCHANT_SLOTS[i], buildEnchantItem(i, profile.isEnchantMessageEnabled(i), farmLevel));
         }
+        inv.setItem(SLOT_LEVEL_UP, buildLevelUpItem(profile.isLevelUpFarmMessageEnabled()));
         inv.setItem(SLOT_BACK, makeBack());
         player.openInventory(inv);
     }
@@ -58,6 +60,14 @@ public class EnchantToggleGUI implements Listener {
 
         if (slot == SLOT_BACK) {
             ToolGUI.open(player, profile, plugin);
+            return;
+        }
+
+        if (slot == SLOT_LEVEL_UP) {
+            boolean newState = !profile.isLevelUpFarmMessageEnabled();
+            profile.setLevelUpFarmMessageEnabled(newState);
+            event.getInventory().setItem(slot, buildLevelUpItem(newState));
+            player.sendMessage("§8[§e⚡§8] §7Farm Level Up messages " + (newState ? "§aenabled" : "§cdisabled") + "§7.");
             return;
         }
 
@@ -88,6 +98,22 @@ public class EnchantToggleGUI implements Listener {
             "§7Grants §c" + seedAmt + "x Seeds §7on proc.",
             "§7Current Chance §8» " + FarmingManager.formatChance(chance),
             "§7Max Chance §8»     §a25% §8(Lvl §f" + maxLvls[idx] + "§8)",
+            "",
+            "§7Chat Message §8» " + (enabled ? "§a✔ Enabled" : "§c✘ Disabled"),
+            "",
+            "§eClick to toggle!"
+        ));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack buildLevelUpItem(boolean enabled) {
+        ItemStack item = new ItemStack(enabled ? Material.LIME_DYE : Material.GRAY_DYE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName((enabled ? "§a§l" : "§7§l") + "⭐ Farm Level Up");
+        meta.setLore(Arrays.asList(
+            "§7Shows a chat message when",
+            "§7your farming level increases.",
             "",
             "§7Chat Message §8» " + (enabled ? "§a✔ Enabled" : "§c✘ Disabled"),
             "",

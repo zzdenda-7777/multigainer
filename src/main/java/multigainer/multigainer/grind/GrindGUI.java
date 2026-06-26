@@ -32,6 +32,7 @@ public class GrindGUI implements Listener {
     private static final int[] UPGRADE_SLOTS = { 10, 12, 14, 16, 19, 21, 23, 25 };
     private static final int SLOT_INFO   = 39;
     private static final int SLOT_TOGGLE = 41;
+    private static final int SLOT_BACK   = 49;
 
     private final Multigainer plugin;
 
@@ -57,6 +58,7 @@ public class GrindGUI implements Listener {
         inv.setItem(UPGRADE_SLOTS[7], buildGPMultiItem(profile));
         inv.setItem(SLOT_INFO,   buildInfoItem(profile));
         inv.setItem(SLOT_TOGGLE, buildToggleItem(profile));
+        inv.setItem(SLOT_BACK,   makeBack());
 
         player.openInventory(inv);
     }
@@ -67,14 +69,16 @@ public class GrindGUI implements Listener {
         int lvl = profile.getGrindChanceLevel();
         int next = lvl + 1;
         double cost = GrindManager.getChanceCost(next);
+        double farmNow  = GrindManager.getFarmingChanceDenominator(lvl);
+        double mineNow  = GrindManager.getMiningChanceDenominator(lvl);
+        double farmNext = GrindManager.getFarmingChanceDenominator(next);
+        double mineNext = GrindManager.getMiningChanceDenominator(next);
         return buildUpgradeItem(
             Material.PAPER,
             ChatColor.GREEN + "" + ChatColor.BOLD + "Chance Reduction",
             lvl,
-            String.format("Farm %.2f%%  Mine %.2f%%",
-                GrindManager.getFarmingChancePct(lvl), GrindManager.getMiningChancePct(lvl)),
-            String.format("Farm %.2f%%  Mine %.2f%%",
-                GrindManager.getFarmingChancePct(next), GrindManager.getMiningChancePct(next)),
+            String.format("Farm 1/%.2f  Mine 1/%.2f", farmNow, mineNow),
+            String.format("Farm 1/%.2f  Mine 1/%.2f", farmNext, mineNext),
             cost
         );
     }
@@ -101,8 +105,8 @@ public class GrindGUI implements Listener {
             Material.HAY_BLOCK,
             ChatColor.YELLOW + "" + ChatColor.BOLD + "Farm Multi",
             lvl,
-            String.format("Multi: %.4fx", GrindManager.getFarmMulti(lvl)),
-            String.format("%.4fx (×1.15)", GrindManager.getFarmMulti(next)),
+            String.format("Multi: %.2fx", GrindManager.getFarmMulti(lvl)),
+            String.format("%.2fx (×1.15)", GrindManager.getFarmMulti(next)),
             cost
         );
     }
@@ -115,8 +119,8 @@ public class GrindGUI implements Listener {
             Material.DIAMOND,
             ChatColor.AQUA + "" + ChatColor.BOLD + "Gem Multi",
             lvl,
-            String.format("Multi: %.4fx", GrindManager.getGemMulti(lvl)),
-            String.format("%.4fx (×1.05)", GrindManager.getGemMulti(next)),
+            String.format("Multi: %.2fx", GrindManager.getGemMulti(lvl)),
+            String.format("%.2fx (×1.05)", GrindManager.getGemMulti(next)),
             cost
         );
     }
@@ -129,8 +133,8 @@ public class GrindGUI implements Listener {
             Material.GOLDEN_CARROT,
             ChatColor.YELLOW + "" + ChatColor.BOLD + "Farm XP Boost",
             lvl,
-            String.format("XP Multi: %.4fx", GrindManager.getFarmXpMulti(lvl)),
-            String.format("%.4fx (×1.075)", GrindManager.getFarmXpMulti(next)),
+            String.format("XP Multi: %.2fx", GrindManager.getFarmXpMulti(lvl)),
+            String.format("%.2fx (×1.075)", GrindManager.getFarmXpMulti(next)),
             cost
         );
     }
@@ -143,8 +147,8 @@ public class GrindGUI implements Listener {
             Material.IRON_ORE,
             ChatColor.GRAY + "" + ChatColor.BOLD + "Mine XP Boost",
             lvl,
-            String.format("XP Multi: %.4fx", GrindManager.getMineXpMulti(lvl)),
-            String.format("%.4fx (×1.04)", GrindManager.getMineXpMulti(next)),
+            String.format("XP Multi: %.2fx", GrindManager.getMineXpMulti(lvl)),
+            String.format("%.2fx (×1.04)", GrindManager.getMineXpMulti(next)),
             cost
         );
     }
@@ -157,8 +161,8 @@ public class GrindGUI implements Listener {
             Material.WHEAT_SEEDS,
             ChatColor.GREEN + "" + ChatColor.BOLD + "Seed Multi",
             lvl,
-            String.format("Multi: %.4fx", GrindManager.getSeedMulti(lvl)),
-            String.format("%.4fx (×1.03)", GrindManager.getSeedMulti(next)),
+            String.format("Multi: %.2fx", GrindManager.getSeedMulti(lvl)),
+            String.format("%.2fx (×1.03)", GrindManager.getSeedMulti(next)),
             cost
         );
     }
@@ -171,8 +175,8 @@ public class GrindGUI implements Listener {
             Material.QUARTZ,
             ChatColor.WHITE + "" + ChatColor.BOLD + "GP Multi",
             lvl,
-            String.format("Multi: %.4fx", GrindManager.getGPMulti(lvl)),
-            String.format("%.4fx (×1.25)", GrindManager.getGPMulti(next)),
+            String.format("Multi: %.2fx", GrindManager.getGPMulti(lvl)),
+            String.format("%.2fx (×1.25)", GrindManager.getGPMulti(next)),
             cost
         );
     }
@@ -207,8 +211,8 @@ public class GrindGUI implements Listener {
         List<String> lore = new ArrayList<>();
         lore.add(" ");
         lore.add(ChatColor.GRAY + "Balance: " + ChatColor.GREEN + NumberFormatter.format(new BigNumber(gp)));
-        lore.add(ChatColor.GRAY + "Farm chance: " + ChatColor.WHITE + String.format("%.2f%%", GrindManager.getFarmingChancePct(profile.getGrindChanceLevel())));
-        lore.add(ChatColor.GRAY + "Mine chance: " + ChatColor.WHITE + String.format("%.2f%%", GrindManager.getMiningChancePct(profile.getGrindChanceLevel())));
+        lore.add(ChatColor.GRAY + "Farm chance: " + ChatColor.WHITE + "1/" + String.format("%.2f", GrindManager.getFarmingChanceDenominator(profile.getGrindChanceLevel())));
+        lore.add(ChatColor.GRAY + "Mine chance: " + ChatColor.WHITE + "1/" + String.format("%.2f", GrindManager.getMiningChanceDenominator(profile.getGrindChanceLevel())));
         lore.add(" ");
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -244,6 +248,7 @@ public class GrindGUI implements Listener {
 
         int slot = event.getRawSlot();
 
+        if (slot == SLOT_BACK) { player.closeInventory(); return; }
         for (int i = 0; i < UPGRADE_SLOTS.length; i++) {
             if (slot == UPGRADE_SLOTS[i]) { handleUpgrade(player, profile, i); return; }
         }
@@ -336,6 +341,17 @@ public class GrindGUI implements Listener {
         ItemStack p = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta m  = p.getItemMeta();
         if (m != null) { m.setDisplayName(" "); p.setItemMeta(m); }
+        return p;
+    }
+
+    private static ItemStack makeBack() {
+        ItemStack p = new ItemStack(Material.ARROW);
+        ItemMeta m  = p.getItemMeta();
+        if (m != null) {
+            m.setDisplayName("§7« §fBack");
+            m.setLore(List.of("§7Close the Grinding Points menu"));
+            p.setItemMeta(m);
+        }
         return p;
     }
 }

@@ -8,6 +8,10 @@ import multigainer.multigainer.grind.GrindManager;
 import multigainer.multigainer.levels.FarmingLevelManager;
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.upgrades.UpgradeManager;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -28,7 +32,8 @@ import java.util.*;
 
 public class FarmingListener implements Listener {
     private final Multigainer plugin;
-    private final Map<UUID, Set<Location>> brokenCropCache = new HashMap<>();
+    private final Map<UUID, Set<Location>> brokenCropCache  = new HashMap<>();
+    private final Map<UUID, BukkitTask>    clearTaskMap     = new HashMap<>();
     private final Random random = new Random();
 
     public FarmingListener(Multigainer plugin) { this.plugin = plugin; }
@@ -48,7 +53,10 @@ public class FarmingListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        brokenCropCache.remove(event.getPlayer().getUniqueId());
+        UUID uuid = event.getPlayer().getUniqueId();
+        brokenCropCache.remove(uuid);
+        BukkitTask t = clearTaskMap.remove(uuid);
+        if (t != null) t.cancel();
     }
 
     @EventHandler
@@ -101,8 +109,10 @@ public class FarmingListener implements Listener {
             currentXp -= reqXp;
             level++;
             reqXp = FarmingLevelManager.getRequiredXpForNextLevel(level);
-            player.sendMessage("§a§l[!] §7Farm Level Up! Now §e"
-                    + NumberFormatter.format(new BigNumber(level)) + "§7!");
+            if (profile.isLevelUpFarmMessageEnabled()) {
+                player.sendMessage("§a§l[!] §7Farm Level Up! Now §e"
+                        + NumberFormatter.format(new BigNumber(level)) + "§7!");
+            }
         }
         profile.setFarmingXp(currentXp);
         profile.setFarmingLevel(level);
@@ -129,6 +139,11 @@ public class FarmingListener implements Listener {
                     profile.getFarmingLevel(), profile.getFarmingXp(),
                     profile.getMiningLevel(), profile.getMiningXp());
         }
+
+        // ── Action bar: farm multi | xp gain; vanishes 1 second after last harvest ──
+        sendFixedFarmActionBar(player,
+                NumberFormatter.format(new BigNumber(profile.getFarmMulti())),
+                NumberFormatter.format(new BigNumber(xpGain)));
 
         // ── Fake block: briefly hide then restore chosen crop ─────────────────
         cooldowns.add(loc);
@@ -158,6 +173,31 @@ public class FarmingListener implements Listener {
             }
         }
         return 1L;
+    }
+
+    private void sendFixedFarmActionBar(Player player, String multi, String xp) {
+        int sideWidth = 22;
+        String leftSide  = String.format("%" + sideWidth + "s", "§7+ §6" + multi + "x");
+        String rightSide = String.format("%-" + sideWidth + "s", "§7+ §e" + xp + " XP");
+
+        net.kyori.adventure.text.Component bar = net.kyori.adventure.text.Component.text()
+                .font(Key.key("minecraft", "uniform"))
+                .append(LegacyComponentSerializer.legacySection().deserialize(leftSide))
+                .append(LegacyComponentSerializer.legacySection().deserialize(" §8| "))
+                .append(LegacyComponentSerializer.legacySection().deserialize(rightSide))
+                .build();
+
+        player.sendActionBar(bar);
+        BukkitTask old = clearTaskMap.put(player.getUniqueId(), null);
+        if (old != null) old.cancel();
+        BukkitTask clear = new BukkitRunnable() {
+            @Override public void run() {
+                clearTaskMap.remove(player.getUniqueId());
+                if (player.isOnline())
+                    player.sendActionBar(net.kyori.adventure.text.Component.empty());
+            }
+        }.runTaskLater(plugin, 20L);
+        clearTaskMap.put(player.getUniqueId(), clear);
     }
 
     @EventHandler

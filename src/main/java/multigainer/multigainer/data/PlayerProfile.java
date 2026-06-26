@@ -29,6 +29,14 @@ public class PlayerProfile {
     private int gemUpgradeLevel = 0;
     private int farmMultiUpgradeLevel = 0;
 
+    // Item hotbar slot positions (persisted so players can rearrange freely)
+    private int hoeSlot     = 0;
+    private int pickaxeSlot = 1;
+    private int upgradeSlot = 4;
+
+    // ── Farming messages ──────────────────────────────────────────────────────
+    private boolean levelUpFarmMessageEnabled = true;
+
     // ── Grinding Points ───────────────────────────────────────────────────────
     private double grindingPoints = 0.0;
     private boolean grindMessagesEnabled = true;
@@ -101,6 +109,31 @@ public class PlayerProfile {
 
     public int getGrindGPMultiLevel()   { return grindGPMultiLevel; }
     public void setGrindGPMultiLevel(int l)   { this.grindGPMultiLevel   = Math.max(0, l); }
+
+    // ── Farming level-up message ──────────────────────────────────────────────
+    public boolean isLevelUpFarmMessageEnabled() { return levelUpFarmMessageEnabled; }
+    public void setLevelUpFarmMessageEnabled(boolean enabled) { this.levelUpFarmMessageEnabled = enabled; }
+
+    // ── Perks ─────────────────────────────────────────────────────────────────
+    private int[] perkCounts       = new int[5];
+    private int[] perkChanceLevels = new int[5];
+    private boolean[] perkMessagesEnabled = {true, true, true, true, true};
+
+    public int getPerkCount(int i) { return (i >= 0 && i < 5) ? perkCounts[i] : 0; }
+    public void setPerkCount(int i, int count) { if (i >= 0 && i < 5) perkCounts[i] = Math.max(0, count); }
+    public void incrementPerkCount(int i) { if (i >= 0 && i < 5) perkCounts[i]++; }
+    public int[] getPerkCounts() { return perkCounts; }
+    public void setPerkCounts(int[] counts) { this.perkCounts = counts; }
+
+    public int getPerkChanceLevel(int i) { return (i >= 0 && i < 5) ? perkChanceLevels[i] : 0; }
+    public void setPerkChanceLevel(int i, int level) { if (i >= 0 && i < 5) perkChanceLevels[i] = Math.max(0, level); }
+    public int[] getPerkChanceLevels() { return perkChanceLevels; }
+    public void setPerkChanceLevels(int[] levels) { this.perkChanceLevels = levels; }
+
+    public boolean isPerkMessageEnabled(int i) { return (i >= 0 && i < 5) && perkMessagesEnabled[i]; }
+    public void setPerkMessageEnabled(int i, boolean enabled) { if (i >= 0 && i < 5) perkMessagesEnabled[i] = enabled; }
+    public boolean[] getPerkMessagesEnabled() { return perkMessagesEnabled; }
+    public void setPerkMessagesEnabled(boolean[] enabled) { this.perkMessagesEnabled = enabled; }
 
     // ── Core stats ────────────────────────────────────────────────────────────
     public int getUpgradeLevel() { return upgradeLevel; }
@@ -196,4 +229,11 @@ public class PlayerProfile {
     public void setGemUpgradeLevel(int level) { this.gemUpgradeLevel = Math.max(0, level); }
     public int getFarmMultiUpgradeLevel() { return farmMultiUpgradeLevel; }
     public void setFarmMultiUpgradeLevel(int level) { this.farmMultiUpgradeLevel = Math.max(0, level); }
+
+    public int getHoeSlot()          { return hoeSlot; }
+    public void setHoeSlot(int s)    { this.hoeSlot = Math.max(0, Math.min(35, s)); }
+    public int getPickaxeSlot()      { return pickaxeSlot; }
+    public void setPickaxeSlot(int s){ this.pickaxeSlot = Math.max(0, Math.min(35, s)); }
+    public int getUpgradeSlot()      { return upgradeSlot; }
+    public void setUpgradeSlot(int s){ this.upgradeSlot = Math.max(0, Math.min(35, s)); }
 }

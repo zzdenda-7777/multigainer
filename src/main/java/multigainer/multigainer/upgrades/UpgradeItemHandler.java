@@ -13,7 +13,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -42,11 +41,6 @@ public class UpgradeItemHandler implements Listener, CommandExecutor {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        event.getPlayer().getInventory().setItem(4, getUpgradeEmerald());
-    }
-
-    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             ItemStack item = event.getItem();
@@ -59,9 +53,15 @@ public class UpgradeItemHandler implements Listener, CommandExecutor {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getCurrentItem() != null && event.getCurrentItem().isSimilar(getUpgradeEmerald())) {
-            event.setCancelled(true);
-        }
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        ItemStack current = event.getCurrentItem();
+        ItemStack cursor  = event.getCursor();
+        boolean currentIsEmerald = current != null && current.isSimilar(getUpgradeEmerald());
+        boolean cursorIsEmerald  = cursor  != null && cursor.isSimilar(getUpgradeEmerald());
+        if (!currentIsEmerald && !cursorIsEmerald) return;
+        // Allow free movement within the player's own inventory
+        if (event.getClickedInventory() instanceof org.bukkit.inventory.PlayerInventory) return;
+        event.setCancelled(true);
     }
 
     @EventHandler

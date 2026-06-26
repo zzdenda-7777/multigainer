@@ -88,6 +88,27 @@ public class PlayerDataManager {
                             profile.setGrindSeedMultiLevel(safeGetInt(rs, "grind_seed_multi_level", 0));
                             profile.setGrindGPMultiLevel(safeGetInt(rs, "grind_gp_multi_level", 0));
 
+                            // Farming level-up message
+                            profile.setLevelUpFarmMessageEnabled(safeGetInt(rs, "level_up_farm_msg", 1) == 1);
+
+                            // Perks
+                            int[] perkCounts = new int[5];
+                            int[] perkChanceLevels = new int[5];
+                            boolean[] perkMsgs = new boolean[5];
+                            for (int i = 0; i < 5; i++) {
+                                perkCounts[i]       = safeGetInt(rs, "perk_count_" + i, 0);
+                                perkChanceLevels[i] = safeGetInt(rs, "perk_chance_level_" + i, 0);
+                                perkMsgs[i]         = safeGetInt(rs, "perk_msg_" + i, 1) == 1;
+                            }
+                            profile.setPerkCounts(perkCounts);
+                            profile.setPerkChanceLevels(perkChanceLevels);
+                            profile.setPerkMessagesEnabled(perkMsgs);
+
+                            // Item slot positions
+                            profile.setHoeSlot(safeGetInt(rs, "hoe_slot", 0));
+                            profile.setPickaxeSlot(safeGetInt(rs, "pickaxe_slot", 1));
+                            profile.setUpgradeSlot(safeGetInt(rs, "upgrade_slot", 4));
+
                             profileCache.put(uuid, profile);
                             future.complete(profile);
                             return;
@@ -132,6 +153,11 @@ public class PlayerDataManager {
         q.append(",grind_farm_multi_level=?,grind_gem_multi_level=?");
         q.append(",grind_farm_xp_level=?,grind_mine_xp_level=?");
         q.append(",grind_seed_multi_level=?,grind_gp_multi_level=?");
+        q.append(",level_up_farm_msg=?");
+        for (int i = 0; i < 5; i++) q.append(",perk_count_").append(i).append("=?");
+        for (int i = 0; i < 5; i++) q.append(",perk_chance_level_").append(i).append("=?");
+        for (int i = 0; i < 5; i++) q.append(",perk_msg_").append(i).append("=?");
+        q.append(",hoe_slot=?,pickaxe_slot=?,upgrade_slot=?");
         q.append(" WHERE uuid=?");
 
         try (Connection conn = storageManager.getConnection();
@@ -182,6 +208,13 @@ public class PlayerDataManager {
             stmt.setInt(base++,    profile.getGrindMineXpLevel());
             stmt.setInt(base++,    profile.getGrindSeedMultiLevel());
             stmt.setInt(base++,    profile.getGrindGPMultiLevel());
+            stmt.setInt(base++,    profile.isLevelUpFarmMessageEnabled() ? 1 : 0);
+            for (int i = 0; i < 5; i++) stmt.setInt(base++, profile.getPerkCount(i));
+            for (int i = 0; i < 5; i++) stmt.setInt(base++, profile.getPerkChanceLevel(i));
+            for (int i = 0; i < 5; i++) stmt.setInt(base++, profile.isPerkMessageEnabled(i) ? 1 : 0);
+            stmt.setInt(base++, profile.getHoeSlot());
+            stmt.setInt(base++, profile.getPickaxeSlot());
+            stmt.setInt(base++, profile.getUpgradeSlot());
             stmt.setString(base,   uuid.toString());
             stmt.executeUpdate();
 

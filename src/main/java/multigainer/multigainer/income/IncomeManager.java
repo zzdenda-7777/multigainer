@@ -5,6 +5,7 @@ import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.grind.GrindManager;
 import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.math.BigNumber;
+import multigainer.multigainer.perks.PerkManager;
 import multigainer.multigainer.rebirth.RebirthManager;
 import multigainer.multigainer.tier.TierManager;
 import multigainer.multigainer.upgrades.UpgradeManager;
@@ -37,6 +38,7 @@ public class IncomeManager {
                     BigNumber farmMultiplier      = new BigNumber(profile.getFarmMulti());
                     BigNumber farmUpgMultiplier   = UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());
                     BigNumber grindFarmMultiplier = new BigNumber(GrindManager.getFarmMulti(profile.getGrindFarmMultiLevel()));
+                    BigNumber perkMultiplier      = PerkManager.getTotalPerkMultiplierBig(profile.getPerkCounts());
 
                     BigNumber allMulti = upgradeMultiplier
                             .multiply(new BigNumber(rebirthBonus))
@@ -44,7 +46,8 @@ public class IncomeManager {
                             .multiply(mineMoneyMultiplier)
                             .multiply(farmMultiplier)
                             .multiply(farmUpgMultiplier)
-                            .multiply(grindFarmMultiplier);
+                            .multiply(grindFarmMultiplier)
+                            .multiply(perkMultiplier);
 
                     // Apply money exponent: totalEarned = allMulti ^ exponent
                     double exponent = GrindManager.getMoneyExponent(profile.getGrindExponentLevel());

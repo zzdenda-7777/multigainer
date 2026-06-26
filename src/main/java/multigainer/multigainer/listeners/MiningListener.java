@@ -6,7 +6,9 @@ import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.grind.GrindManager;
 import multigainer.multigainer.levels.MiningLevelManager;
 import multigainer.multigainer.math.BigNumber;
+import multigainer.multigainer.perks.PerkManager;
 import multigainer.multigainer.tools.PickaxeManager;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,11 +31,13 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.util.*;
+import org.bukkit.scheduler.BukkitTask;
 
 public class MiningListener implements Listener {
     private final Multigainer plugin;
     private final Map<UUID, Set<Location>> brokenCobbleCache = new HashMap<>();
-    private final Map<UUID, Long> tierMsgCooldown = new HashMap<>();
+    private final Map<UUID, Long>          tierMsgCooldown   = new HashMap<>();
+    private final Map<UUID, BukkitTask>    clearTaskMap      = new HashMap<>();
     private final Random random = new Random();
 
     // Player-tier requirements for each of the 17 mineable blocks (index matches PickaxeManager.BLOCKS)
@@ -158,7 +162,34 @@ public class MiningListener implements Listener {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
-        // ── Tier requirement check ─────────────────────────────────────────────
+        // ── Pickaxe tier check (priority: show title) ─────────────────────────
+        int requiredPickaxeTier = PickaxeManager.getMinTierForBlock(blockIndex);
+        if (profile.getPickaxeTier() < requiredPickaxeTier) {
+            String tierName  = PickaxeManager.TIER_NAMES[requiredPickaxeTier];
+            String tierColor = PickaxeManager.TIER_COLORS[requiredPickaxeTier];
+            long now = System.currentTimeMillis();
+            if (now - tierMsgCooldown.getOrDefault(player.getUniqueId(), 0L) >= 2000L) {
+                tierMsgCooldown.put(player.getUniqueId(), now);
+                player.sendTitle(
+                    tierColor + "§l" + tierName.toUpperCase() + " PICKAXE REQUIRED",
+                    "§7Reach the " + tierColor + tierName + " §7Pickaxe to mine this block!",
+                    10, 60, 15
+                );
+            }
+            new BukkitRunnable() {
+                @Override public void run() {
+                    if (player.isOnline()) sendFakeBlockChange(player, block.getLocation(), Material.BEDROCK);
+                }
+            }.runTaskLater(plugin, 1L);
+            new BukkitRunnable() {
+                @Override public void run() {
+                    if (player.isOnline()) revertFakeBlockChange(player, block);
+                }
+            }.runTaskLater(plugin, 60L);
+            return;
+        }
+
+        // ── Tier requirement check (secondary: chat message) ───────────────────
         int requiredTier = BLOCK_TIER_REQUIREMENTS[blockIndex];
         if (profile.getTier() < requiredTier) {
             long now = System.currentTimeMillis();
@@ -227,6 +258,22 @@ public class MiningListener implements Listener {
             }
         }
 
+        // ── Perk drops (tier 5+ required) ─────────────────────────────────────
+        if (profile.getTier() >= 5) {
+            for (int i = 0; i < PerkManager.PERK_COUNT; i++) {
+                double perkDenom = PerkManager.getPerkChanceDenominator(i, profile.getPerkChanceLevel(i));
+                if (random.nextDouble() * perkDenom < 1.0) {
+                    profile.incrementPerkCount(i);
+                    if (profile.isPerkMessageEnabled(i)) {
+                        player.sendMessage(PerkManager.PERK_COLORS[i] + "§l[✦] §7You found a "
+                            + PerkManager.PERK_COLORS[i] + PerkManager.PERK_NAMES[i]
+                            + " §7perk! §8(§f" + NumberFormatter.format(new BigNumber(profile.getPerkCount(i)))
+                            + "§8x total)");
+                    }
+                }
+            }
+        }
+
         if (plugin.getScoreboardManager() != null) {
             plugin.getScoreboardManager().updateScoreboard(player,
                     profile.getMoney(), profile.getGems(), profile.getRubies(),
@@ -241,21 +288,14 @@ public class MiningListener implements Listener {
         }.runTaskLater(plugin, 1L);
 
         spawnDropEffect(player, block.getLocation(), blockType);
-        player.sendActionBar(LegacyComponentSerializer.legacySection()
-                .deserialize("§7+ §b" + NumberFormatter.format(payout) + " Gems"));
-
+        // Action bar: show per-block gains; vanishes 1 second after last break
         if (leveledUp) {
             spawnLevelUpItemEffect(player, block.getLocation());
-            final int finalLevel = currentLevel;
-            new BukkitRunnable() {
-                int count = 0;
-                final String msg = "§b§l[!] §7Mining Level Up! §7Your level is now §e" + finalLevel + "§7!";
-                @Override public void run() {
-                    if (count >= 30 || !player.isOnline()) { cancel(); return; }
-                    player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(msg));
-                    count += 10;
-                }
-            }.runTaskTimer(plugin, 20L, 10L);
+            showActionBar(player, "§b§l[!] §7Mining Level Up! Level §e" + currentLevel);
+        } else {
+            sendFixedMineActionBar(player,
+                    NumberFormatter.format(payout),
+                    NumberFormatter.format(new BigNumber(xpGain)));
         }
 
         new BukkitRunnable() {
@@ -283,6 +323,40 @@ public class MiningListener implements Listener {
         UUID uuid = event.getPlayer().getUniqueId();
         brokenCobbleCache.remove(uuid);
         tierMsgCooldown.remove(uuid);
+        BukkitTask t = clearTaskMap.remove(uuid);
+        if (t != null) t.cancel();
+    }
+
+    private void sendFixedMineActionBar(Player player, String gems, String xp) {
+        int sideWidth = 22;
+        String leftSide  = String.format("%" + sideWidth + "s", "§7+ §b" + gems + " Gems");
+        String rightSide = String.format("%-" + sideWidth + "s", "§7+ §a" + xp + " XP");
+
+        net.kyori.adventure.text.Component bar = net.kyori.adventure.text.Component.text()
+                .font(Key.key("minecraft", "uniform"))
+                .append(LegacyComponentSerializer.legacySection().deserialize(leftSide))
+                .append(LegacyComponentSerializer.legacySection().deserialize(" §8| "))
+                .append(LegacyComponentSerializer.legacySection().deserialize(rightSide))
+                .build();
+        scheduleActionBar(player, bar);
+    }
+
+    private void showActionBar(Player player, String legacyText) {
+        scheduleActionBar(player, LegacyComponentSerializer.legacySection().deserialize(legacyText));
+    }
+
+    private void scheduleActionBar(Player player, net.kyori.adventure.text.Component component) {
+        player.sendActionBar(component);
+        BukkitTask old = clearTaskMap.put(player.getUniqueId(), null);
+        if (old != null) old.cancel();
+        BukkitTask clear = new BukkitRunnable() {
+            @Override public void run() {
+                clearTaskMap.remove(player.getUniqueId());
+                if (player.isOnline())
+                    player.sendActionBar(net.kyori.adventure.text.Component.empty());
+            }
+        }.runTaskLater(plugin, 20L);
+        clearTaskMap.put(player.getUniqueId(), clear);
     }
 
     private double getBlockGemsMultiplier(Material m) {

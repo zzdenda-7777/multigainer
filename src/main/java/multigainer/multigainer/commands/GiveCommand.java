@@ -57,11 +57,14 @@ public class GiveCommand implements CommandExecutor {
                 profile.setTier((int) amount);
                 break;
             case "rebirth":
-                // Allows direct admin rebirth point overrides and resets (e.g., setting to 0)
                 profile.setRebirthPoints(amount);
                 break;
+            case "grindingpoints":
+            case "gp":
+                profile.addGrindingPoints(amount);
+                break;
             default:
-                sender.sendMessage(ChatColor.RED + "Invalid type! (money, gems, rubies, tier, rebirth)");
+                sender.sendMessage(ChatColor.RED + "Invalid type! (money, gems, rubies, tier, rebirth, grindingpoints/gp)");
                 return true;
         }
 

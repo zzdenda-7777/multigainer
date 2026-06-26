@@ -2,6 +2,11 @@ package multigainer.multigainer.tools;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.formatting.NumberFormatter;
+import multigainer.multigainer.grind.GrindGUI;
+import multigainer.multigainer.math.BigNumber;
+import multigainer.multigainer.perks.PerkGUI;
+import multigainer.multigainer.perks.PerkManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -23,6 +28,8 @@ public class PickaxeGUI implements Listener {
     private static final int SLOT_UPGRADES = 11;
     private static final int SLOT_TIER_UP  = 13;
     private static final int SLOT_STORAGE  = 15;
+    private static final int SLOT_GRIND    = 21;
+    private static final int SLOT_PERKS    = 23;
 
     private final Multigainer plugin;
 
@@ -31,11 +38,11 @@ public class PickaxeGUI implements Listener {
     }
 
     public static void open(Player player, PlayerProfile profile, Multigainer plugin) {
-        Inventory inv = Bukkit.createInventory(null, 27, TITLE);
+        Inventory inv = Bukkit.createInventory(null, 36, TITLE);
 
         // Glass pane filler
         ItemStack pane = makePane(Material.GRAY_STAINED_GLASS_PANE);
-        for (int i = 0; i < 27; i++) inv.setItem(i, pane);
+        for (int i = 0; i < 36; i++) inv.setItem(i, pane);
 
         // --- Slot 11: Upgrades ---
         int speedLvl = profile.getMiningSpeedLevel();
@@ -71,6 +78,39 @@ public class PickaxeGUI implements Listener {
         ));
         storage.setItemMeta(sm);
         inv.setItem(SLOT_STORAGE, storage);
+
+        // --- Slot 20: Grinding Points ---
+        ItemStack grindBtn = new ItemStack(Material.QUARTZ);
+        ItemMeta grm = grindBtn.getItemMeta();
+        grm.setDisplayName("§a§lGRINDING POINTS");
+        grm.setLore(Arrays.asList(
+            "",
+            "§7Spend your Grinding Points",
+            "§7on permanent upgrades.",
+            "",
+            "§7Balance§8: §e" + NumberFormatter.format(new BigNumber(profile.getGrindingPoints())) + " GP",
+            "",
+            "§eClick to open!"
+        ));
+        grindBtn.setItemMeta(grm);
+        inv.setItem(SLOT_GRIND, grindBtn);
+
+        // --- Slot 24: Perks ---
+        BigNumber perkMulti = PerkManager.getTotalPerkMultiplierBig(profile.getPerkCounts());
+        ItemStack perksBtn = new ItemStack(Material.NETHER_STAR);
+        ItemMeta pm = perksBtn.getItemMeta();
+        pm.setDisplayName("§d§lPERKS");
+        pm.setLore(Arrays.asList(
+            "",
+            "§7Perks are rare bonuses obtained",
+            "§7from mining blocks (Tier 5+).",
+            "",
+            "§7Total Perk Multi§8: §f" + NumberFormatter.format(perkMulti) + "x",
+            "",
+            "§eClick to open!"
+        ));
+        perksBtn.setItemMeta(pm);
+        inv.setItem(SLOT_PERKS, perksBtn);
 
         player.openInventory(inv);
     }
@@ -130,7 +170,7 @@ public class PickaxeGUI implements Listener {
 
         if (!(event.getWhoClicked() instanceof Player player)) return;
         int slot = event.getRawSlot();
-        if (slot < 0 || slot >= 27) return;
+        if (slot < 0 || slot >= 36) return;
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         if (profile == null) return;
@@ -143,6 +183,12 @@ public class PickaxeGUI implements Listener {
 
         } else if (slot == SLOT_STORAGE) {
             PickaxeBlockStorageGUI.open(player, profile, plugin);
+
+        } else if (slot == SLOT_GRIND) {
+            plugin.getGrindGUI().open(player);
+
+        } else if (slot == SLOT_PERKS) {
+            PerkGUI.openNav(player, profile, plugin);
         }
     }
 

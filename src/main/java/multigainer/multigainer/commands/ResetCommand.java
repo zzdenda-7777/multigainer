@@ -74,23 +74,64 @@ public class ResetCommand implements CommandExecutor {
         }
 
         // /multigainer reset <player> — full reset to defaults
+        // Currency
         profile.setMoney(new BigNumber(0));
         profile.setGems(new BigNumber(0));
         profile.setRubies(new BigNumber(0));
         profile.setGrindingPoints(0.0);
+
+        // Core progression
         profile.setUpgradeLevel(0);
         profile.setTier(0);
-        profile.setFarmingLevel(1);
+        profile.setTierPoints(0);
+        profile.setFarmingLevel(0);
         profile.setFarmingXp(0.0);
-        profile.setMiningLevel(1);
+        profile.setMiningLevel(0);
         profile.setMiningXp(0.0);
         profile.setRebirthPoints(0.0);
-        profile.setTierPoints(0);
         profile.setRebirthCount(0);
 
+        // Pickaxe
+        profile.setPickaxeTier(0);
+        profile.setMiningSpeedLevel(0);
+        profile.setXpMultiLevel(0);
+        profile.setGemMultiLevel(0);
+        for (int i = 0; i < 17; i++) profile.setBlockStorage(i, 0);
+
+        // Farming
+        for (int i = 0; i < 7; i++) profile.setSeedStorage(i, 0);
+        profile.setFarmMulti(1.0);
+        profile.setChosenCrop(0);
+        profile.setHoeTier(0);
+        profile.setAutoMerge(false);
+        for (int i = 0; i < 4; i++) profile.setEnchantMessageEnabled(i, true);
+        profile.setLevelUpFarmMessageEnabled(true);
+
+        // Upgrade levels
+        profile.setGemUpgradeLevel(0);
+        profile.setFarmMultiUpgradeLevel(0);
+
+        // Grinding Points system
+        profile.setGrindMessagesEnabled(true);
+        profile.setGrindChanceLevel(0);
+        profile.setGrindExponentLevel(0);
+        profile.setGrindFarmMultiLevel(0);
+        profile.setGrindGemMultiLevel(0);
+        profile.setGrindFarmXpLevel(0);
+        profile.setGrindMineXpLevel(0);
+        profile.setGrindSeedMultiLevel(0);
+        profile.setGrindGPMultiLevel(0);
+
+        // Perks
+        for (int i = 0; i < 5; i++) {
+            profile.setPerkCount(i, 0);
+            profile.setPerkChanceLevel(i, 0);
+            profile.setPerkMessageEnabled(i, true);
+        }
+
         plugin.getPlayerDataManager().saveProfileSynchronously(targetOffline.getUniqueId(), profile);
-        sender.sendMessage(ChatColor.GREEN + "✔ Successfully reset all stats for: " + playerName);
-        notifyOnline(targetOnline, profile, "§c⚠ Your stats have been reset by an admin!");
+        sender.sendMessage(ChatColor.GREEN + "✔ Successfully reset ALL data for: " + playerName);
+        notifyOnline(targetOnline, profile, "§c⚠ Your stats have been fully reset by an admin!");
         return true;
     }
 

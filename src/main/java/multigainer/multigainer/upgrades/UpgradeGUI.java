@@ -100,7 +100,6 @@ public class UpgradeGUI implements Listener {
         lore.add(" ");
         lore.add(ChatColor.GRAY + "Level: " + ChatColor.YELLOW + lvl + "/∞");
         lore.add(ChatColor.GRAY + "Total Multi: " + ChatColor.YELLOW + NumberFormatter.format(UpgradeManager.getFarmTotalMultiplier(lvl)) + "x");
-        lore.add(ChatColor.GRAY + "Crop Bonus: +" + ChatColor.YELLOW + String.format("%.4f", 0.001 * UpgradeManager.getFarmTotalMultiplierDouble(lvl)) + " per crop");
         lore.add(" ");
         int next = lvl + 1;
         lore.add(ChatColor.GRAY + "Next Level Multi: " + ChatColor.AQUA + NumberFormatter.format(UpgradeManager.getFarmTotalMultiplier(next)) + "x");
@@ -129,11 +128,14 @@ public class UpgradeGUI implements Listener {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
+        boolean right = event.isRightClick();
         int slot = event.getSlot();
-        if (slot == 11) handleMoneyUpgrade(player, profile);
-        else if (slot == 13) handleGemUpgrade(player, profile);
-        else if (slot == 15) handleFarmUpgrade(player, profile);
+        if (slot == 11) { if (right) handleMoneyUpgradeMax(player, profile); else handleMoneyUpgrade(player, profile); }
+        else if (slot == 13) { if (right) handleGemUpgradeMax(player, profile); else handleGemUpgrade(player, profile); }
+        else if (slot == 15) { if (right) handleFarmUpgradeMax(player, profile); else handleFarmUpgrade(player, profile); }
     }
+
+    // ── Single-level upgrades (left click) ───────────────────────────────────
 
     private void handleMoneyUpgrade(Player player, PlayerProfile profile) {
         int lvl = profile.getUpgradeLevel();
@@ -181,6 +183,67 @@ public class UpgradeGUI implements Listener {
         profile.setMoney(profile.getMoney().subtract(cost));
         profile.setFarmMultiUpgradeLevel(lvl + 1);
         player.sendMessage(ChatColor.GREEN + "Farm Multi upgraded to level " + (lvl + 1) + "!");
+        refreshScoreboard(player, profile);
+        openGUI(player);
+    }
+
+    // ── Max upgrades (right click) ────────────────────────────────────────────
+
+    private void handleMoneyUpgradeMax(Player player, PlayerProfile profile) {
+        int lvl = profile.getUpgradeLevel();
+        if (lvl >= UpgradeManager.MONEY_MAX_LEVEL) {
+            player.sendMessage(ChatColor.RED + "Money Multi is already at max level!");
+            return;
+        }
+        int gained = 0;
+        while (lvl < UpgradeManager.MONEY_MAX_LEVEL) {
+            BigNumber cost = UpgradeManager.getMoneyUpgradeCost(lvl + 1);
+            if (profile.getMoney().compareTo(cost) < 0) break;
+            profile.setMoney(profile.getMoney().subtract(cost));
+            lvl++;
+            gained++;
+        }
+        if (gained == 0) { player.sendMessage(ChatColor.RED + "Can't afford the next level!"); return; }
+        profile.setUpgradeLevel(lvl);
+        player.sendMessage(ChatColor.GREEN + "Money Multi bulk upgraded §8(§f+" + gained + " levels§8) §ato level " + lvl + "!");
+        refreshScoreboard(player, profile);
+        openGUI(player);
+    }
+
+    private void handleGemUpgradeMax(Player player, PlayerProfile profile) {
+        int lvl = profile.getGemUpgradeLevel();
+        if (lvl >= UpgradeManager.GEM_MAX_LEVEL) {
+            player.sendMessage(ChatColor.RED + "Gem Multi is already at max level!");
+            return;
+        }
+        int gained = 0;
+        while (lvl < UpgradeManager.GEM_MAX_LEVEL) {
+            BigNumber cost = UpgradeManager.getGemUpgradeCost(lvl + 1);
+            if (profile.getMoney().compareTo(cost) < 0) break;
+            profile.setMoney(profile.getMoney().subtract(cost));
+            lvl++;
+            gained++;
+        }
+        if (gained == 0) { player.sendMessage(ChatColor.RED + "Can't afford the next level!"); return; }
+        profile.setGemUpgradeLevel(lvl);
+        player.sendMessage(ChatColor.GREEN + "Gem Multi bulk upgraded §8(§f+" + gained + " levels§8) §ato level " + lvl + "!");
+        refreshScoreboard(player, profile);
+        openGUI(player);
+    }
+
+    private void handleFarmUpgradeMax(Player player, PlayerProfile profile) {
+        int lvl = profile.getFarmMultiUpgradeLevel();
+        int gained = 0;
+        while (true) {
+            BigNumber cost = UpgradeManager.getFarmUpgradeCost(lvl + 1);
+            if (profile.getMoney().compareTo(cost) < 0) break;
+            profile.setMoney(profile.getMoney().subtract(cost));
+            lvl++;
+            gained++;
+        }
+        if (gained == 0) { player.sendMessage(ChatColor.RED + "Can't afford the next level!"); return; }
+        profile.setFarmMultiUpgradeLevel(lvl);
+        player.sendMessage(ChatColor.GREEN + "Farm Multi bulk upgraded §8(§f+" + gained + " levels§8) §ato level " + lvl + "!");
         refreshScoreboard(player, profile);
         openGUI(player);
     }

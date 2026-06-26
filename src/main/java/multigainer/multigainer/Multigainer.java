@@ -1,9 +1,11 @@
 package multigainer.multigainer;
 
 import multigainer.multigainer.commands.StatsCommand;
+import multigainer.multigainer.commands.StatsMoneyCommand;
 import multigainer.multigainer.commands.ReloadCommand;
 import multigainer.multigainer.commands.GiveCommand;
 import multigainer.multigainer.commands.ResetCommand;
+import multigainer.multigainer.perks.PerkGUI;
 import multigainer.multigainer.grind.GrindGUI;
 import multigainer.multigainer.farming.CropSelectionGUI;
 import multigainer.multigainer.farming.EnchantToggleGUI;
@@ -49,6 +51,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
     private CropSelectionGUI cropSelectionGUI;
     private EnchantToggleGUI enchantToggleGUI;
     private GrindGUI grindGUI;
+    private PerkGUI perkGUI;
 
     @Override
     public void onEnable() {
@@ -67,6 +70,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
         this.cropSelectionGUI       = new CropSelectionGUI(this);
         this.enchantToggleGUI       = new EnchantToggleGUI(this);
         this.grindGUI               = new GrindGUI(this);
+        this.perkGUI                = new PerkGUI(this);
 
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new MiningListener(this), this);
@@ -84,9 +88,11 @@ public final class Multigainer extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(cropSelectionGUI, this);
         getServer().getPluginManager().registerEvents(enchantToggleGUI, this);
         getServer().getPluginManager().registerEvents(grindGUI, this);
+        getServer().getPluginManager().registerEvents(perkGUI, this);
 
-        if (getCommand("upgrades") != null) getCommand("upgrades").setExecutor(upgradeHandler);
-        if (getCommand("stats") != null) getCommand("stats").setExecutor(new StatsCommand(this));
+        if (getCommand("upgrades") != null)   getCommand("upgrades").setExecutor(upgradeHandler);
+        if (getCommand("statsmine") != null)  getCommand("statsmine").setExecutor(new StatsCommand(this));
+        if (getCommand("statsmoney") != null) getCommand("statsmoney").setExecutor(new StatsMoneyCommand(this));
 
         if (getCommand("multigainer") != null) {
             getCommand("multigainer").setExecutor((sender, command, label, args) -> {
@@ -106,6 +112,16 @@ public final class Multigainer extends JavaPlugin implements Listener {
             getCommand("grind").setExecutor((sender, cmd, label, args) -> {
                 if (!(sender instanceof Player p)) return true;
                 grindGUI.open(p);
+                return true;
+            });
+        }
+
+        if (getCommand("perks") != null) {
+            getCommand("perks").setExecutor((sender, cmd, label, args) -> {
+                if (!(sender instanceof Player p)) return true;
+                PlayerProfile prof = getPlayerDataManager().getProfile(p.getUniqueId());
+                if (prof == null) { p.sendMessage("§cProfile loading, please try again!"); return true; }
+                PerkGUI.openNav(p, prof, this);
                 return true;
             });
         }
@@ -190,23 +206,39 @@ public final class Multigainer extends JavaPlugin implements Listener {
             scoreboardManager.createScoreboard(p, profile.getMoney(), profile.getGems(),
                 profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
                 profile.getMiningLevel(), profile.getMiningXp());
-        }
-        p.getInventory().setItem(0, toolHandler.getHoeForProfile(profile));
-        p.getInventory().setItem(1, toolHandler.getPickaxeForProfile(profile));
-        p.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
-
-        if (profile != null) {
-            CropSelectionGUI.sendFakeCrops(p, profile.getChosenCrop(), this);
+            // Place items at last-known slots (defaults 0, 1, 4 for new players)
+            p.getInventory().setItem(profile.getHoeSlot(),     toolHandler.getHoeForProfile(profile));
+            p.getInventory().setItem(profile.getPickaxeSlot(), toolHandler.getPickaxeForProfile(profile));
+            p.getInventory().setItem(profile.getUpgradeSlot(), upgradeHandler.getUpgradeEmerald());
+            profile.setChosenCrop(0);
+            CropSelectionGUI.sendFakeCrops(p, 0, this);
+        } else {
+            p.getInventory().setItem(0, toolHandler.getHoeForProfile(null));
+            p.getInventory().setItem(1, toolHandler.getPickaxeForProfile(null));
+            p.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
         }
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        playerDataManager.handleQuit(event.getPlayer().getUniqueId());
+        Player p = event.getPlayer();
+        PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
+        if (profile != null) {
+            // Save item slot positions before logout
+            for (int i = 0; i < p.getInventory().getSize(); i++) {
+                org.bukkit.inventory.ItemStack item = p.getInventory().getItem(i);
+                if (item == null) continue;
+                if (toolHandler.isCustomHoe(item))          profile.setHoeSlot(i);
+                else if (toolHandler.isCustomPickaxe(item)) profile.setPickaxeSlot(i);
+                else if (item.isSimilar(upgradeHandler.getUpgradeEmerald())) profile.setUpgradeSlot(i);
+            }
+        }
+        playerDataManager.handleQuit(p.getUniqueId());
     }
 
     public PlayerDataManager getPlayerDataManager() { return playerDataManager; }
     public ScoreboardManager getScoreboardManager() { return this.scoreboardManager; }
     public ToolItemHandler getToolHandler() { return toolHandler; }
     public ToolGUI getToolGUI() { return toolGUI; }
+    public GrindGUI getGrindGUI() { return grindGUI; }
 }

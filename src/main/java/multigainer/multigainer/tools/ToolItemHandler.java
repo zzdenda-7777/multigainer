@@ -127,12 +127,23 @@ public class ToolItemHandler implements Listener {
 
     public void updatePickaxeInInventory(Player player) {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
-        player.getInventory().setItem(1, getPickaxeForProfile(profile));
+        ItemStack newPickaxe = getPickaxeForProfile(profile);
+        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
+        for (int i = 0; i < inv.getSize(); i++) {
+            if (isCustomPickaxe(inv.getItem(i))) { inv.setItem(i, newPickaxe); return; }
+        }
+        inv.setItem(profile != null ? profile.getPickaxeSlot() : 1, newPickaxe);
     }
 
     public void updateHoeInInventory(Player player) {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
-        if (profile != null) player.getInventory().setItem(0, getHoeForProfile(profile));
+        if (profile == null) return;
+        ItemStack newHoe = getHoeForProfile(profile);
+        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
+        for (int i = 0; i < inv.getSize(); i++) {
+            if (isCustomHoe(inv.getItem(i))) { inv.setItem(i, newHoe); return; }
+        }
+        inv.setItem(profile.getHoeSlot(), newHoe);
     }
 
     // Broadcast hoe tier-up if a farm level threshold was crossed
@@ -169,9 +180,17 @@ public class ToolItemHandler implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        ItemStack currentItem = event.getCurrentItem();
-        if (currentItem == null) return;
-        if (isCustomHoe(currentItem) || isCustomPickaxe(currentItem)) event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        ItemStack current = event.getCurrentItem();
+        ItemStack cursor  = event.getCursor();
+        boolean currentIsCustom = current != null && !current.getType().isAir()
+                && (isCustomHoe(current) || isCustomPickaxe(current));
+        boolean cursorIsCustom  = cursor  != null && !cursor.getType().isAir()
+                && (isCustomHoe(cursor)  || isCustomPickaxe(cursor));
+        if (!currentIsCustom && !cursorIsCustom) return;
+        // Allow free movement within the player's own inventory; block external inventories
+        if (event.getClickedInventory() instanceof org.bukkit.inventory.PlayerInventory) return;
+        event.setCancelled(true);
     }
 
     @EventHandler

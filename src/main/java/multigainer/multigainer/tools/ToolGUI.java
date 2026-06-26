@@ -7,6 +7,7 @@ import multigainer.multigainer.farming.EnchantToggleGUI;
 import multigainer.multigainer.farming.FarmingManager;
 import multigainer.multigainer.farming.FarmingStorageGUI;
 import multigainer.multigainer.formatting.NumberFormatter;
+import multigainer.multigainer.grind.GrindGUI;
 import multigainer.multigainer.math.BigNumber;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -26,10 +27,11 @@ public class ToolGUI implements Listener {
 
     public static final String HOE_TITLE = "§fHoe Menu";
 
-    private static final int SLOT_STORAGE = 10;
+    private static final int SLOT_STORAGE = 11;
     private static final int SLOT_HOE     = 13;
-    private static final int SLOT_CROP    = 16;
-    private static final int SLOT_ENCHANT = 22;
+    private static final int SLOT_CROP    = 15;
+    private static final int SLOT_GRIND   = 21;
+    private static final int SLOT_ENCHANT = 23;
 
     private final Multigainer plugin;
 
@@ -41,11 +43,11 @@ public class ToolGUI implements Listener {
     }
 
     public static void open(Player player, PlayerProfile profile, Multigainer plugin) {
-        Inventory inv = Bukkit.createInventory(null, 27, HOE_TITLE);
+        Inventory inv = Bukkit.createInventory(null, 36, HOE_TITLE);
         ItemStack pane = makePane();
-        for (int i = 0; i < 27; i++) inv.setItem(i, pane);
+        for (int i = 0; i < 36; i++) inv.setItem(i, pane);
 
-        // ── Slot 10: Farming Storage ──────────────────────────────
+        // ── Slot 11: Farming Storage ──────────────────────────────
         BigNumber totalSeeds = new BigNumber(0);
         for (int t = 0; t < FarmingManager.SEED_TIER_COUNT; t++) {
             double raw = profile.getSeedStorage(t) * Math.pow(FarmingManager.COMPRESS_RATIO, t);
@@ -76,7 +78,7 @@ public class ToolGUI implements Listener {
         hoe.setItemMeta(hm);
         inv.setItem(SLOT_HOE, hoe);
 
-        // ── Slot 16: Crop Selection ───────────────────────────────
+        // ── Slot 15: Crop Selection ───────────────────────────────
         int chosen = profile.getChosenCrop();
         ItemStack cropBtn = new ItemStack(FarmingManager.CROP_DISPLAY_ITEMS[chosen]);
         ItemMeta cm = cropBtn.getItemMeta();
@@ -91,7 +93,23 @@ public class ToolGUI implements Listener {
         cropBtn.setItemMeta(cm);
         inv.setItem(SLOT_CROP, cropBtn);
 
-        // ── Slot 22: Enchant Messages ─────────────────────────────
+        // ── Slot 21: Grind ─────────────────────────────────────────
+        ItemStack grindBtn = new ItemStack(Material.QUARTZ);
+        ItemMeta grm = grindBtn.getItemMeta();
+        grm.setDisplayName("§a§lGRINDING POINTS");
+        grm.setLore(Arrays.asList(
+            "§8§m──────────────────────",
+            "§7Spend your Grinding Points",
+            "§7on permanent upgrades.",
+            "§8 ",
+            "§7Balance§8: §e" + NumberFormatter.format(new BigNumber(profile.getGrindingPoints())) + " GP",
+            "§8§m──────────────────────",
+            "§e▶ §7Click to open!"
+        ));
+        grindBtn.setItemMeta(grm);
+        inv.setItem(SLOT_GRIND, grindBtn);
+
+        // ── Slot 23: Enchant Messages ─────────────────────────────
         ItemStack enchBtn = new ItemStack(Material.BOOK);
         ItemMeta em = enchBtn.getItemMeta();
         em.setDisplayName("§d§lENCHANT MESSAGES");
@@ -120,7 +138,7 @@ public class ToolGUI implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
         int slot = event.getRawSlot();
-        if (slot < 0 || slot >= 27) return;
+        if (slot < 0 || slot >= 36) return;
 
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         if (profile == null) return;
@@ -128,6 +146,7 @@ public class ToolGUI implements Listener {
         switch (slot) {
             case SLOT_STORAGE -> FarmingStorageGUI.open(player, profile, plugin);
             case SLOT_CROP    -> CropSelectionGUI.open(player, profile, plugin);
+            case SLOT_GRIND   -> plugin.getGrindGUI().open(player);
             case SLOT_ENCHANT -> EnchantToggleGUI.open(player, profile, plugin);
         }
     }

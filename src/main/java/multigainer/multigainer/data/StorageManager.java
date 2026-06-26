@@ -126,7 +126,29 @@ public class StorageManager {
                     "ALTER TABLE mg_player_profiles ADD COLUMN grind_farm_xp_level INTEGER DEFAULT 0;",
                     "ALTER TABLE mg_player_profiles ADD COLUMN grind_mine_xp_level INTEGER DEFAULT 0;",
                     "ALTER TABLE mg_player_profiles ADD COLUMN grind_seed_multi_level INTEGER DEFAULT 0;",
-                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_gp_multi_level INTEGER DEFAULT 0;"
+                    "ALTER TABLE mg_player_profiles ADD COLUMN grind_gp_multi_level INTEGER DEFAULT 0;",
+                    // Farming level-up message toggle
+                    "ALTER TABLE mg_player_profiles ADD COLUMN level_up_farm_msg INTEGER DEFAULT 1;",
+                    // Perks system
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_count_0 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_count_1 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_count_2 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_count_3 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_count_4 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_chance_level_0 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_chance_level_1 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_chance_level_2 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_chance_level_3 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_chance_level_4 INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_msg_0 INTEGER DEFAULT 1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_msg_1 INTEGER DEFAULT 1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_msg_2 INTEGER DEFAULT 1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_msg_3 INTEGER DEFAULT 1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN perk_msg_4 INTEGER DEFAULT 1;",
+                    // Item slot positions
+                    "ALTER TABLE mg_player_profiles ADD COLUMN hoe_slot INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN pickaxe_slot INTEGER DEFAULT 1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN upgrade_slot INTEGER DEFAULT 4;"
             };
             for (String sql : all) {
                 try { stmt.execute(sql); } catch (SQLException ignored) {}

@@ -31,7 +31,7 @@ public class FarmingStorageGUI implements Listener {
     private static final int   TIER_COUNT  = FarmingManager.SEED_TIER_COUNT; // 7
     private static final int[] TIER_SLOTS  = { 10, 11, 12, 13, 14, 15, 16 };
     private static final int   SLOT_AUTO   = 22;
-    private static final int   SLOT_BACK   = 27;
+    private static final int   SLOT_BACK   = 31;
 
     private final Multigainer plugin;
 

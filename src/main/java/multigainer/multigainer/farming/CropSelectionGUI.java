@@ -29,7 +29,7 @@ public class CropSelectionGUI implements Listener {
     // Row 1 (9-17):  crops 0-8
     // Row 2 (18-26): crops 9-15 at slots 18-24, pane at 25, BACK at 26
     // Row 3 (27-35): border panes
-    private static final int SLOT_BACK   = 26;
+    private static final int SLOT_BACK   = 31;
     private static final long COOLDOWN_MS = 5_000L;
 
     // Per-player crop-switch cooldown (ms timestamp of last switch)
