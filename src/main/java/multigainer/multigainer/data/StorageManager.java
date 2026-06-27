@@ -148,7 +148,36 @@ public class StorageManager {
                     // Item slot positions
                     "ALTER TABLE mg_player_profiles ADD COLUMN hoe_slot INTEGER DEFAULT 0;",
                     "ALTER TABLE mg_player_profiles ADD COLUMN pickaxe_slot INTEGER DEFAULT 1;",
-                    "ALTER TABLE mg_player_profiles ADD COLUMN upgrade_slot INTEGER DEFAULT 4;"
+                    "ALTER TABLE mg_player_profiles ADD COLUMN upgrade_slot INTEGER DEFAULT 4;",
+                    // Artifact slots
+                    "ALTER TABLE mg_player_profiles ADD COLUMN artifact_slot_0 TEXT DEFAULT '';",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN artifact_slot_1 TEXT DEFAULT '';",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN artifact_slot_2 TEXT DEFAULT '';",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN artifact_slot_1_unlocked INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN artifact_slot_2_unlocked INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN artifact_vault TEXT DEFAULT '';",
+                    // Production / Worker
+                    "ALTER TABLE mg_player_profiles ADD COLUMN worker_level INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN worker_xp REAL DEFAULT 0.0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN worker_energy REAL DEFAULT 0.0;",
+                    // Armor system
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_chest_unlocked INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_legs_unlocked INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_boots_unlocked INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_type_0 INTEGER DEFAULT -1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_type_1 INTEGER DEFAULT -1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_type_2 INTEGER DEFAULT -1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_type_3 INTEGER DEFAULT -1;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_value_0 REAL DEFAULT 0.0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_value_1 REAL DEFAULT 0.0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_value_2 REAL DEFAULT 0.0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_value_3 REAL DEFAULT 0.0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_low_buys INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_med_buys INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_high_buys INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_skip_anim_unlocked INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN armor_skip_anim_enabled INTEGER DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN crops_farmed BIGINT DEFAULT 0;"
             };
             for (String sql : all) {
                 try { stmt.execute(sql); } catch (SQLException ignored) {}

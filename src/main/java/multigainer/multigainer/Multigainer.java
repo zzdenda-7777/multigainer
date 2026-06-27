@@ -1,5 +1,11 @@
 package multigainer.multigainer;
 
+import multigainer.multigainer.armor.ArmorGUI;
+import multigainer.multigainer.artifacts.ArtifactGUI;
+import multigainer.multigainer.artifacts.ArtifactStorageGUI;
+import multigainer.multigainer.production.ProductionGUI;
+import multigainer.multigainer.production.ProductionManager;
+import multigainer.multigainer.commands.GiveBlocksCommand;
 import multigainer.multigainer.commands.StatsCommand;
 import multigainer.multigainer.commands.StatsMoneyCommand;
 import multigainer.multigainer.commands.ReloadCommand;
@@ -32,6 +38,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,6 +59,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
     private EnchantToggleGUI enchantToggleGUI;
     private GrindGUI grindGUI;
     private PerkGUI perkGUI;
+    private ArtifactGUI artifactGUI;
 
     @Override
     public void onEnable() {
@@ -71,6 +79,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
         this.enchantToggleGUI       = new EnchantToggleGUI(this);
         this.grindGUI               = new GrindGUI(this);
         this.perkGUI                = new PerkGUI(this);
+        this.artifactGUI            = new ArtifactGUI(this);
 
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new MiningListener(this), this);
@@ -89,6 +98,10 @@ public final class Multigainer extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(enchantToggleGUI, this);
         getServer().getPluginManager().registerEvents(grindGUI, this);
         getServer().getPluginManager().registerEvents(perkGUI, this);
+        getServer().getPluginManager().registerEvents(artifactGUI, this);
+        getServer().getPluginManager().registerEvents(new ArtifactStorageGUI(this), this);
+        getServer().getPluginManager().registerEvents(new ProductionGUI(this), this);
+        getServer().getPluginManager().registerEvents(new ArmorGUI(this), this);
 
         if (getCommand("upgrades") != null)   getCommand("upgrades").setExecutor(upgradeHandler);
         if (getCommand("statsmine") != null)  getCommand("statsmine").setExecutor(new StatsCommand(this));
@@ -148,6 +161,43 @@ public final class Multigainer extends JavaPlugin implements Listener {
             });
         }
 
+        if (getCommand("artifacts") != null) {
+            getCommand("artifacts").setExecutor((sender, cmd, label, args) -> {
+                if (!(sender instanceof Player p)) return true;
+                PlayerProfile prof = getPlayerDataManager().getProfile(p.getUniqueId());
+                if (prof == null) { p.sendMessage("§cProfile loading, try again!"); return true; }
+                ArtifactGUI.open(p, prof, this);
+                return true;
+            });
+        }
+        if (getCommand("blocks") != null) {
+            getCommand("blocks").setExecutor(new GiveBlocksCommand(this));
+        }
+
+        if (getCommand("armor") != null) {
+            getCommand("armor").setExecutor((sender, cmd, label, args) -> {
+                if (!(sender instanceof Player p)) return true;
+                PlayerProfile prof = getPlayerDataManager().getProfile(p.getUniqueId());
+                if (prof == null) { p.sendMessage("§cProfile loading, try again!"); return true; }
+                if (prof.getTier() < 3) {
+                    p.sendMessage("§cYou need §eTier 3 §cto access the Armor system!");
+                    return true;
+                }
+                ArmorGUI.open(p, prof, this);
+                return true;
+            });
+        }
+
+        if (getCommand("production") != null) {
+            getCommand("production").setExecutor((sender, cmd, label, args) -> {
+                if (!(sender instanceof Player p)) return true;
+                PlayerProfile prof = getPlayerDataManager().getProfile(p.getUniqueId());
+                if (prof == null) { p.sendMessage("§cProfile loading, try again!"); return true; }
+                ProductionGUI.open(p, prof, this);
+                return true;
+            });
+        }
+
         if (getCommand("relo") != null) {
             getCommand("relo").setExecutor((sender, cmd, label, args) -> {
                 sender.sendMessage("§e[Multigainer] §7Saving data and reloading...");
@@ -175,6 +225,19 @@ public final class Multigainer extends JavaPlugin implements Listener {
             }
         }.runTaskTimer(this, 20L, 20L);
 
+        // Worker energy generation every minute
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
+                    if (profile != null && profile.getWorkerLevel() > 0) {
+                        profile.addWorkerEnergy(ProductionManager.getEnergyPerMinute(profile.getWorkerLevel()));
+                    }
+                }
+            }
+        }.runTaskTimer(this, 1200L, 1200L);
+
         // Hoe lore refresh every minute (1200 ticks)
         new org.bukkit.scheduler.BukkitRunnable() {
             @Override
@@ -195,6 +258,11 @@ public final class Multigainer extends JavaPlugin implements Listener {
     }
 
     @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        if (!event.getPlayer().isOp()) event.setCancelled(true);
+    }
+
+    @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player p = event.getPlayer();
         PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
@@ -210,6 +278,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
             p.getInventory().setItem(profile.getHoeSlot(),     toolHandler.getHoeForProfile(profile));
             p.getInventory().setItem(profile.getPickaxeSlot(), toolHandler.getPickaxeForProfile(profile));
             p.getInventory().setItem(profile.getUpgradeSlot(), upgradeHandler.getUpgradeEmerald());
+            ArmorGUI.equipArmor(p, profile);
             profile.setChosenCrop(0);
             CropSelectionGUI.sendFakeCrops(p, 0, this);
         } else {

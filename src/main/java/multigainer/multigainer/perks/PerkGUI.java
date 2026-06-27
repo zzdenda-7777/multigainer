@@ -28,14 +28,15 @@ public class PerkGUI implements Listener {
     public static final String TITLE_MESSAGES = "§5✦ §dPerk Messages §5✦";
 
     // ── Nav GUI slots (27) ─────────────────────────────────────────────────────
-    private static final int NAV_SLOT_STATUS   = 11;
-    private static final int NAV_SLOT_UPGRADES = 13;
-    private static final int NAV_SLOT_MESSAGES = 15;
+    private static final int NAV_SLOT_STATUS   = 10;
+    private static final int NAV_SLOT_UPGRADES = 12;
+    private static final int NAV_SLOT_INFO     = 14;
+    private static final int NAV_SLOT_MESSAGES = 16;
     private static final int NAV_SLOT_BACK     = 22;
 
-    // ── Status GUI slots (54) ──────────────────────────────────────────────────
-    private static final int[] STATUS_SLOTS = {10, 12, 14, 16, 31};
-    private static final int   STATUS_BACK  = 49;
+    // ── Status GUI slots (36) ──────────────────────────────────────────────────
+    private static final int[] STATUS_SLOTS = {11, 13, 15, 21, 23};
+    private static final int   STATUS_BACK  = 31;
 
     // ── Upgrade GUI slots (54) ─────────────────────────────────────────────────
     private static final int[] UPGRADE_SLOTS = {10, 12, 14, 16, 31};
@@ -83,8 +84,27 @@ public class PerkGUI implements Listener {
                 "§8═══════════════════════",
                 "§e▶ Click to upgrade!")));
 
+        inv.setItem(NAV_SLOT_INFO, buildNavItem(
+            Material.BOOK, "§b§lHow Perks Work",
+            List.of("§8═══════════════════════",
+                "§6§lPERK SYSTEM INFO",
+                "§8═══════════════════════",
+                "§7✦ §fPerks §7boost your §6money income",
+                "§7  from all sources.",
+                "§8 ",
+                "§7✦ §fEach perk you find gives a",
+                "§7  §fmultiply §7on top of existing ones",
+                "§7  §8(all perks multiply each other§8).",
+                "§8 ",
+                "§7✦ §fThe more perks you have, the",
+                "§7  §fexponentially §7stronger the boost.",
+                "§8 ",
+                "§7✦ §fPerks are obtained §aonly §7from",
+                "§7  §fmining §7(Tier 5+ required).",
+                "§8═══════════════════════")));
+
         inv.setItem(NAV_SLOT_MESSAGES, buildNavItem(
-            Material.BOOK, "§b§lMessage Settings",
+            Material.PAPER, "§b§lMessage Settings",
             List.of("§8═══════════════════════",
                 "§7Toggle chat notifications",
                 "§7for each perk individually.",
@@ -97,9 +117,9 @@ public class PerkGUI implements Listener {
 
     // ── Open: Status ───────────────────────────────────────────────────────────
     public static void openStatus(Player player, PlayerProfile profile, Multigainer plugin) {
-        Inventory inv = Bukkit.createInventory(null, 54, TITLE_STATUS);
+        Inventory inv = Bukkit.createInventory(null, 36, TITLE_STATUS);
         ItemStack pane = makePane();
-        for (int i = 0; i < 54; i++) inv.setItem(i, pane);
+        for (int i = 0; i < 36; i++) inv.setItem(i, pane);
 
         for (int i = 0; i < PerkManager.PERK_COUNT; i++) {
             inv.setItem(STATUS_SLOTS[i], buildStatusItem(i, profile));

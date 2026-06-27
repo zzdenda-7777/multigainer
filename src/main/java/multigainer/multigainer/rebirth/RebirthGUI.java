@@ -1,5 +1,7 @@
 package multigainer.multigainer.rebirth;
 
+import multigainer.multigainer.artifacts.ArtifactManager;
+import multigainer.multigainer.artifacts.ArtifactType;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.math.BigNumber; // Added import for BigNumber conversion
@@ -44,7 +46,8 @@ public class RebirthGUI {
         inv.setItem(11, stats);
 
         // 2. Rebirth Action (Slot 13)
-        double potential = RebirthManager.calculateRebirthPoints(profile.getMoney().toDouble());
+        double potential = RebirthManager.calculateRebirthPoints(profile.getMoney().toDouble())
+                * ArtifactManager.getMultiplierDouble(profile, ArtifactType.REBIRTH_POINTS);
         boolean canRebirth = profile.getMoney().toDouble() >= RebirthManager.REBIRTH_THRESHOLD;
 
         ItemStack rebirth = new ItemStack(canRebirth ? Material.NETHER_STAR : Material.BARRIER);

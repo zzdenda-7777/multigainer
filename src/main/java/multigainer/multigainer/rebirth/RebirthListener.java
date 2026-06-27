@@ -1,6 +1,8 @@
 package multigainer.multigainer.rebirth;
 
 import multigainer.multigainer.Multigainer;
+import multigainer.multigainer.artifacts.ArtifactManager;
+import multigainer.multigainer.artifacts.ArtifactType;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.math.BigNumber;
 import multigainer.multigainer.formatting.NumberFormatter; // ADDED: Imports your suffix formatter
@@ -38,7 +40,8 @@ public class RebirthListener implements Listener {
         }
 
         // Process reward distributions[cite: 23]
-        double pointsGained = RebirthManager.calculateRebirthPoints(profile.getMoney().toDouble());
+        double pointsGained = RebirthManager.calculateRebirthPoints(profile.getMoney().toDouble())
+                * ArtifactManager.getMultiplierDouble(profile, ArtifactType.REBIRTH_POINTS);
         profile.setRebirthPoints(profile.getRebirthPoints() + pointsGained);
         profile.setRebirthCount(profile.getRebirthCount() + 1);
 

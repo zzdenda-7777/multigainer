@@ -28,6 +28,15 @@ commands:
     description: Open the grinding points menu.
   perks:
     description: Open the perks menu.
+  armor:
+    description: Open the armor upgrade menu (requires Tier 3).
+  production:
+    description: Open the production menu.
+  artifacts:
+    description: Open the artifacts menu.
+  blocks:
+    description: Give all 70 artifact blocks (OP only).
+    permission: multigainer.admin
   multigainer:
     description: Main plugin command.
     permission: multigainer.admin

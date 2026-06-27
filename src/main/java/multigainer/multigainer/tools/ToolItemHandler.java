@@ -3,6 +3,9 @@ package multigainer.multigainer.tools;
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.farming.FarmingManager;
+import multigainer.multigainer.formatting.NumberFormatter;
+import multigainer.multigainer.math.BigNumber;
+import multigainer.multigainer.perks.PerkManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -86,14 +89,36 @@ public class ToolItemHandler implements Listener {
         if (meta != null) {
             meta.setDisplayName(color + "§l" + tierName + " Pickaxe");
 
-            // Build lore with upgrade stats
+            // Compute stats for lore
+            long totalBlocks = 0;
+            if (profile != null) {
+                for (int i = 0; i < 17; i++) totalBlocks += profile.getBlockStorage(i);
+            }
+            int totalPerks = 0;
+            if (profile != null) {
+                for (int i = 0; i < PerkManager.PERK_COUNT; i++) totalPerks += profile.getPerkCount(i);
+            }
+            BigNumber perkMulti = profile != null
+                    ? PerkManager.getTotalPerkMultiplierBig(profile.getPerkCounts())
+                    : new BigNumber(1.0);
+
             java.util.List<String> lore = new java.util.ArrayList<>();
-            lore.add("");
-            lore.add("§7Mining speed: §f" + speedLevel + " level");
-            lore.add("§7XP Multi: §ax" + String.format("%.2f", PickaxeManager.getXpMultiplier(xpLvl)));
-            lore.add("§7Gem Multi: §bx" + String.format("%.2f", PickaxeManager.getGemMultiplier(gemLvl)));
-            lore.add("");
-            lore.add("§7Right click to open the pickaxe menu!");
+            lore.add("§8§m──────────────────────");
+            lore.add("§7Tier§8: " + color + tierName + " Pickaxe §8[§eTier " + tier + "§8]");
+            lore.add("§8§m──────────────────────");
+            lore.add("§7Mining Speed§8: §f" + speedLevel + " lvl");
+            lore.add("§7XP Multi§8: §a×" + String.format("%.2f", PickaxeManager.getXpMultiplier(xpLvl)));
+            lore.add("§7Gem Multi§8: §b×" + String.format("%.2f", PickaxeManager.getGemMultiplier(gemLvl)));
+            lore.add("§8§m──────────────────────");
+            lore.add("§7Rebirth Points§8: §5"
+                    + (profile != null ? NumberFormatter.format(new BigNumber(profile.getRebirthPoints())) : "0"));
+            lore.add("§7Grinding Points§8: §c"
+                    + (profile != null ? NumberFormatter.format(new BigNumber(profile.getGrindingPoints())) : "0"));
+            lore.add("§7Blocks Mined§8: §f" + NumberFormatter.format(new BigNumber((double) totalBlocks)));
+            lore.add("§7Perks§8: §f" + NumberFormatter.format(new BigNumber((double) totalPerks))
+                    + " §8(§a" + NumberFormatter.format(perkMulti) + "x §7multi§8)");
+            lore.add("§8§m──────────────────────");
+            lore.add("§7Right-click to open pickaxe menu!");
             meta.setLore(lore);
 
             meta.setUnbreakable(true);

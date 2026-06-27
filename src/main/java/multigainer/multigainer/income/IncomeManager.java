@@ -1,6 +1,10 @@
 package multigainer.multigainer.income;
 
 import multigainer.multigainer.Multigainer;
+import multigainer.multigainer.armor.ArmorManager;
+import multigainer.multigainer.armor.ArmorType;
+import multigainer.multigainer.artifacts.ArtifactManager;
+import multigainer.multigainer.artifacts.ArtifactType;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.grind.GrindManager;
 import multigainer.multigainer.levels.MiningLevelManager;
@@ -49,8 +53,10 @@ public class IncomeManager {
                             .multiply(grindFarmMultiplier)
                             .multiply(perkMultiplier);
 
-                    // Apply money exponent: totalEarned = allMulti ^ exponent
-                    double exponent = GrindManager.getMoneyExponent(profile.getGrindExponentLevel());
+                    // Apply money exponent (grind base + armor additive) × artifact multiplier
+                    double exponent = (GrindManager.getMoneyExponent(profile.getGrindExponentLevel())
+                            + ArmorManager.getMultiplier(profile, ArmorType.EXPONENT))
+                            * ArtifactManager.getMultiplierDouble(profile, ArtifactType.EXPONENT);
                     double log10 = Math.log10(allMulti.getMantissa()) + allMulti.getExponent();
                     BigNumber totalEarned = UpgradeManager.fromLog10(exponent * log10);
 

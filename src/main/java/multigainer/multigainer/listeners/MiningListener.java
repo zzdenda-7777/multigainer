@@ -1,6 +1,10 @@
 package multigainer.multigainer.listeners;
 
 import multigainer.multigainer.Multigainer;
+import multigainer.multigainer.armor.ArmorManager;
+import multigainer.multigainer.armor.ArmorType;
+import multigainer.multigainer.artifacts.ArtifactManager;
+import multigainer.multigainer.artifacts.ArtifactType;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.grind.GrindManager;
@@ -225,13 +229,17 @@ public class MiningListener implements Listener {
         BigNumber payout = new BigNumber(blockGemsMultiplier)
                 .multiply(MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()))
                 .multiply(new BigNumber(gemUpgradeMulti))
-                .multiply(new BigNumber(grindGemMulti));
+                .multiply(new BigNumber(grindGemMulti))
+                .multiply(ArtifactManager.getMultiplier(profile, ArtifactType.GEM))
+                .multiply(new BigNumber(ArmorManager.getMultiplier(profile, ArmorType.GEMS)));
 
         profile.setGems(profile.getGems().add(payout));
 
         // ── Mining XP (× grind XP multi) ─────────────────────────────────────
         double grindMineXpMulti = GrindManager.getMineXpMulti(profile.getGrindMineXpLevel());
-        double xpGain      = blockXpMultiplier * xpUpgradeMulti * grindMineXpMulti;
+        double xpGain      = blockXpMultiplier * xpUpgradeMulti * grindMineXpMulti
+                * ArtifactManager.getMultiplierDouble(profile, ArtifactType.MINE_XP)
+                * ArmorManager.getMultiplier(profile, ArmorType.MINE_XP);
         double currentXp   = profile.getMiningXp() + xpGain;
         int    currentLevel = profile.getMiningLevel();
         double requiredXp  = MiningLevelManager.getRequiredXpForNextLevel(currentLevel);
@@ -245,16 +253,22 @@ public class MiningListener implements Listener {
         }
         profile.setMiningXp(currentXp);
         profile.setMiningLevel(currentLevel);
-        profile.incrementBlockStorage(blockIndex);
+        double exactBlocks = ArtifactManager.getMultiplierDouble(profile, ArtifactType.BLOCK_STORAGE)
+                * ArmorManager.getMultiplier(profile, ArmorType.BLOCK_STORAGE);
+        long base = (long) exactBlocks;
+        long blockAmount = Math.max(1L, base + (random.nextDouble() < (exactBlocks - base) ? 1L : 0L));
+        profile.addBlockStorage(blockIndex, blockAmount);
 
         // ── Grinding Points (1/500 chance, reduced by upgrade) ────────────────
         double mineDenominator = GrindManager.getMiningChanceDenominator(profile.getGrindChanceLevel());
         if (random.nextDouble() * mineDenominator < 1.0) {
-            double gpEarned = GrindManager.getGPMulti(profile.getGrindGPMultiLevel());
+            double gpEarned = GrindManager.getGPMulti(profile.getGrindGPMultiLevel())
+                    * ArtifactManager.getMultiplierDouble(profile, ArtifactType.GRINDING_POINTS)
+                    * ArmorManager.getMultiplier(profile, ArmorType.GRIND_POINTS);
             profile.addGrindingPoints(gpEarned);
             if (profile.isGrindMessagesEnabled()) {
-                player.sendMessage("§2§l[+] §a" + NumberFormatter.format(new BigNumber(gpEarned))
-                        + " §2Grinding Points §8(§7Mining§8)");
+                player.sendMessage("§c§l[+] §c" + NumberFormatter.format(new BigNumber(gpEarned))
+                        + " §cGrinding Points §8(§7Mining§8)");
             }
         }
 

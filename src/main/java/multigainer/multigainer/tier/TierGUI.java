@@ -1,5 +1,9 @@
 package multigainer.multigainer.tier;
 
+import multigainer.multigainer.armor.ArmorManager;
+import multigainer.multigainer.armor.ArmorType;
+import multigainer.multigainer.artifacts.ArtifactManager;
+import multigainer.multigainer.artifacts.ArtifactType;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.math.BigNumber;
@@ -59,6 +63,15 @@ public class TierGUI {
         }
         inv.setItem(11, stats);
 
+        // ── Tier points calculation for slot 13 hover ────────────────────────
+        int    newTierIfUp      = tier + 1;
+        double artifactTierMult = ArtifactManager.getMultiplierDouble(profile, ArtifactType.TIER_POINTS);
+        double armorTierMult    = ArmorManager.getMultiplier(profile, ArmorType.TIER_POINTS);
+        double exactTierPtsIfUp = newTierIfUp * artifactTierMult * armorTierMult;
+        int    tierPtsWouldGet  = Math.max(newTierIfUp, (int) Math.round(exactTierPtsIfUp));
+        double totalTierMulti   = artifactTierMult * armorTierMult;
+        String totalMultiStr    = NumberFormatter.format(new BigNumber(totalTierMulti)) + "x";
+
         // ── Slot 13: Tier up button ───────────────────────────────────────────
         ItemStack button = new ItemStack(canTier ? Material.NETHER_STAR : Material.BARRIER);
         ItemMeta  bm     = button.getItemMeta();
@@ -74,6 +87,10 @@ public class TierGUI {
                             + NumberFormatter.format(new BigNumber(curPoints))
                             + ChatColor.GRAY + "§8/§6"
                             + NumberFormatter.format(new BigNumber(nextCost)),
+                    " ",
+                    ChatColor.GRAY + "Tier Points Reward§8: §e+"
+                            + NumberFormatter.format(new BigNumber(tierPtsWouldGet)),
+                    ChatColor.GRAY + "Total Multi§8: §6" + totalMultiStr,
                     " ",
                     canTier ? ChatColor.YELLOW + "✔ Click to TIER UP!" : ChatColor.RED + "✘ Not enough points."
             ));

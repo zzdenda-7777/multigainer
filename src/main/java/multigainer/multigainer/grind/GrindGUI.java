@@ -20,7 +20,7 @@ import java.util.List;
 
 public class GrindGUI implements Listener {
 
-    private static final String TITLE = "§8✦ §aGrinding Points §8✦";
+    private static final String TITLE = "§8✦ §cGrinding Points §8✦";
 
     // 54-slot layout matching UpgradeGUI aesthetic (black glass pane background)
     // Row 0 (0-8):   panes
@@ -194,7 +194,7 @@ public class GrindGUI implements Listener {
         lore.add(ChatColor.GRAY + "Current: " + ChatColor.WHITE + currentStr);
         lore.add(" ");
         lore.add(ChatColor.GRAY + "Next Level: " + ChatColor.AQUA + nextStr);
-        lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GREEN + NumberFormatter.format(new BigNumber(cost)) + " GP");
+        lore.add(ChatColor.GRAY + "Cost: " + ChatColor.RED + NumberFormatter.format(new BigNumber(cost)) + " §cGP");
         lore.add(" ");
         lore.add(ChatColor.YELLOW + "Click to upgrade!");
         meta.setLore(lore);
@@ -204,13 +204,13 @@ public class GrindGUI implements Listener {
 
     private ItemStack buildInfoItem(PlayerProfile profile) {
         double gp = profile.getGrindingPoints();
-        ItemStack item = new ItemStack(Material.LIME_DYE);
+        ItemStack item = new ItemStack(Material.RED_DYE);
         ItemMeta meta  = item.getItemMeta();
         if (meta == null) return item;
-        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Grinding Points");
+        meta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Grinding Points");
         List<String> lore = new ArrayList<>();
         lore.add(" ");
-        lore.add(ChatColor.GRAY + "Balance: " + ChatColor.GREEN + NumberFormatter.format(new BigNumber(gp)));
+        lore.add(ChatColor.GRAY + "Balance: " + ChatColor.RED + NumberFormatter.format(new BigNumber(gp)) + " §cGP");
         lore.add(ChatColor.GRAY + "Farm chance: " + ChatColor.WHITE + "1/" + String.format("%.2f", GrindManager.getFarmingChanceDenominator(profile.getGrindChanceLevel())));
         lore.add(ChatColor.GRAY + "Mine chance: " + ChatColor.WHITE + "1/" + String.format("%.2f", GrindManager.getMiningChanceDenominator(profile.getGrindChanceLevel())));
         lore.add(" ");

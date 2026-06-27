@@ -109,6 +109,42 @@ public class PlayerDataManager {
                             profile.setPickaxeSlot(safeGetInt(rs, "pickaxe_slot", 1));
                             profile.setUpgradeSlot(safeGetInt(rs, "upgrade_slot", 4));
 
+                            // Artifact slots
+                            profile.setArtifactSlot(0, safeGetString(rs, "artifact_slot_0", ""));
+                            profile.setArtifactSlot(1, safeGetString(rs, "artifact_slot_1", ""));
+                            profile.setArtifactSlot(2, safeGetString(rs, "artifact_slot_2", ""));
+                            profile.setArtifactSlotUnlocked(1, safeGetInt(rs, "artifact_slot_1_unlocked", 0) == 1);
+                            profile.setArtifactSlotUnlocked(2, safeGetInt(rs, "artifact_slot_2_unlocked", 0) == 1);
+
+                            // Worker / Production
+                            profile.setWorkerLevel(safeGetInt(rs, "worker_level", 0));
+                            profile.setWorkerXp(safeGetDouble(rs, "worker_xp", 0.0));
+                            profile.setWorkerEnergy(safeGetDouble(rs, "worker_energy", 0.0));
+
+                            // Armor system
+                            profile.setArmorPieceUnlocked(1, safeGetInt(rs, "armor_chest_unlocked", 0) == 1);
+                            profile.setArmorPieceUnlocked(2, safeGetInt(rs, "armor_legs_unlocked",  0) == 1);
+                            profile.setArmorPieceUnlocked(3, safeGetInt(rs, "armor_boots_unlocked", 0) == 1);
+                            for (int i = 0; i < 4; i++) {
+                                profile.setArmorType(i,  safeGetInt(rs,    "armor_type_"  + i, -1));
+                                profile.setArmorValue(i, safeGetDouble(rs, "armor_value_" + i,  0.0));
+                            }
+                            profile.setArmorLowBuys( safeGetInt(rs, "armor_low_buys",  0));
+                            profile.setArmorMedBuys( safeGetInt(rs, "armor_med_buys",  0));
+                            profile.setArmorHighBuys(safeGetInt(rs, "armor_high_buys", 0));
+                            profile.setSkipAnimationUnlocked(safeGetInt(rs, "armor_skip_anim_unlocked", 0) == 1);
+                            profile.setSkipAnimationEnabled(safeGetInt(rs, "armor_skip_anim_enabled",  0) == 1);
+                            profile.setCropsFarmed(safeGetLong(rs, "crops_farmed", 0L));
+
+                            // Artifact vault
+                            String vaultStr = safeGetString(rs, "artifact_vault", "");
+                            if (!vaultStr.isEmpty()) {
+                                String[] parts = vaultStr.split("\\|", -1);
+                                String[] vault = new String[45];
+                                for (int i = 0; i < 45 && i < parts.length; i++) vault[i] = parts[i];
+                                profile.setArtifactVault(vault);
+                            }
+
                             profileCache.put(uuid, profile);
                             future.complete(profile);
                             return;
@@ -158,6 +194,15 @@ public class PlayerDataManager {
         for (int i = 0; i < 5; i++) q.append(",perk_chance_level_").append(i).append("=?");
         for (int i = 0; i < 5; i++) q.append(",perk_msg_").append(i).append("=?");
         q.append(",hoe_slot=?,pickaxe_slot=?,upgrade_slot=?");
+        q.append(",artifact_slot_0=?,artifact_slot_1=?,artifact_slot_2=?");
+        q.append(",artifact_slot_1_unlocked=?,artifact_slot_2_unlocked=?");
+        q.append(",artifact_vault=?");
+        q.append(",worker_level=?,worker_xp=?,worker_energy=?");
+        q.append(",armor_chest_unlocked=?,armor_legs_unlocked=?,armor_boots_unlocked=?");
+        q.append(",armor_type_0=?,armor_type_1=?,armor_type_2=?,armor_type_3=?");
+        q.append(",armor_value_0=?,armor_value_1=?,armor_value_2=?,armor_value_3=?");
+        q.append(",armor_low_buys=?,armor_med_buys=?,armor_high_buys=?");
+        q.append(",armor_skip_anim_unlocked=?,armor_skip_anim_enabled=?,crops_farmed=?");
         q.append(" WHERE uuid=?");
 
         try (Connection conn = storageManager.getConnection();
@@ -215,6 +260,31 @@ public class PlayerDataManager {
             stmt.setInt(base++, profile.getHoeSlot());
             stmt.setInt(base++, profile.getPickaxeSlot());
             stmt.setInt(base++, profile.getUpgradeSlot());
+            stmt.setString(base++, profile.getArtifactSlot(0));
+            stmt.setString(base++, profile.getArtifactSlot(1));
+            stmt.setString(base++, profile.getArtifactSlot(2));
+            stmt.setInt(base++, profile.isArtifactSlotUnlocked(1) ? 1 : 0);
+            stmt.setInt(base++, profile.isArtifactSlotUnlocked(2) ? 1 : 0);
+            StringBuilder vaultSb = new StringBuilder();
+            for (int i = 0; i < 45; i++) {
+                if (i > 0) vaultSb.append("|");
+                vaultSb.append(profile.getArtifactVaultSlot(i));
+            }
+            stmt.setString(base++, vaultSb.toString());
+            stmt.setInt(base++,    profile.getWorkerLevel());
+            stmt.setDouble(base++, profile.getWorkerXp());
+            stmt.setDouble(base++, profile.getWorkerEnergy());
+            stmt.setInt(base++, profile.isArmorPieceUnlocked(1) ? 1 : 0);
+            stmt.setInt(base++, profile.isArmorPieceUnlocked(2) ? 1 : 0);
+            stmt.setInt(base++, profile.isArmorPieceUnlocked(3) ? 1 : 0);
+            for (int i = 0; i < 4; i++) stmt.setInt(base++, profile.getArmorType(i));
+            for (int i = 0; i < 4; i++) stmt.setDouble(base++, profile.getArmorValue(i));
+            stmt.setInt(base++, profile.getArmorLowBuys());
+            stmt.setInt(base++, profile.getArmorMedBuys());
+            stmt.setInt(base++, profile.getArmorHighBuys());
+            stmt.setInt(base++,  profile.isSkipAnimationUnlocked() ? 1 : 0);
+            stmt.setInt(base++,  profile.isSkipAnimationEnabled()  ? 1 : 0);
+            stmt.setLong(base++, profile.getCropsFarmed());
             stmt.setString(base,   uuid.toString());
             stmt.executeUpdate();
 
@@ -233,7 +303,8 @@ public class PlayerDataManager {
         if (profile != null) saveProfileSynchronously(uuid, profile);
     }
 
-    private int    safeGetInt(ResultSet rs, String col, int def)      { try { return rs.getInt(col);    } catch (SQLException e) { return def; } }
+    private int    safeGetInt(ResultSet rs, String col, int def)       { try { return rs.getInt(col);    } catch (SQLException e) { return def; } }
     private long   safeGetLong(ResultSet rs, String col, long def)    { try { return rs.getLong(col);   } catch (SQLException e) { return def; } }
     private double safeGetDouble(ResultSet rs, String col, double def){ try { return rs.getDouble(col); } catch (SQLException e) { return def; } }
+    private String safeGetString(ResultSet rs, String col, String def){ try { String v = rs.getString(col); return v != null ? v : def; } catch (SQLException e) { return def; } }
 }

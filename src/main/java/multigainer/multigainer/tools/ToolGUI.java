@@ -153,12 +153,14 @@ public class ToolGUI implements Listener {
 
     // ── Lore for inventory hover (compact) ────────────────────────────────────
     public static List<String> buildInventoryHoeLore(PlayerProfile profile) {
-        int    farmLevel = profile.getFarmingLevel();
-        double farmMulti = profile.getFarmMulti();
+        int    farmLevel   = profile.getFarmingLevel();
+        double farmMulti   = profile.getFarmMulti();
+        long   cropsFarmed = profile.getCropsFarmed();
         List<String> lore = new ArrayList<>();
         lore.add("§8§m──────────────────────");
         lore.add("§7Farm Level§8: §e" + NumberFormatter.format(new BigNumber(farmLevel)));
         lore.add("§7Farm Multi§8: §6" + NumberFormatter.format(new BigNumber(farmMulti)) + "x");
+        lore.add("§7Crops Farmed§8: §f" + NumberFormatter.format(new BigNumber((double) cropsFarmed)));
         lore.add("§8§m──────────────────────");
         lore.add("§c✦ §lEnchant Chances");
         lore.add("§7💥 TNT§8:              §f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(0, farmLevel)) + " §8(§cx10§8)");

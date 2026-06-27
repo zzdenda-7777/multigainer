@@ -34,6 +34,19 @@ public class PlayerProfile {
     private int pickaxeSlot = 1;
     private int upgradeSlot = 4;
 
+    // Artifact slots (artifact ID string, empty = none)
+    private String[] artifactSlots          = {"", "", ""};
+    private boolean  artifactSlot1Unlocked  = false;
+    private boolean  artifactSlot2Unlocked  = false;
+
+    // Artifact vault (45-slot personal storage)
+    private String[] artifactVault = new String[45];
+
+    // ── Production / Worker ───────────────────────────────────────────────────
+    private int    workerLevel  = 0;
+    private double workerXp     = 0.0;
+    private double workerEnergy = 0.0;
+
     // ── Farming messages ──────────────────────────────────────────────────────
     private boolean levelUpFarmMessageEnabled = true;
 
@@ -236,4 +249,76 @@ public class PlayerProfile {
     public void setPickaxeSlot(int s){ this.pickaxeSlot = Math.max(0, Math.min(35, s)); }
     public int getUpgradeSlot()      { return upgradeSlot; }
     public void setUpgradeSlot(int s){ this.upgradeSlot = Math.max(0, Math.min(35, s)); }
+
+    // Artifact slots
+    public String getArtifactSlot(int i)          { return (i >= 0 && i < 3) ? artifactSlots[i] : ""; }
+    public void   setArtifactSlot(int i, String v) { if (i >= 0 && i < 3) artifactSlots[i] = v != null ? v : ""; }
+    public boolean isArtifactSlotUnlocked(int i) {
+        if (i == 0) return true;
+        if (i == 1) return artifactSlot1Unlocked;
+        if (i == 2) return artifactSlot2Unlocked;
+        return false;
+    }
+    public void setArtifactSlotUnlocked(int i, boolean v) {
+        if (i == 1) artifactSlot1Unlocked = v;
+        else if (i == 2) artifactSlot2Unlocked = v;
+    }
+
+    public void addBlockStorage(int index, long amount) {
+        if (index >= 0 && index < blockStorage.length)
+            blockStorage[index] = Math.max(0, blockStorage[index] + amount);
+    }
+
+    public int    getWorkerLevel()          { return workerLevel; }
+    public void   setWorkerLevel(int v)     { this.workerLevel = Math.max(0, v); }
+    public double getWorkerXp()             { return workerXp; }
+    public void   setWorkerXp(double v)     { this.workerXp = Math.max(0, v); }
+    public double getWorkerEnergy()         { return workerEnergy; }
+    public void   setWorkerEnergy(double v) { this.workerEnergy = Math.max(0, v); }
+    public void   addWorkerEnergy(double v) { this.workerEnergy += v; }
+
+    // ── Armor system ──────────────────────────────────────────────────────────
+    // pieceIndex: 0=helmet, 1=chest, 2=legs, 3=boots
+    // helmet unlocks automatically via tier; others are purchased
+    private boolean[] armorPieceUnlocked = {false, false, false, false};
+    private int[]    armorPieceType      = {-1, -1, -1, -1}; // ArmorType ordinal, -1 = none
+    private double[] armorPieceValue     = {0.0, 0.0, 0.0, 0.0};
+    private int      armorLowBuys        = 0;
+    private int      armorMedBuys        = 0;
+    private int      armorHighBuys       = 0;
+    private boolean  skipAnimationUnlocked = false;
+    private boolean  skipAnimationEnabled  = false;
+
+    // ── Farming statistics ────────────────────────────────────────────────────
+    private long cropsFarmed = 0L;
+
+    public boolean isArmorPieceUnlocked(int i)      { return (i >= 0 && i < 4) && armorPieceUnlocked[i]; }
+    public void    setArmorPieceUnlocked(int i, boolean v) { if (i >= 0 && i < 4) armorPieceUnlocked[i] = v; }
+    public int     getArmorType(int i)               { return (i >= 0 && i < 4) ? armorPieceType[i] : -1; }
+    public void    setArmorType(int i, int type)     { if (i >= 0 && i < 4) armorPieceType[i] = type; }
+    public double  getArmorValue(int i)              { return (i >= 0 && i < 4) ? armorPieceValue[i] : 0.0; }
+    public void    setArmorValue(int i, double v)    { if (i >= 0 && i < 4) armorPieceValue[i] = v; }
+    public int     getArmorLowBuys()                 { return armorLowBuys; }
+    public void    setArmorLowBuys(int v)            { this.armorLowBuys  = Math.max(0, v); }
+    public int     getArmorMedBuys()                 { return armorMedBuys; }
+    public void    setArmorMedBuys(int v)            { this.armorMedBuys  = Math.max(0, v); }
+    public int     getArmorHighBuys()                { return armorHighBuys; }
+    public void    setArmorHighBuys(int v)           { this.armorHighBuys = Math.max(0, v); }
+    public boolean isSkipAnimationUnlocked()         { return skipAnimationUnlocked; }
+    public void    setSkipAnimationUnlocked(boolean v) { this.skipAnimationUnlocked = v; }
+    public boolean isSkipAnimationEnabled()          { return skipAnimationEnabled; }
+    public void    setSkipAnimationEnabled(boolean v)  { this.skipAnimationEnabled = v; }
+    public long    getCropsFarmed()                  { return cropsFarmed; }
+    public void    setCropsFarmed(long v)            { this.cropsFarmed = Math.max(0, v); }
+    public void    incrementCropsFarmed()            { this.cropsFarmed++; }
+
+    public String getArtifactVaultSlot(int i) {
+        if (i < 0 || i >= artifactVault.length) return "";
+        return artifactVault[i] == null ? "" : artifactVault[i];
+    }
+    public void setArtifactVaultSlot(int i, String v) {
+        if (i >= 0 && i < artifactVault.length) artifactVault[i] = v == null ? "" : v;
+    }
+    public String[] getArtifactVault() { return artifactVault; }
+    public void setArtifactVault(String[] v) { this.artifactVault = v != null ? v : new String[45]; }
 }

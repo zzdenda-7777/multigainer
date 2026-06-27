@@ -1,6 +1,10 @@
 package multigainer.multigainer.listeners;
 
 import multigainer.multigainer.Multigainer;
+import multigainer.multigainer.armor.ArmorManager;
+import multigainer.multigainer.armor.ArmorType;
+import multigainer.multigainer.artifacts.ArtifactManager;
+import multigainer.multigainer.artifacts.ArtifactType;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.farming.FarmingManager;
 import multigainer.multigainer.formatting.NumberFormatter;
@@ -85,21 +89,27 @@ public class FarmingListener implements Listener {
         player.sendBlockChange(loc, FarmingManager.getCropBlockData(profile != null ? profile.getChosenCrop() : 0));
         if (profile == null) return;
 
+        profile.incrementCropsFarmed();
+
         // ── Farm multi increment ──────────────────────────────────────────────
-        double farmUpgDouble = UpgradeManager.getFarmTotalMultiplierDouble(profile.getFarmMultiUpgradeLevel());
-        profile.setFarmMulti(profile.getFarmMulti() + 0.001 * farmUpgDouble);
+        double farmUpgDouble      = UpgradeManager.getFarmTotalMultiplierDouble(profile.getFarmMultiUpgradeLevel());
+        double farmArtifactMulti  = ArtifactManager.getMultiplierDouble(profile, ArtifactType.FARM_MULTI);
+        profile.setFarmMulti(profile.getFarmMulti() + 0.001 * farmUpgDouble * farmArtifactMulti);
 
         // ── Seeds (crop × enchant × grind seed multi) ─────────────────────────
         long cropSeedMulti = FarmingManager.getSeedMultiplier(profile.getChosenCrop());
         long enchantMulti  = rollEnchants(player, profile);
         double seedMulti   = GrindManager.getSeedMulti(profile.getGrindSeedMultiLevel());
-        long seedsToAdd    = (long)(cropSeedMulti * enchantMulti * seedMulti);
+        double seedArtifactMult = ArtifactManager.getMultiplierDouble(profile, ArtifactType.SEED);
+        long seedsToAdd    = (long)(cropSeedMulti * enchantMulti * seedMulti * seedArtifactMult);
         profile.addSeeds(Math.max(1L, seedsToAdd));
 
         if (profile.isAutoMerge()) FarmingManager.runAutoMerge(profile);
 
         // ── Farming XP (× grind XP multi) ────────────────────────────────────
-        double xpGain    = 1.0 * GrindManager.getFarmXpMulti(profile.getGrindFarmXpLevel());
+        double xpGain    = 1.0 * GrindManager.getFarmXpMulti(profile.getGrindFarmXpLevel())
+                * ArtifactManager.getMultiplierDouble(profile, ArtifactType.FARM_XP)
+                * ArmorManager.getMultiplier(profile, ArmorType.FARM_XP);
         double currentXp = profile.getFarmingXp() + xpGain;
         int    oldLevel  = profile.getFarmingLevel();
         int    level     = oldLevel;
@@ -124,11 +134,13 @@ public class FarmingListener implements Listener {
         // ── Grinding Points (1/100 chance, reduced by upgrade) ────────────────
         double farmDenominator = GrindManager.getFarmingChanceDenominator(profile.getGrindChanceLevel());
         if (random.nextDouble() * farmDenominator < 1.0) {
-            double gpEarned = GrindManager.getGPMulti(profile.getGrindGPMultiLevel());
+            double gpEarned = GrindManager.getGPMulti(profile.getGrindGPMultiLevel())
+                    * ArtifactManager.getMultiplierDouble(profile, ArtifactType.GRINDING_POINTS)
+                    * ArmorManager.getMultiplier(profile, ArmorType.GRIND_POINTS);
             profile.addGrindingPoints(gpEarned);
             if (profile.isGrindMessagesEnabled()) {
-                player.sendMessage("§2§l[+] §a" + NumberFormatter.format(new BigNumber(gpEarned))
-                        + " §2Grinding Points §8(§7Farming§8)");
+                player.sendMessage("§c§l[+] §c" + NumberFormatter.format(new BigNumber(gpEarned))
+                        + " §cGrinding Points §8(§7Farming§8)");
             }
         }
 

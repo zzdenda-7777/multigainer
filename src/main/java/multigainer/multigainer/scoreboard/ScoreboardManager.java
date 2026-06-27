@@ -1,6 +1,10 @@
 package multigainer.multigainer.scoreboard;
 
 import multigainer.multigainer.Multigainer;
+import multigainer.multigainer.armor.ArmorManager;
+import multigainer.multigainer.armor.ArmorType;
+import multigainer.multigainer.artifacts.ArtifactManager;
+import multigainer.multigainer.artifacts.ArtifactType;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.farming.FarmingManager;
 import multigainer.multigainer.formatting.NumberFormatter;
@@ -216,15 +220,22 @@ public class ScoreboardManager {
             BigNumber perkMult = PerkManager.getTotalPerkMultiplierBig(profile.getPerkCounts());
             BigNumber allMoney = upgrade.multiply(rebirth).multiply(tier).multiply(mine).multiply(farmMult).multiply(farmUpgMult).multiply(grindFarm).multiply(perkMult);
 
-            // Apply money exponent
-            double exponent = GrindManager.getMoneyExponent(profile.getGrindExponentLevel());
+            // Apply money exponent (grind base + armor additive) × artifact
+            double baseExp   = GrindManager.getMoneyExponent(profile.getGrindExponentLevel());
+            double armorExp  = ArmorManager.getMultiplier(profile, ArmorType.EXPONENT);
+            double artifactExpMult = ArtifactManager.getMultiplierDouble(profile, ArtifactType.EXPONENT);
+            double exponent  = (baseExp + armorExp) * artifactExpMult;
             double log10 = Math.log10(allMoney.getMantissa()) + allMoney.getExponent();
             money = UpgradeManager.fromLog10(exponent * log10);
 
             BigNumber gemPickaxe  = new BigNumber(multigainer.multigainer.tools.PickaxeManager.getGemMultiplier(profile.getGemMultiLevel()));
             BigNumber gemUpgMult  = UpgradeManager.getGemTotalMultiplier(profile.getGemUpgradeLevel());
             BigNumber grindGem    = new BigNumber(GrindManager.getGemMulti(profile.getGrindGemMultiLevel()));
-            gems = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()).multiply(gemPickaxe).multiply(gemUpgMult).multiply(grindGem);
+            BigNumber artifactGem = ArtifactManager.getMultiplier(profile, ArtifactType.GEM);
+            BigNumber armorGems   = new BigNumber(ArmorManager.getMultiplier(profile, ArmorType.GEMS));
+            gems = MiningLevelManager.getGemsMultiplier(profile.getMiningLevel())
+                    .multiply(gemPickaxe).multiply(gemUpgMult).multiply(grindGem)
+                    .multiply(artifactGem).multiply(armorGems);
         }
         return new BigNumber[]{ money, gems };
     }

@@ -1,6 +1,7 @@
 package multigainer.multigainer.farming;
 
 import multigainer.multigainer.Multigainer;
+import multigainer.multigainer.artifacts.ArtifactGUI;
 import multigainer.multigainer.data.PlayerProfile;
 import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.math.BigNumber;
@@ -30,8 +31,9 @@ public class FarmingStorageGUI implements Listener {
     // Row 3 (27-35): BACK at 27, rest panes
     private static final int   TIER_COUNT  = FarmingManager.SEED_TIER_COUNT; // 7
     private static final int[] TIER_SLOTS  = { 10, 11, 12, 13, 14, 15, 16 };
-    private static final int   SLOT_AUTO   = 22;
-    private static final int   SLOT_BACK   = 31;
+    private static final int   SLOT_AUTO       = 21;
+    private static final int   SLOT_ARTIFACTS  = 23;
+    private static final int   SLOT_BACK       = 31;
 
     private final Multigainer plugin;
 
@@ -46,6 +48,7 @@ public class FarmingStorageGUI implements Listener {
             inv.setItem(TIER_SLOTS[tier], buildTierItem(profile, tier));
         }
         inv.setItem(SLOT_AUTO, buildAutoMergeButton(profile.isAutoMerge()));
+        inv.setItem(SLOT_ARTIFACTS, makeArtifactsButton());
         inv.setItem(SLOT_BACK, makeBack());
         player.openInventory(inv);
     }
@@ -56,14 +59,32 @@ public class FarmingStorageGUI implements Listener {
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        int slot = event.getRawSlot();
-        if (slot < 0 || slot >= 36) return;
-
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         if (profile == null) return;
 
+        // Player inventory click → deposit matching tier items
+        if (event.getClickedInventory() == player.getInventory()) {
+            ItemStack clicked = event.getCurrentItem();
+            if (clicked == null || clicked.getType() == Material.AIR) return;
+            int tier = getTierForMaterial(clicked.getType());
+            if (tier < 0) return;
+            long amount = clicked.getAmount();
+            profile.setSeedStorage(tier, profile.getSeedStorage(tier) + amount);
+            event.getClickedInventory().setItem(event.getSlot(), null);
+            refreshInventory(profile, event.getInventory());
+            return;
+        }
+
+        int slot = event.getRawSlot();
+        if (slot < 0 || slot >= 36) return;
+
         if (slot == SLOT_BACK) {
             ToolGUI.open(player, profile, plugin);
+            return;
+        }
+
+        if (slot == SLOT_ARTIFACTS) {
+            ArtifactGUI.open(player, profile, plugin);
             return;
         }
 
@@ -76,16 +97,38 @@ public class FarmingStorageGUI implements Listener {
         }
 
         for (int tier = 0; tier < TIER_COUNT; tier++) {
-            if (slot == TIER_SLOTS[tier] && tier < TIER_COUNT - 1) {
+            if (slot != TIER_SLOTS[tier]) continue;
+            if (event.getClick() == ClickType.SHIFT_LEFT) {
+                withdrawStack(player, profile, tier);
+                refreshInventory(profile, event.getInventory());
+            } else if (tier < TIER_COUNT - 1) {
                 if (event.getClick() == ClickType.RIGHT) {
                     compressAll(profile, tier);
                 } else {
                     compress64(profile, tier);
                 }
                 refreshInventory(profile, event.getInventory());
-                return;
             }
+            return;
         }
+    }
+
+    private void withdrawStack(Player player, PlayerProfile profile, int tier) {
+        long stored = profile.getSeedStorage(tier);
+        if (stored <= 0) { player.sendMessage("§cNo " + FarmingManager.SEED_TIER_NAMES[tier] + " stored!"); return; }
+        long toGive = Math.min(64L, stored);
+        ItemStack give = new ItemStack(FarmingManager.SEED_TIER_MATERIALS[tier], (int) toGive);
+        var leftovers = player.getInventory().addItem(give);
+        long actuallyGiven = toGive - (leftovers.isEmpty() ? 0L : leftovers.get(0).getAmount());
+        if (actuallyGiven <= 0) { player.sendMessage("§cYour inventory is full!"); return; }
+        profile.setSeedStorage(tier, stored - actuallyGiven);
+    }
+
+    private static int getTierForMaterial(Material mat) {
+        for (int i = 0; i < FarmingManager.SEED_TIER_MATERIALS.length; i++) {
+            if (FarmingManager.SEED_TIER_MATERIALS[i] == mat) return i;
+        }
+        return -1;
     }
 
     private void compress64(PlayerProfile profile, int tier) {
@@ -125,13 +168,15 @@ public class FarmingStorageGUI implements Listener {
                 "§7Until next§8: §e" + FarmingManager.fmtCount(need == FarmingManager.COMPRESS_RATIO ? 0 : need)
                     + " §8/ §e" + FarmingManager.COMPRESS_RATIO,
                 "",
-                "§7Left Click §8» §eCompress 64 → 1",
-                "§7Right Click §8» §eCompress All"
+                "§7Left Click      §8» §eCompress 64 → 1",
+                "§7Right Click     §8» §eCompress All",
+                "§7Shift+Left Click §8» §eWithdraw 1 stack"
             ));
         } else {
             meta.setLore(Arrays.asList(
                 "§7Amount§8: §f" + countStr,
                 "",
+                "§7Shift+Left Click §8» §eWithdraw 1 stack",
                 "§7This is the highest tier."
             ));
         }
@@ -174,6 +219,17 @@ public class FarmingStorageGUI implements Listener {
         m.setDisplayName(" ");
         p.setItemMeta(m);
         return p;
+    }
+
+    private static ItemStack makeArtifactsButton() {
+        ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§5§lArtifacts");
+            meta.setLore(Arrays.asList("§7Click to view your equipped artifacts."));
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     private static ItemStack makeBack() {

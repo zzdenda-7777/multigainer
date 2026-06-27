@@ -1,8 +1,13 @@
 package multigainer.multigainer.tier;
 
+import multigainer.multigainer.armor.ArmorManager;
+import multigainer.multigainer.armor.ArmorType;
+import multigainer.multigainer.artifacts.ArtifactManager;
+import multigainer.multigainer.artifacts.ArtifactType;
 import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.math.BigNumber;
-import org.bukkit.Bukkit; // Imported to handle global server broadcasts
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -40,8 +45,15 @@ public class TierManager {
         int newTier = profile.getTier() + 1;
         profile.setTier(newTier);
 
-        // Calculate and add Tier Points sequentially (+1 for Tier 1, +2 for Tier 2, etc.)
-        profile.setTierPoints(profile.getTierPoints() + newTier);
+        // Calculate and add Tier Points (multiplied by tier points artifact)
+        double artifactTierMult = ArtifactManager.getMultiplierDouble(profile, ArtifactType.TIER_POINTS);
+        double armorTierMult    = ArmorManager.getMultiplier(profile, ArmorType.TIER_POINTS);
+        double exactTierPts     = newTier * artifactTierMult * armorTierMult;
+        int tierPtsToAdd        = Math.max(newTier, (int) Math.round(exactTierPts));
+        profile.setTierPoints(profile.getTierPoints() + tierPtsToAdd);
+        String tierPtsDisplay   = (exactTierPts == Math.floor(exactTierPts))
+                ? String.valueOf((long) exactTierPts)
+                : String.format("%.2f", exactTierPts).replaceAll("0+$", "").replaceAll("\\.$", "");
 
         // Clear progress vectors back to base level settings
         profile.setMoney(new BigNumber(0));
@@ -56,11 +68,13 @@ public class TierManager {
                 10, 50, 10
         );
 
-        // ADDED: Global chat announcement style layout
+        // Global chat announcement
+        double totalTierMulti = artifactTierMult * armorTierMult;
+        String totalMultiStr  = NumberFormatter.format(new BigNumber(totalTierMulti));
         Bukkit.broadcastMessage(" ");
         Bukkit.broadcastMessage("§b§l⚡ TIER ADVANCEMENT ⚡");
         Bukkit.broadcastMessage("§f" + player.getName() + " §7has successfully ascended to §a§lTIER " + newTier + "§7!");
-        Bukkit.broadcastMessage("§7They received §d+" + newTier + " Tier Points§7!");
+        Bukkit.broadcastMessage("§7They received §e+" + tierPtsDisplay + " Tier Points §8(§6" + totalMultiStr + "x §7multi§8)§7!");
         Bukkit.broadcastMessage(" ");
     }
 }
