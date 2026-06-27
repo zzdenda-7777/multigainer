@@ -4,28 +4,46 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="design upraven vsude">
+    <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="ale žádná rakovina, semhle si je dáš, co mám dělat?">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/Multigainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/Multigainer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/armor/ArmorGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/armor/ArmorGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/artifacts/ArtifactGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/artifacts/ArtifactGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/artifacts/ArtifactManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/artifacts/ArtifactManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/artifacts/ArtifactStorageGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/artifacts/ArtifactStorageGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/GiveCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/GiveCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/ResetCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/ResetCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/StatsCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/StatsCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/StatsMoneyCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/StatsMoneyCommand.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerDataManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerProfile.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/PlayerProfile.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/StorageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/data/StorageManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/farming/CropSelectionGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/farming/CropSelectionGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/farming/EnchantToggleGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/farming/EnchantToggleGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/farming/FarmingManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/farming/FarmingManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/farming/FarmingStorageGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/farming/FarmingStorageGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/formatting/NumberFormatter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/formatting/NumberFormatter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/grind/GrindGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/grind/GrindGUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/income/IncomeManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/income/IncomeManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/FarmingListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/FarmingListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/listeners/MiningListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/perks/PerkGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/perks/PerkGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/production/ProductionGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/production/ProductionGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/production/ProductionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/production/ProductionManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthGUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/rebirth/RebirthManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/scoreboard/ScoreboardManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/scoreboard/ScoreboardManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tier/TierGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tier/TierGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tier/TierListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tier/TierListener.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tier/TierManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tier/TierManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeBlockStorageGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeBlockStorageGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeUpgradeGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/PickaxeUpgradeGUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/ToolGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/ToolGUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/ToolItemHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/tools/ToolItemHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/plugin.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/plugin.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/upgrades/UpgradeGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/upgrades/UpgradeGUI.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -406,7 +424,15 @@
       <option name="project" value="LOCAL" />
       <updated>1782466562365</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="ale žádná rakovina, semhle si je dáš, co mám dělat?">
+      <option name="closed" value="true" />
+      <created>1782545478522</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1782545478522</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -428,7 +454,8 @@
     <MESSAGE value="zdendasmrdí fuuuuuj" />
     <MESSAGE value="jak ti muze takhle smrdět píča" />
     <MESSAGE value="design upraven vsude" />
-    <option name="LAST_COMMIT_MESSAGE" value="design upraven vsude" />
+    <MESSAGE value="ale žádná rakovina, semhle si je dáš, co mám dělat?" />
+    <option name="LAST_COMMIT_MESSAGE" value="ale žádná rakovina, semhle si je dáš, co mám dělat?" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

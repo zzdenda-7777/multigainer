@@ -13,34 +13,38 @@ import org.bukkit.entity.Player;
 
 public class TierManager {
 
-    // BigNumber version — avoids double overflow (Infinity) at tier 17+
-    // log10(cost) = 5 * 1.3^(nextTier-1)
+    // cost(n) = cost(n-1)^1.2  →  log10(cost(n)) = 5 * 1.2^(n-1)
+    // Stage 1: compute log10(logCost) = log10(5) + (n-1)*log10(1.2)
+    //          This intermediate value NEVER overflows for any int tier.
+    // Stage 2: raise 10 to that power to get logCost.
+    //          Only overflows (~tier 3886+) when the cost exceeds BigNumber's max (10^(1.79e308)).
+    //          In that case we return the true BigNumber ceiling — no artificial cap.
     public static BigNumber getCostForTierBig(int nextTier) {
         if (nextTier <= 1) return new BigNumber(100000.0);
-        double logCost = 5.0 * Math.pow(1.3, nextTier - 1);
-        if (!Double.isFinite(logCost)) return new BigNumber(1.0, 1.0e15);
+        double logOfLogCost = Math.log10(5.0) + (nextTier - 1) * Math.log10(1.2);
+        double logCost      = Math.pow(10.0, logOfLogCost);
+        if (!Double.isFinite(logCost)) {
+            // The cost exceeds what BigNumber can store (its exponent is a double).
+            // Return the maximum representable BigNumber: ~10^(1e308).
+            return new BigNumber(1.0, 1.0e308);
+        }
         double exponent = Math.floor(logCost);
-        double mantissa = Math.pow(10, logCost - exponent);
+        double mantissa = Math.pow(10.0, logCost - exponent);
         return new BigNumber(mantissa, exponent);
     }
 
-    // Legacy double version — capped to avoid Infinity
-    public static double getCostForTier(int nextTier) {
-        if (nextTier <= 1) return 100000.0;
-        double result = Math.pow(100000.0, Math.pow(1.3, nextTier - 1));
-        return Double.isFinite(result) ? result : Double.MAX_VALUE;
-    }
-
-    /**
-     * Determines global multi rewards. Tier 0 starts at standard 1x.
-     */
-    public static double getMultiplierForTier(int tier) {
-        return Math.pow(2, tier);
+    // 2^tier as BigNumber via log10 — never overflows regardless of tier
+    public static BigNumber getMultiplierForTier(int tier) {
+        if (tier <= 0) return new BigNumber(1.0);
+        double logValue = tier * Math.log10(2.0);
+        double exponent = Math.floor(logValue);
+        double mantissa = Math.pow(10, logValue - exponent);
+        return new BigNumber(mantissa, exponent);
     }
 
     public static void performTierUp(PlayerProfile profile, Player player) {
         // CHANGED: Instead of subtracting the cost, your rebirth points are completely reset to 0
-        profile.setRebirthPoints(0.0);
+        profile.setRebirthPoints(new BigNumber(0));
 
         int newTier = profile.getTier() + 1;
         profile.setTier(newTier);
@@ -70,7 +74,7 @@ public class TierManager {
 
         // Global chat announcement
         double totalTierMulti = artifactTierMult * armorTierMult;
-        String totalMultiStr  = NumberFormatter.format(new BigNumber(totalTierMulti));
+        String totalMultiStr  = NumberFormatter.format(new BigNumber(totalTierMulti), player.getUniqueId());
         Bukkit.broadcastMessage(" ");
         Bukkit.broadcastMessage("§b§l⚡ TIER ADVANCEMENT ⚡");
         Bukkit.broadcastMessage("§f" + player.getName() + " §7has successfully ascended to §a§lTIER " + newTier + "§7!");

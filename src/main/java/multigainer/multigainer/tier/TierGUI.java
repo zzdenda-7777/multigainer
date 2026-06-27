@@ -33,14 +33,14 @@ public class TierGUI {
         if (pm != null) { pm.setDisplayName(" "); pane.setItemMeta(pm); }
         for (int i = 0; i < 27; i++) inv.setItem(i, pane);
 
-        int tier         = profile.getTier();
-        double tierMulti = TierManager.getMultiplierForTier(tier);
-        double nextCost  = TierManager.getCostForTier(tier + 1);
-        double curPoints = profile.getRebirthPoints();
-        boolean canTier  = curPoints >= nextCost;
+        java.util.UUID uid    = player.getUniqueId();
+        int tier              = profile.getTier();
+        BigNumber tierMulti   = TierManager.getMultiplierForTier(tier);
+        BigNumber nextCost    = TierManager.getCostForTierBig(tier + 1);
+        BigNumber curPoints   = profile.getRebirthPoints();
+        boolean canTier       = curPoints.compareTo(nextCost) >= 0;
 
-        // Format tier multi properly — 2^tier can be huge
-        String tierMultiStr = NumberFormatter.format(new BigNumber(tierMulti)) + "x";
+        String tierMultiStr = NumberFormatter.format(tierMulti, uid) + "x";
 
         // ── Slot 11: Player head with stats ──────────────────────────────────
         ItemStack stats = new ItemStack(Material.PLAYER_HEAD);
@@ -52,12 +52,12 @@ public class TierGUI {
                     " ",
                     ChatColor.GRAY + "Current Tier§8: §e" + ChatColor.BOLD + tier,
                     ChatColor.GRAY + "Current Multi§8: §6" + tierMultiStr,
-                    ChatColor.GRAY + "Tier Points§8: §d" + NumberFormatter.format(new BigNumber(profile.getTierPoints())),
+                    ChatColor.GRAY + "Tier Points§8: §d" + NumberFormatter.format(new BigNumber(profile.getTierPoints()), uid),
                     " ",
                     ChatColor.GRAY + "Next Tier Cost§8: §b"
-                            + NumberFormatter.format(new BigNumber(nextCost)) + " §7Points",
+                            + NumberFormatter.format(nextCost, uid) + " §7Points",
                     ChatColor.GRAY + "Your Points§8: §b"
-                            + NumberFormatter.format(new BigNumber(curPoints))
+                            + NumberFormatter.format(curPoints, uid)
             ));
             stats.setItemMeta(sm);
         }
@@ -70,7 +70,7 @@ public class TierGUI {
         double exactTierPtsIfUp = newTierIfUp * artifactTierMult * armorTierMult;
         int    tierPtsWouldGet  = Math.max(newTierIfUp, (int) Math.round(exactTierPtsIfUp));
         double totalTierMulti   = artifactTierMult * armorTierMult;
-        String totalMultiStr    = NumberFormatter.format(new BigNumber(totalTierMulti)) + "x";
+        String totalMultiStr    = NumberFormatter.format(new BigNumber(totalTierMulti), uid) + "x";
 
         // ── Slot 13: Tier up button ───────────────────────────────────────────
         ItemStack button = new ItemStack(canTier ? Material.NETHER_STAR : Material.BARRIER);
@@ -84,12 +84,12 @@ public class TierGUI {
                     ChatColor.GRAY + "to gain a permanent multiplier boost.",
                     " ",
                     ChatColor.GRAY + "Progress§8: §b"
-                            + NumberFormatter.format(new BigNumber(curPoints))
+                            + NumberFormatter.format(curPoints, uid)
                             + ChatColor.GRAY + "§8/§6"
-                            + NumberFormatter.format(new BigNumber(nextCost)),
+                            + NumberFormatter.format(nextCost, uid),
                     " ",
                     ChatColor.GRAY + "Tier Points Reward§8: §e+"
-                            + NumberFormatter.format(new BigNumber(tierPtsWouldGet)),
+                            + NumberFormatter.format(new BigNumber(tierPtsWouldGet), uid),
                     ChatColor.GRAY + "Total Multi§8: §6" + totalMultiStr,
                     " ",
                     canTier ? ChatColor.YELLOW + "✔ Click to TIER UP!" : ChatColor.RED + "✘ Not enough points."

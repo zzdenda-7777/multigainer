@@ -47,6 +47,6 @@ public class ProductionManager {
         profile.addBlockStorage(blockIndex, -toSend);
         addWorkerXp(profile, totalXp);
         player.sendMessage("§7Sent §f" + toSend + " §7" + PickaxeManager.BLOCK_NAMES[blockIndex]
-            + " §8→ §a+" + NumberFormatter.format(new BigNumber(totalXp)) + " §7Work XP");
+            + " §8→ §a+" + NumberFormatter.format(new BigNumber(totalXp), player.getUniqueId()) + " §7Work XP");
     }
 }

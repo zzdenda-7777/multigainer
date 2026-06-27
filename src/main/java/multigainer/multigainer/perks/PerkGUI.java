@@ -58,6 +58,7 @@ public class PerkGUI implements Listener {
 
     // ── Open: Nav ──────────────────────────────────────────────────────────────
     public static void openNav(Player player, PlayerProfile profile, Multigainer plugin) {
+        java.util.UUID uid = player.getUniqueId();
         Inventory inv = Bukkit.createInventory(null, 27, TITLE_NAV);
         ItemStack pane = makePane();
         for (int i = 0; i < 27; i++) inv.setItem(i, pane);
@@ -70,7 +71,7 @@ public class PerkGUI implements Listener {
                 "§7View all 5 perks and their",
                 "§7current multiplier values.",
                 "§8 ",
-                "§7Total Perk Multi: §f" + NumberFormatter.format(totalMulti) + "x",
+                "§7Total Perk Multi: §f" + NumberFormatter.format(totalMulti, uid) + "x",
                 "§8═══════════════════════",
                 "§e▶ Click to view!")));
 
@@ -117,12 +118,13 @@ public class PerkGUI implements Listener {
 
     // ── Open: Status ───────────────────────────────────────────────────────────
     public static void openStatus(Player player, PlayerProfile profile, Multigainer plugin) {
+        java.util.UUID uid = player.getUniqueId();
         Inventory inv = Bukkit.createInventory(null, 36, TITLE_STATUS);
         ItemStack pane = makePane();
         for (int i = 0; i < 36; i++) inv.setItem(i, pane);
 
         for (int i = 0; i < PerkManager.PERK_COUNT; i++) {
-            inv.setItem(STATUS_SLOTS[i], buildStatusItem(i, profile));
+            inv.setItem(STATUS_SLOTS[i], buildStatusItem(i, profile, uid));
         }
         inv.setItem(STATUS_BACK, makeBack(TITLE_NAV));
         player.openInventory(inv);
@@ -130,12 +132,13 @@ public class PerkGUI implements Listener {
 
     // ── Open: Upgrades ─────────────────────────────────────────────────────────
     public static void openUpgrades(Player player, PlayerProfile profile, Multigainer plugin) {
+        java.util.UUID uid = player.getUniqueId();
         Inventory inv = Bukkit.createInventory(null, 54, TITLE_UPGRADES);
         ItemStack pane = makePane();
         for (int i = 0; i < 54; i++) inv.setItem(i, pane);
 
         for (int i = 0; i < PerkManager.PERK_COUNT; i++) {
-            inv.setItem(UPGRADE_SLOTS[i], buildUpgradeItem(i, profile));
+            inv.setItem(UPGRADE_SLOTS[i], buildUpgradeItem(i, profile, uid));
         }
 
         // GP balance info
@@ -144,7 +147,7 @@ public class PerkGUI implements Listener {
         gm.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Grinding Points");
         List<String> gl = new ArrayList<>();
         gl.add(" ");
-        gl.add(ChatColor.GRAY + "Balance: " + ChatColor.GREEN + NumberFormatter.format(new BigNumber(profile.getGrindingPoints())) + " GP");
+        gl.add(ChatColor.GRAY + "Balance: " + ChatColor.GREEN + NumberFormatter.format(new BigNumber(profile.getGrindingPoints()), uid) + " GP");
         gl.add(" ");
         gm.setLore(gl);
         gpItem.setItemMeta(gm);
@@ -170,6 +173,10 @@ public class PerkGUI implements Listener {
     // ── Item builders ──────────────────────────────────────────────────────────
 
     private static ItemStack buildStatusItem(int idx, PlayerProfile profile) {
+        return buildStatusItem(idx, profile, null);
+    }
+
+    private static ItemStack buildStatusItem(int idx, PlayerProfile profile, java.util.UUID uid) {
         int count = profile.getPerkCount(idx);
         double denom = PerkManager.getPerkChanceDenominator(idx, profile.getPerkChanceLevel(idx));
         BigNumber multi = PerkManager.getPerkMultiplierBig(idx, count);
@@ -180,8 +187,8 @@ public class PerkGUI implements Listener {
 
         List<String> lore = new ArrayList<>();
         lore.add(" ");
-        lore.add(ChatColor.GRAY + "Times Found: " + ChatColor.WHITE + NumberFormatter.format(new BigNumber(count)));
-        lore.add(ChatColor.GRAY + "Your Multi:  " + ChatColor.WHITE + NumberFormatter.format(multi) + "x");
+        lore.add(ChatColor.GRAY + "Times Found: " + ChatColor.WHITE + NumberFormatter.format(new BigNumber(count), uid));
+        lore.add(ChatColor.GRAY + "Your Multi:  " + ChatColor.WHITE + NumberFormatter.format(multi, uid) + "x");
         lore.add(ChatColor.GRAY + "Base Rate:   " + ChatColor.AQUA + "x" + PerkManager.PERK_BASE_MULTIPLIERS[idx] + " §7per find");
         lore.add(" ");
         lore.add(ChatColor.GRAY + "Drop Chance: " + ChatColor.YELLOW + "1/" + String.format("%.2f", denom));
@@ -193,6 +200,10 @@ public class PerkGUI implements Listener {
     }
 
     private static ItemStack buildUpgradeItem(int idx, PlayerProfile profile) {
+        return buildUpgradeItem(idx, profile, null);
+    }
+
+    private static ItemStack buildUpgradeItem(int idx, PlayerProfile profile, java.util.UUID uid) {
         int lvl  = profile.getPerkChanceLevel(idx);
         int next = lvl + 1;
         double currentDenom = PerkManager.getPerkChanceDenominator(idx, lvl);
@@ -209,7 +220,7 @@ public class PerkGUI implements Listener {
         lore.add(ChatColor.GRAY + "Current Chance: " + ChatColor.WHITE + "1/" + String.format("%.2f", currentDenom));
         lore.add(" ");
         lore.add(ChatColor.GRAY + "Next Level: " + ChatColor.AQUA + "1/" + String.format("%.2f", nextDenom) + " §8(-2%)");
-        lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GREEN + NumberFormatter.format(new BigNumber(cost)) + " GP");
+        lore.add(ChatColor.GRAY + "Cost: " + ChatColor.GREEN + NumberFormatter.format(new BigNumber(cost), uid) + " GP");
         lore.add(" ");
         lore.add(ChatColor.YELLOW + "Click to upgrade!");
         meta.setLore(lore);
@@ -292,7 +303,7 @@ public class PerkGUI implements Listener {
 
         if (profile.getGrindingPoints() < cost) {
             player.sendMessage(ChatColor.RED + "Not enough GP! Need "
-                + ChatColor.AQUA + NumberFormatter.format(new BigNumber(cost)) + " GP§c.");
+                + ChatColor.AQUA + NumberFormatter.format(new BigNumber(cost), player.getUniqueId()) + " GP§c.");
             return;
         }
 

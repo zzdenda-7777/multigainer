@@ -40,12 +40,13 @@ public class FarmingStorageGUI implements Listener {
     public FarmingStorageGUI(Multigainer plugin) { this.plugin = plugin; }
 
     public static void open(Player player, PlayerProfile profile, Multigainer plugin) {
+        java.util.UUID uid = player.getUniqueId();
         Inventory inv = Bukkit.createInventory(null, 36, TITLE);
         ItemStack pane = makePane();
         for (int i = 0; i < 36; i++) inv.setItem(i, pane);
 
         for (int tier = 0; tier < TIER_COUNT; tier++) {
-            inv.setItem(TIER_SLOTS[tier], buildTierItem(profile, tier));
+            inv.setItem(TIER_SLOTS[tier], buildTierItem(profile, tier, uid));
         }
         inv.setItem(SLOT_AUTO, buildAutoMergeButton(profile.isAutoMerge()));
         inv.setItem(SLOT_ARTIFACTS, makeArtifactsButton());
@@ -71,7 +72,7 @@ public class FarmingStorageGUI implements Listener {
             long amount = clicked.getAmount();
             profile.setSeedStorage(tier, profile.getSeedStorage(tier) + amount);
             event.getClickedInventory().setItem(event.getSlot(), null);
-            refreshInventory(profile, event.getInventory());
+            refreshInventory(profile, event.getInventory(), player.getUniqueId());
             return;
         }
 
@@ -100,14 +101,14 @@ public class FarmingStorageGUI implements Listener {
             if (slot != TIER_SLOTS[tier]) continue;
             if (event.getClick() == ClickType.SHIFT_LEFT) {
                 withdrawStack(player, profile, tier);
-                refreshInventory(profile, event.getInventory());
+                refreshInventory(profile, event.getInventory(), player.getUniqueId());
             } else if (tier < TIER_COUNT - 1) {
                 if (event.getClick() == ClickType.RIGHT) {
                     compressAll(profile, tier);
                 } else {
                     compress64(profile, tier);
                 }
-                refreshInventory(profile, event.getInventory());
+                refreshInventory(profile, event.getInventory(), player.getUniqueId());
             }
             return;
         }
@@ -146,13 +147,13 @@ public class FarmingStorageGUI implements Listener {
         profile.setSeedStorage(tier + 1, profile.getSeedStorage(tier + 1) + converted);
     }
 
-    private void refreshInventory(PlayerProfile profile, Inventory inv) {
+    private void refreshInventory(PlayerProfile profile, Inventory inv, java.util.UUID uid) {
         for (int tier = 0; tier < TIER_COUNT; tier++) {
-            inv.setItem(TIER_SLOTS[tier], buildTierItem(profile, tier));
+            inv.setItem(TIER_SLOTS[tier], buildTierItem(profile, tier, uid));
         }
     }
 
-    private static ItemStack buildTierItem(PlayerProfile profile, int tier) {
+    private static ItemStack buildTierItem(PlayerProfile profile, int tier, java.util.UUID uid) {
         long count = profile.getSeedStorage(tier);
         ItemStack item = new ItemStack(FarmingManager.SEED_TIER_MATERIALS[tier]);
         ItemMeta meta  = item.getItemMeta();
@@ -160,12 +161,12 @@ public class FarmingStorageGUI implements Listener {
         String tierColor = getTierColor(tier);
         meta.setDisplayName(tierColor + "§l" + FarmingManager.SEED_TIER_NAMES[tier]);
 
-        String countStr = FarmingManager.fmtCount(count);
+        String countStr = FarmingManager.fmtCount(count, uid);
         if (tier < TIER_COUNT - 1) {
             long need = FarmingManager.COMPRESS_RATIO - (count % FarmingManager.COMPRESS_RATIO);
             meta.setLore(Arrays.asList(
                 "§7Amount§8: §f" + countStr,
-                "§7Until next§8: §e" + FarmingManager.fmtCount(need == FarmingManager.COMPRESS_RATIO ? 0 : need)
+                "§7Until next§8: §e" + FarmingManager.fmtCount(need == FarmingManager.COMPRESS_RATIO ? 0 : need, uid)
                     + " §8/ §e" + FarmingManager.COMPRESS_RATIO,
                 "",
                 "§7Left Click      §8» §eCompress 64 → 1",

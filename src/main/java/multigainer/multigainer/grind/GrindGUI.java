@@ -42,21 +42,22 @@ public class GrindGUI implements Listener {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         if (profile == null) { player.sendMessage("§cProfile loading, try again!"); return; }
 
+        java.util.UUID uid = player.getUniqueId();
         Inventory inv = Bukkit.createInventory(null, 54, TITLE);
 
         // Fill with black panes like UpgradeGUI
         ItemStack pane = makePane();
         for (int i = 0; i < 54; i++) inv.setItem(i, pane);
 
-        inv.setItem(UPGRADE_SLOTS[0], buildChanceItem(profile));
-        inv.setItem(UPGRADE_SLOTS[1], buildExponentItem(profile));
-        inv.setItem(UPGRADE_SLOTS[2], buildFarmMultiItem(profile));
-        inv.setItem(UPGRADE_SLOTS[3], buildGemMultiItem(profile));
-        inv.setItem(UPGRADE_SLOTS[4], buildFarmXpItem(profile));
-        inv.setItem(UPGRADE_SLOTS[5], buildMineXpItem(profile));
-        inv.setItem(UPGRADE_SLOTS[6], buildSeedMultiItem(profile));
-        inv.setItem(UPGRADE_SLOTS[7], buildGPMultiItem(profile));
-        inv.setItem(SLOT_INFO,   buildInfoItem(profile));
+        inv.setItem(UPGRADE_SLOTS[0], buildChanceItem(profile, uid));
+        inv.setItem(UPGRADE_SLOTS[1], buildExponentItem(profile, uid));
+        inv.setItem(UPGRADE_SLOTS[2], buildFarmMultiItem(profile, uid));
+        inv.setItem(UPGRADE_SLOTS[3], buildGemMultiItem(profile, uid));
+        inv.setItem(UPGRADE_SLOTS[4], buildFarmXpItem(profile, uid));
+        inv.setItem(UPGRADE_SLOTS[5], buildMineXpItem(profile, uid));
+        inv.setItem(UPGRADE_SLOTS[6], buildSeedMultiItem(profile, uid));
+        inv.setItem(UPGRADE_SLOTS[7], buildGPMultiItem(profile, uid));
+        inv.setItem(SLOT_INFO,   buildInfoItem(profile, uid));
         inv.setItem(SLOT_TOGGLE, buildToggleItem(profile));
         inv.setItem(SLOT_BACK,   makeBack());
 
@@ -65,7 +66,7 @@ public class GrindGUI implements Listener {
 
     // ── Upgrade item builders (brief lore matching UpgradeGUI style) ──────────
 
-    private ItemStack buildChanceItem(PlayerProfile profile) {
+    private ItemStack buildChanceItem(PlayerProfile profile, java.util.UUID uid) {
         int lvl = profile.getGrindChanceLevel();
         int next = lvl + 1;
         double cost = GrindManager.getChanceCost(next);
@@ -73,116 +74,76 @@ public class GrindGUI implements Listener {
         double mineNow  = GrindManager.getMiningChanceDenominator(lvl);
         double farmNext = GrindManager.getFarmingChanceDenominator(next);
         double mineNext = GrindManager.getMiningChanceDenominator(next);
-        return buildUpgradeItem(
-            Material.PAPER,
-            ChatColor.GREEN + "" + ChatColor.BOLD + "Chance Reduction",
-            lvl,
+        return buildUpgradeItem(uid, Material.PAPER, ChatColor.GREEN + "" + ChatColor.BOLD + "Chance Reduction", lvl,
             String.format("Farm 1/%.2f  Mine 1/%.2f", farmNow, mineNow),
-            String.format("Farm 1/%.2f  Mine 1/%.2f", farmNext, mineNext),
-            cost
-        );
+            String.format("Farm 1/%.2f  Mine 1/%.2f", farmNext, mineNext), cost);
     }
 
-    private ItemStack buildExponentItem(PlayerProfile profile) {
+    private ItemStack buildExponentItem(PlayerProfile profile, java.util.UUID uid) {
         int lvl = profile.getGrindExponentLevel();
         int next = lvl + 1;
         double cost = GrindManager.getExponentCost(next);
-        return buildUpgradeItem(
-            Material.NETHER_STAR,
-            ChatColor.GOLD + "" + ChatColor.BOLD + "Money Exponent",
-            lvl,
+        return buildUpgradeItem(uid, Material.NETHER_STAR, ChatColor.GOLD + "" + ChatColor.BOLD + "Money Exponent", lvl,
             String.format("Exponent: %.2f", GrindManager.getMoneyExponent(lvl)),
-            String.format("Exponent: %.2f (+0.01)", GrindManager.getMoneyExponent(next)),
-            cost
-        );
+            String.format("Exponent: %.2f (+0.01)", GrindManager.getMoneyExponent(next)), cost);
     }
 
-    private ItemStack buildFarmMultiItem(PlayerProfile profile) {
+    private ItemStack buildFarmMultiItem(PlayerProfile profile, java.util.UUID uid) {
         int lvl = profile.getGrindFarmMultiLevel();
         int next = lvl + 1;
         double cost = GrindManager.getFarmMultiCost(next);
-        return buildUpgradeItem(
-            Material.HAY_BLOCK,
-            ChatColor.YELLOW + "" + ChatColor.BOLD + "Farm Multi",
-            lvl,
+        return buildUpgradeItem(uid, Material.HAY_BLOCK, ChatColor.YELLOW + "" + ChatColor.BOLD + "Farm Multi", lvl,
             String.format("Multi: %.2fx", GrindManager.getFarmMulti(lvl)),
-            String.format("%.2fx (×1.15)", GrindManager.getFarmMulti(next)),
-            cost
-        );
+            String.format("%.2fx (×1.15)", GrindManager.getFarmMulti(next)), cost);
     }
 
-    private ItemStack buildGemMultiItem(PlayerProfile profile) {
+    private ItemStack buildGemMultiItem(PlayerProfile profile, java.util.UUID uid) {
         int lvl = profile.getGrindGemMultiLevel();
         int next = lvl + 1;
         double cost = GrindManager.getGemMultiCost(next);
-        return buildUpgradeItem(
-            Material.DIAMOND,
-            ChatColor.AQUA + "" + ChatColor.BOLD + "Gem Multi",
-            lvl,
+        return buildUpgradeItem(uid, Material.DIAMOND, ChatColor.AQUA + "" + ChatColor.BOLD + "Gem Multi", lvl,
             String.format("Multi: %.2fx", GrindManager.getGemMulti(lvl)),
-            String.format("%.2fx (×1.05)", GrindManager.getGemMulti(next)),
-            cost
-        );
+            String.format("%.2fx (×1.05)", GrindManager.getGemMulti(next)), cost);
     }
 
-    private ItemStack buildFarmXpItem(PlayerProfile profile) {
+    private ItemStack buildFarmXpItem(PlayerProfile profile, java.util.UUID uid) {
         int lvl = profile.getGrindFarmXpLevel();
         int next = lvl + 1;
         double cost = GrindManager.getFarmXpCost(next);
-        return buildUpgradeItem(
-            Material.GOLDEN_CARROT,
-            ChatColor.YELLOW + "" + ChatColor.BOLD + "Farm XP Boost",
-            lvl,
+        return buildUpgradeItem(uid, Material.GOLDEN_CARROT, ChatColor.YELLOW + "" + ChatColor.BOLD + "Farm XP Boost", lvl,
             String.format("XP Multi: %.2fx", GrindManager.getFarmXpMulti(lvl)),
-            String.format("%.2fx (×1.075)", GrindManager.getFarmXpMulti(next)),
-            cost
-        );
+            String.format("%.2fx (×1.075)", GrindManager.getFarmXpMulti(next)), cost);
     }
 
-    private ItemStack buildMineXpItem(PlayerProfile profile) {
+    private ItemStack buildMineXpItem(PlayerProfile profile, java.util.UUID uid) {
         int lvl = profile.getGrindMineXpLevel();
         int next = lvl + 1;
         double cost = GrindManager.getMineXpCost(next);
-        return buildUpgradeItem(
-            Material.IRON_ORE,
-            ChatColor.GRAY + "" + ChatColor.BOLD + "Mine XP Boost",
-            lvl,
+        return buildUpgradeItem(uid, Material.IRON_ORE, ChatColor.GRAY + "" + ChatColor.BOLD + "Mine XP Boost", lvl,
             String.format("XP Multi: %.2fx", GrindManager.getMineXpMulti(lvl)),
-            String.format("%.2fx (×1.04)", GrindManager.getMineXpMulti(next)),
-            cost
-        );
+            String.format("%.2fx (×1.04)", GrindManager.getMineXpMulti(next)), cost);
     }
 
-    private ItemStack buildSeedMultiItem(PlayerProfile profile) {
+    private ItemStack buildSeedMultiItem(PlayerProfile profile, java.util.UUID uid) {
         int lvl = profile.getGrindSeedMultiLevel();
         int next = lvl + 1;
         double cost = GrindManager.getSeedMultiCost(next);
-        return buildUpgradeItem(
-            Material.WHEAT_SEEDS,
-            ChatColor.GREEN + "" + ChatColor.BOLD + "Seed Multi",
-            lvl,
+        return buildUpgradeItem(uid, Material.WHEAT_SEEDS, ChatColor.GREEN + "" + ChatColor.BOLD + "Seed Multi", lvl,
             String.format("Multi: %.2fx", GrindManager.getSeedMulti(lvl)),
-            String.format("%.2fx (×1.03)", GrindManager.getSeedMulti(next)),
-            cost
-        );
+            String.format("%.2fx (×1.03)", GrindManager.getSeedMulti(next)), cost);
     }
 
-    private ItemStack buildGPMultiItem(PlayerProfile profile) {
+    private ItemStack buildGPMultiItem(PlayerProfile profile, java.util.UUID uid) {
         int lvl = profile.getGrindGPMultiLevel();
         int next = lvl + 1;
         double cost = GrindManager.getGPMultiCost(next);
-        return buildUpgradeItem(
-            Material.QUARTZ,
-            ChatColor.WHITE + "" + ChatColor.BOLD + "GP Multi",
-            lvl,
+        return buildUpgradeItem(uid, Material.QUARTZ, ChatColor.WHITE + "" + ChatColor.BOLD + "GP Multi", lvl,
             String.format("Multi: %.2fx", GrindManager.getGPMulti(lvl)),
-            String.format("%.2fx (×1.25)", GrindManager.getGPMulti(next)),
-            cost
-        );
+            String.format("%.2fx (×1.25)", GrindManager.getGPMulti(next)), cost);
     }
 
     // Shared builder matching UpgradeGUI lore layout
-    private static ItemStack buildUpgradeItem(Material mat, String displayName,
+    private static ItemStack buildUpgradeItem(java.util.UUID uid, Material mat, String displayName,
                                               int lvl, String currentStr, String nextStr, double cost) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta  = item.getItemMeta();
@@ -194,7 +155,7 @@ public class GrindGUI implements Listener {
         lore.add(ChatColor.GRAY + "Current: " + ChatColor.WHITE + currentStr);
         lore.add(" ");
         lore.add(ChatColor.GRAY + "Next Level: " + ChatColor.AQUA + nextStr);
-        lore.add(ChatColor.GRAY + "Cost: " + ChatColor.RED + NumberFormatter.format(new BigNumber(cost)) + " §cGP");
+        lore.add(ChatColor.GRAY + "Cost: " + ChatColor.RED + NumberFormatter.format(new BigNumber(cost), uid) + " §cGP");
         lore.add(" ");
         lore.add(ChatColor.YELLOW + "Click to upgrade!");
         meta.setLore(lore);
@@ -202,7 +163,7 @@ public class GrindGUI implements Listener {
         return item;
     }
 
-    private ItemStack buildInfoItem(PlayerProfile profile) {
+    private ItemStack buildInfoItem(PlayerProfile profile, java.util.UUID uid) {
         double gp = profile.getGrindingPoints();
         ItemStack item = new ItemStack(Material.RED_DYE);
         ItemMeta meta  = item.getItemMeta();
@@ -210,7 +171,7 @@ public class GrindGUI implements Listener {
         meta.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + "Grinding Points");
         List<String> lore = new ArrayList<>();
         lore.add(" ");
-        lore.add(ChatColor.GRAY + "Balance: " + ChatColor.RED + NumberFormatter.format(new BigNumber(gp)) + " §cGP");
+        lore.add(ChatColor.GRAY + "Balance: " + ChatColor.RED + NumberFormatter.format(new BigNumber(gp), uid) + " §cGP");
         lore.add(ChatColor.GRAY + "Farm chance: " + ChatColor.WHITE + "1/" + String.format("%.2f", GrindManager.getFarmingChanceDenominator(profile.getGrindChanceLevel())));
         lore.add(ChatColor.GRAY + "Mine chance: " + ChatColor.WHITE + "1/" + String.format("%.2f", GrindManager.getMiningChanceDenominator(profile.getGrindChanceLevel())));
         lore.add(" ");
@@ -261,7 +222,7 @@ public class GrindGUI implements Listener {
 
         if (profile.getGrindingPoints() < cost) {
             player.sendMessage(ChatColor.RED + "Not enough GP! Need "
-                    + ChatColor.AQUA + NumberFormatter.format(new BigNumber(cost)) + " GP§c.");
+                    + ChatColor.AQUA + NumberFormatter.format(new BigNumber(cost), player.getUniqueId()) + " GP§c.");
             return;
         }
 

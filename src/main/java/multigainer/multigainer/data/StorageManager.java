@@ -177,7 +177,10 @@ public class StorageManager {
                     "ALTER TABLE mg_player_profiles ADD COLUMN armor_high_buys INTEGER DEFAULT 0;",
                     "ALTER TABLE mg_player_profiles ADD COLUMN armor_skip_anim_unlocked INTEGER DEFAULT 0;",
                     "ALTER TABLE mg_player_profiles ADD COLUMN armor_skip_anim_enabled INTEGER DEFAULT 0;",
-                    "ALTER TABLE mg_player_profiles ADD COLUMN crops_farmed BIGINT DEFAULT 0;"
+                    "ALTER TABLE mg_player_profiles ADD COLUMN crops_farmed BIGINT DEFAULT 0;",
+                    // BigNumber rebirth points (replaces single REAL column)
+                    "ALTER TABLE mg_player_profiles ADD COLUMN rebirth_points_mantissa REAL DEFAULT 0;",
+                    "ALTER TABLE mg_player_profiles ADD COLUMN rebirth_points_exponent REAL DEFAULT 0;"
             };
             for (String sql : all) {
                 try { stmt.execute(sql); } catch (SQLException ignored) {}

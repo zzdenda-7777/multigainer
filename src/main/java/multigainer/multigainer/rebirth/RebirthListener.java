@@ -33,16 +33,16 @@ public class RebirthListener implements Listener {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
 
         // Validate player account status against configuration baselines[cite: 23]
-        if (profile.getMoney().toDouble() < RebirthManager.REBIRTH_THRESHOLD) {
+        if (profile.getMoney().compareTo(new BigNumber(RebirthManager.REBIRTH_THRESHOLD)) < 0) {
             player.sendMessage(ChatColor.RED + "You need at least 500k money to rebirth!");
             player.closeInventory();
             return;
         }
 
         // Process reward distributions[cite: 23]
-        double pointsGained = RebirthManager.calculateRebirthPoints(profile.getMoney().toDouble())
-                * ArtifactManager.getMultiplierDouble(profile, ArtifactType.REBIRTH_POINTS);
-        profile.setRebirthPoints(profile.getRebirthPoints() + pointsGained);
+        BigNumber pointsGained = RebirthManager.calculateRebirthPoints(profile.getMoney())
+                .multiply(new BigNumber(ArtifactManager.getMultiplierDouble(profile, ArtifactType.REBIRTH_POINTS)));
+        profile.setRebirthPoints(profile.getRebirthPoints().add(pointsGained));
         profile.setRebirthCount(profile.getRebirthCount() + 1);
 
         // FIX: Explicitly define both parameters as 0.0 to prevent Math.log10(0) from breaking your income[cite: 23]
@@ -53,7 +53,7 @@ public class RebirthListener implements Listener {
         profile.setFarmMultiUpgradeLevel(0);
 
         // CHANGED: Formats the massive unformatted number from image_34ec6c.jpg into a clean formatted suffix string
-        String formattedGained = NumberFormatter.format(new BigNumber(pointsGained));
+        String formattedGained = NumberFormatter.format(pointsGained, player.getUniqueId());
 
         // Send immersive title/subtitle notification graphics directly onto the player's view screen[cite: 23]
         player.sendTitle(

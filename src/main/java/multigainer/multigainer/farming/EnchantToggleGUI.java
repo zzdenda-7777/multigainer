@@ -39,9 +39,10 @@ public class EnchantToggleGUI implements Listener {
         ItemStack pane = makePane();
         for (int i = 0; i < 27; i++) inv.setItem(i, pane);
 
+        java.util.UUID uid = player.getUniqueId();
         int farmLevel = profile.getFarmingLevel();
         for (int i = 0; i < 4; i++) {
-            inv.setItem(ENCHANT_SLOTS[i], buildEnchantItem(i, profile.isEnchantMessageEnabled(i), farmLevel));
+            inv.setItem(ENCHANT_SLOTS[i], buildEnchantItem(i, profile.isEnchantMessageEnabled(i), farmLevel, uid));
         }
         inv.setItem(SLOT_LEVEL_UP, buildLevelUpItem(profile.isLevelUpFarmMessageEnabled()));
         inv.setItem(SLOT_BACK, makeBack());
@@ -75,7 +76,7 @@ public class EnchantToggleGUI implements Listener {
             if (slot == ENCHANT_SLOTS[i]) {
                 boolean newState = !profile.isEnchantMessageEnabled(i);
                 profile.setEnchantMessageEnabled(i, newState);
-                event.getInventory().setItem(slot, buildEnchantItem(i, newState, profile.getFarmingLevel()));
+                event.getInventory().setItem(slot, buildEnchantItem(i, newState, profile.getFarmingLevel(), player.getUniqueId()));
                 player.sendMessage("§8[§e⚡§8] §7" + FarmingManager.ENCHANT_NAMES[i]
                     + " messages " + (newState ? "§aenabled" : "§cdisabled") + "§7.");
                 return;
@@ -84,6 +85,10 @@ public class EnchantToggleGUI implements Listener {
     }
 
     private static ItemStack buildEnchantItem(int idx, boolean enabled, int farmLevel) {
+        return buildEnchantItem(idx, enabled, farmLevel, null);
+    }
+
+    private static ItemStack buildEnchantItem(int idx, boolean enabled, int farmLevel, java.util.UUID uid) {
         Material mat  = enabled ? Material.LIME_DYE : Material.GRAY_DYE;
         ItemStack item = new ItemStack(mat);
         ItemMeta  meta = item.getItemMeta();
@@ -92,7 +97,7 @@ public class EnchantToggleGUI implements Listener {
         meta.setDisplayName((enabled ? "§a§l" : "§7§l") + icons[idx] + " " + FarmingManager.ENCHANT_NAMES[idx]);
 
         double  chance   = FarmingManager.getEnchantChance(idx, farmLevel);
-        String  seedAmt  = NumberFormatter.format(new BigNumber((double) FarmingManager.ENCHANT_SEED_MULTI[idx]));
+        String  seedAmt  = NumberFormatter.format(new BigNumber((double) FarmingManager.ENCHANT_SEED_MULTI[idx]), uid);
         String[] maxLvls = { "2,500", "25,000", "500,000", "25,000,000" };
         meta.setLore(Arrays.asList(
             "§7Grants §c" + seedAmt + "x Seeds §7on proc.",

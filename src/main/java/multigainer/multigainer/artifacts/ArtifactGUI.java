@@ -37,32 +37,33 @@ public class ArtifactGUI implements Listener {
     public ArtifactGUI(Multigainer plugin) { this.plugin = plugin; }
 
     public static void open(Player player, PlayerProfile profile, Multigainer plugin) {
+        java.util.UUID uid = player.getUniqueId();
         Inventory inv = Bukkit.createInventory(null, SIZE,
                 LegacyComponentSerializer.legacySection().deserialize(TITLE));
 
         ItemStack glass = makeGlass();
         for (int i = 0; i < SIZE; i++) inv.setItem(i, glass);
 
-        inv.setItem(SLOT_1, buildSlotDisplay(plugin, profile, 0));
-        inv.setItem(SLOT_2, buildSlotDisplay(plugin, profile, 1));
-        inv.setItem(SLOT_3, buildSlotDisplay(plugin, profile, 2));
+        inv.setItem(SLOT_1, buildSlotDisplay(plugin, profile, 0, uid));
+        inv.setItem(SLOT_2, buildSlotDisplay(plugin, profile, 1, uid));
+        inv.setItem(SLOT_3, buildSlotDisplay(plugin, profile, 2, uid));
         inv.setItem(SLOT_VAULT, makeVaultButton());
         inv.setItem(SLOT_BACK, makeBack());
 
         player.openInventory(inv);
     }
 
-    private static ItemStack buildSlotDisplay(Multigainer plugin, PlayerProfile profile, int idx) {
+    private static ItemStack buildSlotDisplay(Multigainer plugin, PlayerProfile profile, int idx, java.util.UUID uid) {
         if (idx == 0 || profile.isArtifactSlotUnlocked(idx)) {
             String id = profile.getArtifactSlot(idx);
             if (id != null && !id.isEmpty()) {
                 ArtifactManager.ArtifactRecord r = ArtifactManager.getById(id);
-                if (r != null) return ArtifactManager.buildItem(plugin, r);
+                if (r != null) return ArtifactManager.buildItem(plugin, r, uid);
             }
             return makeEmptySlot(idx == 0);
         }
         double cost = idx == 1 ? COST_2 : COST_3;
-        return makeLockedSlot(cost);
+        return makeLockedSlot(cost, uid);
     }
 
     @EventHandler
@@ -105,7 +106,7 @@ public class ArtifactGUI implements Listener {
             profile.setRubies(profile.getRubies().subtract(new BigNumber(cost)));
             profile.setArtifactSlotUnlocked(slotIdx, true);
             player.sendMessage("§a§l✦ §aSlot " + (slotIdx + 1) + " unlocked!");
-            Bukkit.getScheduler().runTask(plugin, () -> open(player, profile, plugin));
+            Bukkit.getScheduler().runTask(plugin, () -> open(player, profile, plugin)); // reopen updates uid internally
             return;
         }
 
@@ -144,7 +145,7 @@ public class ArtifactGUI implements Listener {
             }
 
             profile.setArtifactSlot(slotIdx, incoming.id());
-            Bukkit.getScheduler().runTask(plugin, () -> open(player, profile, plugin));
+            Bukkit.getScheduler().runTask(plugin, () -> open(player, profile, plugin)); // reopen updates uid internally
             return;
         }
 
@@ -154,7 +155,7 @@ public class ArtifactGUI implements Listener {
             if (r == null) return;
             player.setItemOnCursor(ArtifactManager.buildItem(plugin, r));
             profile.setArtifactSlot(slotIdx, "");
-            Bukkit.getScheduler().runTask(plugin, () -> open(player, profile, plugin));
+            Bukkit.getScheduler().runTask(plugin, () -> open(player, profile, plugin)); // reopen updates uid internally
         }
     }
 
@@ -234,14 +235,14 @@ public class ArtifactGUI implements Listener {
         return item;
     }
 
-    private static ItemStack makeLockedSlot(double cost) {
+    private static ItemStack makeLockedSlot(double cost, java.util.UUID uid) {
         ItemStack item = new ItemStack(Material.RED_STAINED_GLASS_PANE);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName("§c§lLocked Slot");
             List<String> lore = new ArrayList<>();
             lore.add("§8§m──────────────────────");
-            lore.add("§7Cost: §e" + NumberFormatter.format(new BigNumber(cost)) + " §7Rubies");
+            lore.add("§7Cost: §e" + NumberFormatter.format(new BigNumber(cost), uid) + " §7Rubies");
             lore.add("§7Click to unlock.");
             lore.add("§8§m──────────────────────");
             meta.setLore(lore);

@@ -57,7 +57,7 @@ public class GiveCommand implements CommandExecutor {
                 profile.setTier((int) amount);
                 break;
             case "rebirth":
-                profile.setRebirthPoints(amount);
+                profile.setRebirthPoints(new BigNumber(amount));
                 break;
             case "grindingpoints":
             case "gp":

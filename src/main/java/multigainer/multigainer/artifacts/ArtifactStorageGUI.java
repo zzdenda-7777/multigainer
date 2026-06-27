@@ -28,6 +28,7 @@ public class ArtifactStorageGUI implements Listener {
     public ArtifactStorageGUI(Multigainer plugin) { this.plugin = plugin; }
 
     public static void open(Player player, PlayerProfile profile, Multigainer plugin) {
+        java.util.UUID uid = player.getUniqueId();
         Inventory inv = Bukkit.createInventory(null, SIZE,
                 LegacyComponentSerializer.legacySection().deserialize(TITLE));
 
@@ -40,7 +41,7 @@ public class ArtifactStorageGUI implements Listener {
             String id = profile.getArtifactVaultSlot(i);
             if (id != null && !id.isEmpty()) {
                 ArtifactManager.ArtifactRecord r = ArtifactManager.getById(id);
-                inv.setItem(i, r != null ? ArtifactManager.buildItem(plugin, r) : makeEmpty());
+                inv.setItem(i, r != null ? ArtifactManager.buildItem(plugin, r, uid) : makeEmpty());
             } else {
                 inv.setItem(i, makeEmpty());
             }

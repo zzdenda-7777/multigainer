@@ -1,21 +1,23 @@
 package multigainer.multigainer.rebirth;
 
 import multigainer.multigainer.math.BigNumber;
+import multigainer.multigainer.upgrades.UpgradeManager;
 
 public class RebirthManager {
     public static final double REBIRTH_THRESHOLD = 500000.0;
 
-    // Calculation: Math.cbrt(money) (Cube root of 3rd power/Money)
-    public static double calculateRebirthPoints(double money) {
-        // Pokud je money 0 nebo méně, vracíme 0, nebudeme dělit
-        if (money <= 0) return 0.0;
-
-        // Zde teprve proveď svůj výpočet, např.:
-        return Math.pow(money, 1.0 / 3.0);
+    // money^(1/3) via log10 — works for any BigNumber magnitude
+    public static BigNumber calculateRebirthPoints(BigNumber money) {
+        if (money == null || money.getMantissa() == 0) return new BigNumber(0);
+        double log10money = money.getExponent() + Math.log10(money.getMantissa());
+        return UpgradeManager.fromLog10(log10money / 3.0);
     }
 
-    // Calculation: Sqrt(15) of Rebirth Points
-    public static double calculateMoneyMultiplier(double rebirthPoints) {
-        return 1.0 + Math.pow(rebirthPoints, 1.0 / 15.0);
+    // 1 + RP^(1/15) via log10 — works for any BigNumber magnitude
+    public static BigNumber calculateMoneyMultiplier(BigNumber rebirthPoints) {
+        if (rebirthPoints == null || rebirthPoints.getMantissa() == 0) return new BigNumber(1.0);
+        double log10rp = rebirthPoints.getExponent() + Math.log10(rebirthPoints.getMantissa());
+        BigNumber power = UpgradeManager.fromLog10(log10rp / 15.0);
+        return power.add(new BigNumber(1.0));
     }
 }

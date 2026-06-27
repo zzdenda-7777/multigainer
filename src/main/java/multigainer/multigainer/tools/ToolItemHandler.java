@@ -35,6 +35,10 @@ public class ToolItemHandler implements Listener {
 
     // Build the hoe from a player's live profile (join, tier-up, lore refresh)
     public ItemStack getHoeForProfile(PlayerProfile profile) {
+        return getHoeForProfile(profile, null);
+    }
+
+    public ItemStack getHoeForProfile(PlayerProfile profile, java.util.UUID uid) {
         int hoeTier  = profile != null ? profile.getHoeTier() : 0;
         Material mat = FarmingManager.HOE_MATERIALS[hoeTier];
         String color = FarmingManager.HOE_TIER_COLORS[hoeTier];
@@ -43,9 +47,8 @@ public class ToolItemHandler implements Listener {
         ItemStack hoe  = new ItemStack(mat);
         ItemMeta  meta = hoe.getItemMeta();
         if (meta != null) {
-            // Name format: "MATERIAL HOE" bold capitals (e.g. "WOODEN HOE")
             meta.setDisplayName(color + "§l" + name.toUpperCase() + " HOE");
-            meta.setLore(profile != null ? ToolGUI.buildInventoryHoeLore(profile) : List.of("§7Right-click to open menu!"));
+            meta.setLore(profile != null ? ToolGUI.buildInventoryHoeLore(profile, uid) : List.of("§7Right-click to open menu!"));
             meta.setUnbreakable(true);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES);
             meta.getPersistentDataContainer().set(
@@ -75,6 +78,10 @@ public class ToolItemHandler implements Listener {
 
     // Builds the pickaxe item using the player's current tier and mining speed level
     public ItemStack getPickaxeForProfile(PlayerProfile profile) {
+        return getPickaxeForProfile(profile, null);
+    }
+
+    public ItemStack getPickaxeForProfile(PlayerProfile profile, java.util.UUID uid) {
         int tier = profile != null ? profile.getPickaxeTier() : 0;
         int speedLevel = profile != null ? profile.getMiningSpeedLevel() : 0;
         int xpLvl = profile != null ? profile.getXpMultiLevel() : 0;
@@ -111,12 +118,12 @@ public class ToolItemHandler implements Listener {
             lore.add("§7Gem Multi§8: §b×" + String.format("%.2f", PickaxeManager.getGemMultiplier(gemLvl)));
             lore.add("§8§m──────────────────────");
             lore.add("§7Rebirth Points§8: §5"
-                    + (profile != null ? NumberFormatter.format(new BigNumber(profile.getRebirthPoints())) : "0"));
+                    + (profile != null ? NumberFormatter.format(profile.getRebirthPoints(), uid) : "0"));
             lore.add("§7Grinding Points§8: §c"
-                    + (profile != null ? NumberFormatter.format(new BigNumber(profile.getGrindingPoints())) : "0"));
-            lore.add("§7Blocks Mined§8: §f" + NumberFormatter.format(new BigNumber((double) totalBlocks)));
-            lore.add("§7Perks§8: §f" + NumberFormatter.format(new BigNumber((double) totalPerks))
-                    + " §8(§a" + NumberFormatter.format(perkMulti) + "x §7multi§8)");
+                    + (profile != null ? NumberFormatter.format(new BigNumber(profile.getGrindingPoints()), uid) : "0"));
+            lore.add("§7Blocks Mined§8: §f" + NumberFormatter.format(new BigNumber((double) totalBlocks), uid));
+            lore.add("§7Perks§8: §f" + NumberFormatter.format(new BigNumber((double) totalPerks), uid)
+                    + " §8(§a" + NumberFormatter.format(perkMulti, uid) + "x §7multi§8)");
             lore.add("§8§m──────────────────────");
             lore.add("§7Right-click to open pickaxe menu!");
             meta.setLore(lore);
@@ -152,7 +159,7 @@ public class ToolItemHandler implements Listener {
 
     public void updatePickaxeInInventory(Player player) {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
-        ItemStack newPickaxe = getPickaxeForProfile(profile);
+        ItemStack newPickaxe = getPickaxeForProfile(profile, player.getUniqueId());
         org.bukkit.inventory.PlayerInventory inv = player.getInventory();
         for (int i = 0; i < inv.getSize(); i++) {
             if (isCustomPickaxe(inv.getItem(i))) { inv.setItem(i, newPickaxe); return; }
@@ -163,7 +170,7 @@ public class ToolItemHandler implements Listener {
     public void updateHoeInInventory(Player player) {
         PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
         if (profile == null) return;
-        ItemStack newHoe = getHoeForProfile(profile);
+        ItemStack newHoe = getHoeForProfile(profile, player.getUniqueId());
         org.bukkit.inventory.PlayerInventory inv = player.getInventory();
         for (int i = 0; i < inv.getSize(); i++) {
             if (isCustomHoe(inv.getItem(i))) { inv.setItem(i, newHoe); return; }

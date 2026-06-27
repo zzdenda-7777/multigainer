@@ -36,8 +36,8 @@ public class IncomeManager {
 
                     // All money multipliers combined
                     BigNumber upgradeMultiplier  = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
-                    double rebirthBonus          = RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints());
-                    double tierBonus             = TierManager.getMultiplierForTier(profile.getTier());
+                    BigNumber rebirthBonus       = RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints());
+                    BigNumber tierBonus          = TierManager.getMultiplierForTier(profile.getTier());
                     BigNumber mineMoneyMultiplier = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
                     BigNumber farmMultiplier      = new BigNumber(profile.getFarmMulti());
                     BigNumber farmUpgMultiplier   = UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());
@@ -45,8 +45,8 @@ public class IncomeManager {
                     BigNumber perkMultiplier      = PerkManager.getTotalPerkMultiplierBig(profile.getPerkCounts());
 
                     BigNumber allMulti = upgradeMultiplier
-                            .multiply(new BigNumber(rebirthBonus))
-                            .multiply(new BigNumber(tierBonus))
+                            .multiply(rebirthBonus)
+                            .multiply(tierBonus)
                             .multiply(mineMoneyMultiplier)
                             .multiply(farmMultiplier)
                             .multiply(farmUpgMultiplier)

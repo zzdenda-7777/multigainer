@@ -36,8 +36,8 @@ public class StatsMoneyCommand implements CommandExecutor {
         }
 
         BigNumber upgradeMulti      = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
-        double    rebirthBonus      = RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints());
-        double    tierBonus         = TierManager.getMultiplierForTier(profile.getTier());
+        BigNumber rebirthBonus      = RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints());
+        BigNumber tierBonus         = TierManager.getMultiplierForTier(profile.getTier());
         BigNumber mineMoneyMulti    = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
         BigNumber farmMulti         = new BigNumber(profile.getFarmMulti());
         BigNumber farmUpgMulti      = UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());
@@ -47,8 +47,8 @@ public class StatsMoneyCommand implements CommandExecutor {
 
         // Total (before exponent)
         BigNumber totalLinear = upgradeMulti
-            .multiply(new BigNumber(rebirthBonus))
-            .multiply(new BigNumber(tierBonus))
+            .multiply(rebirthBonus)
+            .multiply(tierBonus)
             .multiply(mineMoneyMulti)
             .multiply(farmMulti)
             .multiply(farmUpgMulti)
@@ -59,25 +59,26 @@ public class StatsMoneyCommand implements CommandExecutor {
         double log10 = Math.log10(totalLinear.getMantissa()) + totalLinear.getExponent();
         BigNumber totalEarned = UpgradeManager.fromLog10(exponent * log10);
 
+        java.util.UUID uid = player.getUniqueId();
         player.sendMessage(ChatColor.GOLD + "════════ 💰 MONEY MULTIPLIERS 💰 ════════");
-        player.sendMessage(fmt("⚡ Upgrade Multi",    upgradeMulti));
-        player.sendMessage(fmt("🌱 Farm Multi",       farmMulti));
-        player.sendMessage(fmt("🔧 Farm Upgrade",     farmUpgMulti));
-        player.sendMessage(fmt("🏔 Tier Bonus",       new BigNumber(tierBonus)));
-        player.sendMessage(fmt("💀 Rebirth Bonus",    new BigNumber(rebirthBonus)));
-        player.sendMessage(fmt("⛏ Mine Level",       mineMoneyMulti));
-        player.sendMessage(fmt("🌾 Grind Farm",       grindFarmMulti));
-        player.sendMessage(fmt("✦ Perk Multi",        perkMulti));
+        player.sendMessage(fmt(zuid, "⚡ Upgrade Multi",    upgradeMulti));
+        player.sendMessage(fmt(uid, "🌱 Farm Multi",       farmMulti));
+        player.sendMessage(fmt(uid, "🔧 Farm Upgrade",     farmUpgMulti));
+        player.sendMessage(fmt(uid, "🏔 Tier Bonus",       tierBonus));
+        player.sendMessage(fmt(uid, "💀 Rebirth Bonus",    rebirthBonus));
+        player.sendMessage(fmt(uid, "⛏ Mine Level",       mineMoneyMulti));
+        player.sendMessage(fmt(uid, "🌾 Grind Farm",       grindFarmMulti));
+        player.sendMessage(fmt(uid, "✦ Perk Multi",        perkMulti));
         player.sendMessage(ChatColor.GRAY + "──────────────────────────────────────");
-        player.sendMessage(ChatColor.GRAY + "Total Multi: " + ChatColor.WHITE + NumberFormatter.format(totalLinear) + "x");
-        player.sendMessage(ChatColor.GRAY + "After Exponent: " + ChatColor.WHITE + NumberFormatter.format(totalEarned) + "/s");
+        player.sendMessage(ChatColor.GRAY + "Total Multi: " + ChatColor.WHITE + NumberFormatter.format(totalLinear, uid) + "x");
+        player.sendMessage(ChatColor.GRAY + "After Exponent: " + ChatColor.WHITE + NumberFormatter.format(totalEarned, uid) + "/s");
         player.sendMessage(ChatColor.YELLOW + "^ Exponent: §f" + String.format("%.2f", exponent));
         player.sendMessage(ChatColor.GOLD + "══════════════════════════════════════");
 
         return true;
     }
 
-    private static String fmt(String label, BigNumber value) {
-        return ChatColor.GRAY + label + ": " + ChatColor.WHITE + NumberFormatter.format(value) + "x";
+    private static String fmt(java.util.UUID uid, String label, BigNumber value) {
+        return ChatColor.GRAY + label + ": " + ChatColor.WHITE + NumberFormatter.format(value, uid) + "x";
     }
 }

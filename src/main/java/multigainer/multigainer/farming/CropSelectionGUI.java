@@ -47,10 +47,11 @@ public class CropSelectionGUI implements Listener {
         int playerTier = profile.getTier();
         int chosenCrop = profile.getChosenCrop();
 
+        java.util.UUID uid = player.getUniqueId();
         for (int i = 0; i < FarmingManager.CROP_COUNT; i++) {
             int slot     = (i < 9) ? (9 + i) : (18 + i - 9);
             boolean unlocked = playerTier >= FarmingManager.CROP_UNLOCK_TIERS[i];
-            inv.setItem(slot, buildCropItem(i, chosenCrop == i, unlocked, playerTier));
+            inv.setItem(slot, buildCropItem(i, chosenCrop == i, unlocked, playerTier, uid));
         }
         inv.setItem(SLOT_BACK, makeBack());
         player.openInventory(inv);
@@ -106,10 +107,11 @@ public class CropSelectionGUI implements Listener {
         // Refresh highlights
         Inventory inv  = event.getInventory();
         int playerTier = profile.getTier();
+        java.util.UUID uid2 = player.getUniqueId();
         for (int i = 0; i < FarmingManager.CROP_COUNT; i++) {
             int guiSlot  = (i < 9) ? (9 + i) : (18 + i - 9);
             boolean unlocked = playerTier >= FarmingManager.CROP_UNLOCK_TIERS[i];
-            inv.setItem(guiSlot, buildCropItem(i, i == cropIndex, unlocked, playerTier));
+            inv.setItem(guiSlot, buildCropItem(i, i == cropIndex, unlocked, playerTier, uid2));
         }
     }
 
@@ -122,7 +124,7 @@ public class CropSelectionGUI implements Listener {
         FarmingManager.sendFieldCropChange(player, cropIndex, plugin);
     }
 
-    private static ItemStack buildCropItem(int cropIndex, boolean selected, boolean unlocked, int playerTier) {
+    private static ItemStack buildCropItem(int cropIndex, boolean selected, boolean unlocked, int playerTier, java.util.UUID uid) {
         ItemStack item;
         ItemMeta  meta;
 
@@ -142,7 +144,7 @@ public class CropSelectionGUI implements Listener {
             meta.setDisplayName(FarmingManager.CROP_NAMES[cropIndex]);
 
             long   multi    = FarmingManager.getSeedMultiplier(cropIndex);
-            String multiStr = "§6×" + FarmingManager.fmtCount(multi);
+            String multiStr = "§6×" + FarmingManager.fmtCount(multi, uid);
 
             List<String> lore = new ArrayList<>();
             lore.add("§7Seed Multiplier§8: " + multiStr + " §7Seeds");

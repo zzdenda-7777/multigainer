@@ -33,14 +33,15 @@ public class PickaxeUpgradeGUI implements Listener {
     }
 
     public static void open(Player player, PlayerProfile profile, Multigainer plugin) {
+        java.util.UUID uid = player.getUniqueId();
         Inventory inv = Bukkit.createInventory(null, 27, TITLE);
 
         ItemStack pane = makePane(Material.GRAY_STAINED_GLASS_PANE);
         for (int i = 0; i < 27; i++) inv.setItem(i, pane);
 
-        inv.setItem(SLOT_SPEED, buildMiningSpeedItem(profile));
-        inv.setItem(SLOT_XP,    buildXpMultiItem(profile));
-        inv.setItem(SLOT_GEM,   buildGemMultiItem(profile));
+        inv.setItem(SLOT_SPEED, buildMiningSpeedItem(profile, uid));
+        inv.setItem(SLOT_XP,    buildXpMultiItem(profile, uid));
+        inv.setItem(SLOT_GEM,   buildGemMultiItem(profile, uid));
         inv.setItem(SLOT_BACK,  buildBackItem());
 
         player.openInventory(inv);
@@ -48,7 +49,7 @@ public class PickaxeUpgradeGUI implements Listener {
 
     // --- Item Builders ---
 
-    private static ItemStack buildMiningSpeedItem(PlayerProfile profile) {
+    private static ItemStack buildMiningSpeedItem(PlayerProfile profile, java.util.UUID uid) {
         int level = profile.getMiningSpeedLevel();
         boolean isMax = level >= 50;
         BigNumber cost = PickaxeManager.getMiningSpeedCost(level);
@@ -64,7 +65,7 @@ public class PickaxeUpgradeGUI implements Listener {
             "§7Efficiency: §fLevel " + level,
             "",
             isMax ? "" : "§7Next Level: §fLevel " + (level + 1),
-            isMax ? "§a✔ Max level reached!" : "§7Cost: §b" + NumberFormatter.format(cost) + " Gems",
+            isMax ? "§a✔ Max level reached!" : "§7Cost: §b" + NumberFormatter.format(cost, uid) + " Gems",
             "",
             isMax ? "§7No further upgrades available." : "§eClick to upgrade!"
         ));
@@ -72,7 +73,7 @@ public class PickaxeUpgradeGUI implements Listener {
         return item;
     }
 
-    private static ItemStack buildXpMultiItem(PlayerProfile profile) {
+    private static ItemStack buildXpMultiItem(PlayerProfile profile, java.util.UUID uid) {
         int level = profile.getXpMultiLevel();
         double totalMulti = PickaxeManager.getXpMultiplier(level);
         BigNumber cost = PickaxeManager.getXpMultiCost(level);
@@ -88,7 +89,7 @@ public class PickaxeUpgradeGUI implements Listener {
             "§7Total XP Multi: §ax" + String.format("%.4f", totalMulti),
             "§7Per Level: §a+1.05x §8(Exponential)",
             "",
-            "§7Cost: §b" + NumberFormatter.format(cost) + " Gems",
+            "§7Cost: §b" + NumberFormatter.format(cost, uid) + " Gems",
             "",
             "§eClick to upgrade!"
         ));
@@ -96,7 +97,7 @@ public class PickaxeUpgradeGUI implements Listener {
         return item;
     }
 
-    private static ItemStack buildGemMultiItem(PlayerProfile profile) {
+    private static ItemStack buildGemMultiItem(PlayerProfile profile, java.util.UUID uid) {
         int level = profile.getGemMultiLevel();
         int mineLevel = profile.getMiningLevel();
         double upgradeMulti = PickaxeManager.getGemMultiplier(level);
@@ -118,7 +119,7 @@ public class PickaxeUpgradeGUI implements Listener {
             "§7Mining Lvl Multi: §bx" + String.format("%.4f", miningLevelMulti),
             "§7Total Gem Multi: §bx" + String.format("%.4f", totalMulti),
             "",
-            "§7Cost: §b" + NumberFormatter.format(cost) + " Gems",
+            "§7Cost: §b" + NumberFormatter.format(cost, uid) + " Gems",
             "",
             "§eClick to upgrade!"
         ));
@@ -168,13 +169,12 @@ public class PickaxeUpgradeGUI implements Listener {
         }
         BigNumber cost = PickaxeManager.getMiningSpeedCost(profile.getMiningSpeedLevel());
         if (profile.getGems().compareTo(cost) < 0) {
-            player.sendMessage("§c§lNot enough gems! §7You need §b" + NumberFormatter.format(cost) + " Gems§7.");
+            player.sendMessage("§c§lNot enough gems! §7You need §b" + NumberFormatter.format(cost, player.getUniqueId()) + " Gems§7.");
             return;
         }
         profile.setGems(profile.getGems().subtract(cost));
         profile.setMiningSpeedLevel(profile.getMiningSpeedLevel() + 1);
 
-        // Apply new efficiency enchant to the held pickaxe
         plugin.getToolHandler().updatePickaxeInInventory(player);
         updateScoreboard(player, profile);
 
@@ -186,7 +186,7 @@ public class PickaxeUpgradeGUI implements Listener {
     private void purchaseXpMulti(Player player, PlayerProfile profile) {
         BigNumber cost = PickaxeManager.getXpMultiCost(profile.getXpMultiLevel());
         if (profile.getGems().compareTo(cost) < 0) {
-            player.sendMessage("§c§lNot enough gems! §7You need §b" + NumberFormatter.format(cost) + " Gems§7.");
+            player.sendMessage("§c§lNot enough gems! §7You need §b" + NumberFormatter.format(cost, player.getUniqueId()) + " Gems§7.");
             return;
         }
         profile.setGems(profile.getGems().subtract(cost));
@@ -202,7 +202,7 @@ public class PickaxeUpgradeGUI implements Listener {
     private void purchaseGemMulti(Player player, PlayerProfile profile) {
         BigNumber cost = PickaxeManager.getGemMultiCost(profile.getGemMultiLevel());
         if (profile.getGems().compareTo(cost) < 0) {
-            player.sendMessage("§c§lNot enough gems! §7You need §b" + NumberFormatter.format(cost) + " Gems§7.");
+            player.sendMessage("§c§lNot enough gems! §7You need §b" + NumberFormatter.format(cost, player.getUniqueId()) + " Gems§7.");
             return;
         }
         profile.setGems(profile.getGems().subtract(cost));

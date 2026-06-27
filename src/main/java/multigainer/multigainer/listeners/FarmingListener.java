@@ -121,7 +121,7 @@ public class FarmingListener implements Listener {
             reqXp = FarmingLevelManager.getRequiredXpForNextLevel(level);
             if (profile.isLevelUpFarmMessageEnabled()) {
                 player.sendMessage("§a§l[!] §7Farm Level Up! Now §e"
-                        + NumberFormatter.format(new BigNumber(level)) + "§7!");
+                        + NumberFormatter.format(new BigNumber(level), player.getUniqueId()) + "§7!");
             }
         }
         profile.setFarmingXp(currentXp);
@@ -139,7 +139,7 @@ public class FarmingListener implements Listener {
                     * ArmorManager.getMultiplier(profile, ArmorType.GRIND_POINTS);
             profile.addGrindingPoints(gpEarned);
             if (profile.isGrindMessagesEnabled()) {
-                player.sendMessage("§c§l[+] §c" + NumberFormatter.format(new BigNumber(gpEarned))
+                player.sendMessage("§c§l[+] §c" + NumberFormatter.format(new BigNumber(gpEarned), player.getUniqueId())
                         + " §cGrinding Points §8(§7Farming§8)");
             }
         }
@@ -154,8 +154,8 @@ public class FarmingListener implements Listener {
 
         // ── Action bar: farm multi | xp gain; vanishes 1 second after last harvest ──
         sendFixedFarmActionBar(player,
-                NumberFormatter.format(new BigNumber(profile.getFarmMulti())),
-                NumberFormatter.format(new BigNumber(xpGain)));
+                NumberFormatter.format(new BigNumber(profile.getFarmMulti()), player.getUniqueId()),
+                NumberFormatter.format(new BigNumber(xpGain), player.getUniqueId()));
 
         // ── Fake block: briefly hide then restore chosen crop ─────────────────
         cooldowns.add(loc);
@@ -179,7 +179,7 @@ public class FarmingListener implements Listener {
                 if (profile.isEnchantMessageEnabled(i)) {
                     player.sendMessage("§8[§e⚡§8] §6§l" + FarmingManager.ENCHANT_NAMES[i]
                             + " §7activated! §e+"
-                            + NumberFormatter.format(new BigNumber((double) multi)) + "x §7seeds!");
+                            + NumberFormatter.format(new BigNumber((double) multi), player.getUniqueId()) + "x §7seeds!");
                 }
                 return multi;
             }

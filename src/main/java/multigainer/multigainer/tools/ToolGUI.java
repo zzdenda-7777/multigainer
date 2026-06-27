@@ -61,7 +61,7 @@ public class ToolGUI implements Listener {
             "§7Stores all your seed currencies",
             "§7collected from farming.",
             "§8 ",
-            "§7Total Seeds§8: §e" + NumberFormatter.format(totalSeeds),
+            "§7Total Seeds§8: §e" + NumberFormatter.format(totalSeeds, player.getUniqueId()),
             "§8§m──────────────────────",
             "§e▶ §7Click to open storage"
         ));
@@ -74,7 +74,7 @@ public class ToolGUI implements Listener {
         ItemMeta hm = hoe.getItemMeta();
         hm.setDisplayName(FarmingManager.HOE_TIER_COLORS[hoeTier] + "§l"
                 + FarmingManager.HOE_TIER_NAMES[hoeTier].toUpperCase() + " HOE");
-        hm.setLore(buildGuiHoeLore(profile));
+        hm.setLore(buildGuiHoeLore(profile, player.getUniqueId()));
         hoe.setItemMeta(hm);
         inv.setItem(SLOT_HOE, hoe);
 
@@ -86,7 +86,7 @@ public class ToolGUI implements Listener {
         cm.setLore(Arrays.asList(
             "§8§m──────────────────────",
             "§7Current§8: " + FarmingManager.CROP_NAMES[chosen],
-            "§7Seed Multi§8: §6×" + FarmingManager.fmtCount(FarmingManager.getSeedMultiplier(chosen)),
+            "§7Seed Multi§8: §6×" + FarmingManager.fmtCount(FarmingManager.getSeedMultiplier(chosen), player.getUniqueId()),
             "§8§m──────────────────────",
             "§e▶ §7Click to choose a crop!"
         ));
@@ -102,7 +102,7 @@ public class ToolGUI implements Listener {
             "§7Spend your Grinding Points",
             "§7on permanent upgrades.",
             "§8 ",
-            "§7Balance§8: §e" + NumberFormatter.format(new BigNumber(profile.getGrindingPoints())) + " GP",
+            "§7Balance§8: §e" + NumberFormatter.format(new BigNumber(profile.getGrindingPoints()), player.getUniqueId()) + " GP",
             "§8§m──────────────────────",
             "§e▶ §7Click to open!"
         ));
@@ -153,14 +153,18 @@ public class ToolGUI implements Listener {
 
     // ── Lore for inventory hover (compact) ────────────────────────────────────
     public static List<String> buildInventoryHoeLore(PlayerProfile profile) {
+        return buildInventoryHoeLore(profile, null);
+    }
+
+    public static List<String> buildInventoryHoeLore(PlayerProfile profile, java.util.UUID uid) {
         int    farmLevel   = profile.getFarmingLevel();
         double farmMulti   = profile.getFarmMulti();
         long   cropsFarmed = profile.getCropsFarmed();
         List<String> lore = new ArrayList<>();
         lore.add("§8§m──────────────────────");
-        lore.add("§7Farm Level§8: §e" + NumberFormatter.format(new BigNumber(farmLevel)));
-        lore.add("§7Farm Multi§8: §6" + NumberFormatter.format(new BigNumber(farmMulti)) + "x");
-        lore.add("§7Crops Farmed§8: §f" + NumberFormatter.format(new BigNumber((double) cropsFarmed)));
+        lore.add("§7Farm Level§8: §e" + NumberFormatter.format(new BigNumber(farmLevel), uid));
+        lore.add("§7Farm Multi§8: §6" + NumberFormatter.format(new BigNumber(farmMulti), uid) + "x");
+        lore.add("§7Crops Farmed§8: §f" + NumberFormatter.format(new BigNumber((double) cropsFarmed), uid));
         lore.add("§8§m──────────────────────");
         lore.add("§c✦ §lEnchant Chances");
         lore.add("§7💥 TNT§8:              §f" + FarmingManager.formatChance(FarmingManager.getEnchantChance(0, farmLevel)) + " §8(§cx10§8)");
@@ -174,14 +178,18 @@ public class ToolGUI implements Listener {
 
     // ── Lore for GUI slot 13 (detailed) ──────────────────────────────────────
     public static List<String> buildGuiHoeLore(PlayerProfile profile) {
+        return buildGuiHoeLore(profile, null);
+    }
+
+    public static List<String> buildGuiHoeLore(PlayerProfile profile, java.util.UUID uid) {
         int    farmLevel = profile.getFarmingLevel();
         double farmMulti = profile.getFarmMulti();
         List<String> lore = new ArrayList<>();
         lore.add("§8§m══════════════════════");
         lore.add("§e⭐ §f§lFarming Tool Information");
         lore.add("§8§m══════════════════════");
-        lore.add("§7Farm Level§8:  §a§l" + NumberFormatter.format(new BigNumber(farmLevel)));
-        lore.add("§7Farm Multi§8:  §6§l" + NumberFormatter.format(new BigNumber(farmMulti)) + "x");
+        lore.add("§7Farm Level§8:  §a§l" + NumberFormatter.format(new BigNumber(farmLevel), uid));
+        lore.add("§7Farm Multi§8:  §6§l" + NumberFormatter.format(new BigNumber(farmMulti), uid) + "x");
         lore.add("§8 ");
         lore.add("§c§l✦ ENCHANT DETAILS");
         lore.add("§8§m──────────────────────");

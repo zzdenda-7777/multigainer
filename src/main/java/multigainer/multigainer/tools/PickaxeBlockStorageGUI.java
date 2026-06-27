@@ -49,8 +49,9 @@ public class PickaxeBlockStorageGUI implements Listener {
         inv.setItem(SLOT_PRODUCTION, makeProductionButton());
 
         // Place 17 block items in rows 1-2 (slots 9-25), slot 26 = glass
+        java.util.UUID uid = player.getUniqueId();
         for (int i = 0; i < PickaxeManager.BLOCKS.length; i++) {
-            inv.setItem(BLOCK_SLOT_START + i, buildBlockItem(i, profile));
+            inv.setItem(BLOCK_SLOT_START + i, buildBlockItem(i, profile, uid));
         }
         inv.setItem(26, pane);
 
@@ -66,6 +67,10 @@ public class PickaxeBlockStorageGUI implements Listener {
     }
 
     private static ItemStack buildBlockItem(int index, PlayerProfile profile) {
+        return buildBlockItem(index, profile, null);
+    }
+
+    private static ItemStack buildBlockItem(int index, PlayerProfile profile, java.util.UUID uid) {
         Material mat  = PickaxeManager.BLOCKS[index];
         long count    = profile.getBlockStorage(index);
         String name   = PickaxeManager.BLOCK_NAMES[index];
@@ -78,7 +83,7 @@ public class PickaxeBlockStorageGUI implements Listener {
         ItemMeta m = item.getItemMeta();
         m.setDisplayName("§f§l" + name);
         m.setLore(Arrays.asList(
-            "§7Stored: §f" + NumberFormatter.format(new BigNumber((double) count)),
+            "§7Stored: §f" + NumberFormatter.format(new BigNumber((double) count), uid),
             "§7XP per block: §a" + xpPer,
             "§7Tier: " + tierColor + tierName + " Pickaxe",
             " ",
@@ -126,8 +131,9 @@ public class PickaxeBlockStorageGUI implements Listener {
                         ProductionManager.sendBlocksToProduction(player, profile, i, profile.getBlockStorage(i));
                     }
                 }
+                java.util.UUID uid2 = player.getUniqueId();
                 for (int i = 0; i < PickaxeManager.BLOCKS.length; i++) {
-                    event.getInventory().setItem(BLOCK_SLOT_START + i, buildBlockItem(i, profile));
+                    event.getInventory().setItem(BLOCK_SLOT_START + i, buildBlockItem(i, profile, uid2));
                 }
             } else {
                 Bukkit.getScheduler().runTask(plugin, () -> ProductionGUI.open(player, profile, plugin));
@@ -142,8 +148,7 @@ public class PickaxeBlockStorageGUI implements Listener {
                     ? profile.getBlockStorage(blockIndex)
                     : 32L;
             ProductionManager.sendBlocksToProduction(player, profile, blockIndex, amount);
-            // Refresh that slot
-            event.getInventory().setItem(raw, buildBlockItem(blockIndex, profile));
+            event.getInventory().setItem(raw, buildBlockItem(blockIndex, profile, player.getUniqueId()));
         }
     }
 

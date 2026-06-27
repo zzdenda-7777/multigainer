@@ -56,22 +56,24 @@ public class ScoreboardManager {
         BigNumber totalGemsMulti  = multis[1];
 
         // ── Economy ───────────────────────────────────────────────
+        java.util.UUID uid = player.getUniqueId();
+
         Team moneyTeam = board.registerNewTeam("sb_money");
         moneyTeam.addEntry(ChatColor.GREEN.toString());
         moneyTeam.setPrefix("§a⛃ §8│ §aMoney§8: §f$");
-        moneyTeam.setSuffix(NumberFormatter.format(money) + " §8(§ax" + NumberFormatter.format(totalMoneyMulti) + "§8)");
+        moneyTeam.setSuffix(NumberFormatter.format(money, uid) + " §8(§ax" + NumberFormatter.format(totalMoneyMulti, uid) + "§8)");
         objective.getScore(ChatColor.GREEN.toString()).setScore(13);
 
         Team gemsTeam = board.registerNewTeam("sb_gems");
         gemsTeam.addEntry(ChatColor.AQUA.toString());
         gemsTeam.setPrefix("§b✦ §8│ §bGems§8: §f");
-        gemsTeam.setSuffix(NumberFormatter.format(gems) + " §8(§bx" + NumberFormatter.format(totalGemsMulti) + "§8)");
+        gemsTeam.setSuffix(NumberFormatter.format(gems, uid) + " §8(§bx" + NumberFormatter.format(totalGemsMulti, uid) + "§8)");
         objective.getScore(ChatColor.AQUA.toString()).setScore(12);
 
         Team rubiesTeam = board.registerNewTeam("sb_rubies");
         rubiesTeam.addEntry(ChatColor.RED.toString());
         rubiesTeam.setPrefix("§4♦ §8│ §4Rubies§8: §f");
-        rubiesTeam.setSuffix(NumberFormatter.format(rubies));
+        rubiesTeam.setSuffix(NumberFormatter.format(rubies, uid));
         objective.getScore(ChatColor.RED.toString()).setScore(11);
 
         objective.getScore("  ").setScore(10);
@@ -81,9 +83,9 @@ public class ScoreboardManager {
         Team farmLvlTeam = board.registerNewTeam("sb_farmlvl");
         farmLvlTeam.addEntry(ChatColor.GOLD.toString());
         farmLvlTeam.setPrefix("§e🌾 §8│ §eFarm Lvl§8: ");
-        farmLvlTeam.setSuffix(NumberFormatter.format(new BigNumber(farmLvl))
-                + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp))
-                + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp)) + "§8)");
+        farmLvlTeam.setSuffix(NumberFormatter.format(new BigNumber(farmLvl), uid)
+                + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp), uid)
+                + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp), uid) + "§8)");
         objective.getScore(ChatColor.GOLD.toString()).setScore(9);
 
         Team farmXpTeam = board.registerNewTeam("sb_farmxp");
@@ -97,9 +99,9 @@ public class ScoreboardManager {
         Team mineLvlTeam = board.registerNewTeam("sb_minelvl");
         mineLvlTeam.addEntry(ChatColor.BLUE.toString());
         mineLvlTeam.setPrefix("§7⛏ §8│ §7Mine Lvl§8: ");
-        mineLvlTeam.setSuffix(NumberFormatter.format(new BigNumber(mineLvl))
-                + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
-                + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
+        mineLvlTeam.setSuffix(NumberFormatter.format(new BigNumber(mineLvl), uid)
+                + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp), uid)
+                + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp), uid) + "§8)");
         objective.getScore(ChatColor.BLUE.toString()).setScore(7);
 
         Team mineXpTeam = board.registerNewTeam("sb_minexp");
@@ -112,8 +114,8 @@ public class ScoreboardManager {
         double farmMulti = profile != null ? profile.getFarmMulti() : 1.0;
         int farmUpgLvl   = profile != null ? profile.getFarmMultiUpgradeLevel() : 0;
         BigNumber farmUpgBig = UpgradeManager.getFarmTotalMultiplier(farmUpgLvl);
-        String farmMultiSuffix = NumberFormatter.format(new BigNumber(farmMulti)) + "x"
-                + (farmUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(farmUpgBig) + "x§8)" : "");
+        String farmMultiSuffix = NumberFormatter.format(new BigNumber(farmMulti), uid) + "x"
+                + (farmUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(farmUpgBig, uid) + "x§8)" : "");
         Team farmMultiTeam = board.registerNewTeam("sb_farmmulti");
         farmMultiTeam.addEntry(ChatColor.YELLOW.toString());
         farmMultiTeam.setPrefix("§e🌾 §8│ §eFarm Multi§8: §f");
@@ -143,29 +145,30 @@ public class ScoreboardManager {
         BigNumber totalMoneyMulti = multis[0];
         BigNumber totalGemsMulti  = multis[1];
 
+        java.util.UUID uid = player.getUniqueId();
         Team t;
         t = board.getTeam("sb_money");
-        if (t != null) t.setSuffix(NumberFormatter.format(money) + " §8(§ax" + NumberFormatter.format(totalMoneyMulti) + "§8)");
+        if (t != null) t.setSuffix(NumberFormatter.format(money, uid) + " §8(§ax" + NumberFormatter.format(totalMoneyMulti, uid) + "§8)");
 
         t = board.getTeam("sb_gems");
-        if (t != null) t.setSuffix(NumberFormatter.format(gems) + " §8(§bx" + NumberFormatter.format(totalGemsMulti) + "§8)");
+        if (t != null) t.setSuffix(NumberFormatter.format(gems, uid) + " §8(§bx" + NumberFormatter.format(totalGemsMulti, uid) + "§8)");
 
         t = board.getTeam("sb_rubies");
-        if (t != null) t.setSuffix(NumberFormatter.format(rubies));
+        if (t != null) t.setSuffix(NumberFormatter.format(rubies, uid));
 
         double reqFarmXp = FarmingLevelManager.getRequiredXpForNextLevel(farmLvl);
         t = board.getTeam("sb_farmlvl");
-        if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(farmLvl))
-                + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp))
-                + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp)) + "§8)");
+        if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(farmLvl), uid)
+                + " §8(§e" + NumberFormatter.format(new BigNumber(farmXp), uid)
+                + "§8/§e" + NumberFormatter.format(new BigNumber(reqFarmXp), uid) + "§8)");
         t = board.getTeam("sb_farmxp");
         if (t != null) t.setSuffix(FarmingLevelManager.generateXpBar(farmXp, reqFarmXp));
 
         double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
         t = board.getTeam("sb_minelvl");
-        if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(mineLvl))
-                + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
-                + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
+        if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(mineLvl), uid)
+                + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp), uid)
+                + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp), uid) + "§8)");
         t = board.getTeam("sb_minexp");
         if (t != null) t.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
 
@@ -173,8 +176,8 @@ public class ScoreboardManager {
         if (t != null && profile != null) {
             int fUpgLvl = profile.getFarmMultiUpgradeLevel();
             BigNumber fUpgBig = UpgradeManager.getFarmTotalMultiplier(fUpgLvl);
-            String fSuffix = NumberFormatter.format(new BigNumber(profile.getFarmMulti())) + "x"
-                    + (fUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(fUpgBig) + "x§8)" : "");
+            String fSuffix = NumberFormatter.format(new BigNumber(profile.getFarmMulti()), uid) + "x"
+                    + (fUpgLvl > 0 ? " §8(§e" + NumberFormatter.format(fUpgBig, uid) + "x§8)" : "");
             t.setSuffix(fSuffix);
         }
 
@@ -186,20 +189,21 @@ public class ScoreboardManager {
         Scoreboard board = player.getScoreboard();
         if (board.getObjective("currency_sb") == null) return;
 
-        PlayerProfile profile = plugin.getPlayerDataManager().getProfile(player.getUniqueId());
+        java.util.UUID uid = player.getUniqueId();
+        PlayerProfile profile = plugin.getPlayerDataManager().getProfile(uid);
         double grindGemMulti = profile != null ? GrindManager.getGemMulti(profile.getGrindGemMultiLevel()) : 1.0;
         BigNumber totalGemsMulti = profile != null
                 ? MiningLevelManager.getGemsMultiplier(profile.getMiningLevel()).multiply(new BigNumber(grindGemMulti))
                 : new BigNumber(1.0);
 
         Team t = board.getTeam("sb_gems");
-        if (t != null) t.setSuffix(NumberFormatter.format(gems) + " §8(§bx" + NumberFormatter.format(totalGemsMulti) + "§8)");
+        if (t != null) t.setSuffix(NumberFormatter.format(gems, uid) + " §8(§bx" + NumberFormatter.format(totalGemsMulti, uid) + "§8)");
 
         double reqMineXp = MiningLevelManager.getRequiredXpForNextLevel(mineLvl);
         t = board.getTeam("sb_minelvl");
-        if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(mineLvl))
-                + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp))
-                + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp)) + "§8)");
+        if (t != null) t.setSuffix(NumberFormatter.format(new BigNumber(mineLvl), uid)
+                + " §8(§7" + NumberFormatter.format(new BigNumber(mineXp), uid)
+                + "§8/§7" + NumberFormatter.format(new BigNumber(reqMineXp), uid) + "§8)");
         t = board.getTeam("sb_minexp");
         if (t != null) t.setSuffix(MiningLevelManager.generateXpBar(mineXp, reqMineXp));
     }
@@ -210,8 +214,8 @@ public class ScoreboardManager {
         BigNumber gems  = new BigNumber(1.0);
         if (profile != null) {
             BigNumber upgrade     = UpgradeManager.getTotalMultiplier(profile.getUpgradeLevel());
-            BigNumber rebirth     = new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()));
-            BigNumber tier        = new BigNumber(TierManager.getMultiplierForTier(profile.getTier()));
+            BigNumber rebirth     = RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints());
+            BigNumber tier        = TierManager.getMultiplierForTier(profile.getTier());
             BigNumber mine        = MiningLevelManager.getMoneyMultiplier(profile.getMiningLevel());
             BigNumber farmMult    = new BigNumber(profile.getFarmMulti());
             BigNumber farmUpgMult = UpgradeManager.getFarmTotalMultiplier(profile.getFarmMultiUpgradeLevel());

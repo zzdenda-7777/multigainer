@@ -59,7 +59,7 @@ public class ResetCommand implements CommandExecutor {
                 case "rubies"          -> profile.setRubies(new BigNumber(amount));
                 case "grinding_points", "gp" -> profile.setGrindingPoints(amount);
                 case "tier"            -> profile.setTier((int) amount);
-                case "rebirth"         -> profile.setRebirthPoints(amount);
+                case "rebirth"         -> profile.setRebirthPoints(new BigNumber(amount));
                 default -> {
                     sender.sendMessage(ChatColor.RED + "Unknown currency: " + currency);
                     sender.sendMessage(ChatColor.GRAY + "Valid: money, gems, rubies, grinding_points, tier, rebirth");
@@ -88,7 +88,7 @@ public class ResetCommand implements CommandExecutor {
         profile.setFarmingXp(0.0);
         profile.setMiningLevel(0);
         profile.setMiningXp(0.0);
-        profile.setRebirthPoints(0.0);
+        profile.setRebirthPoints(new BigNumber(0));
         profile.setRebirthCount(0);
 
         // Pickaxe

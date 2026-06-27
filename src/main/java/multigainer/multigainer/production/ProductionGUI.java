@@ -37,9 +37,10 @@ public class ProductionGUI implements Listener {
         ItemStack pane = makePane();
         for (int i = 0; i < SIZE; i++) inv.setItem(i, pane);
 
+        java.util.UUID uid = player.getUniqueId();
         inv.setItem(SLOT_INFO,   buildInfoItem());
-        inv.setItem(SLOT_WORKER, buildWorkerItem(profile));
-        inv.setItem(SLOT_ENERGY, buildEnergyItem(profile));
+        inv.setItem(SLOT_WORKER, buildWorkerItem(profile, uid));
+        inv.setItem(SLOT_ENERGY, buildEnergyItem(profile, uid));
         inv.setItem(SLOT_BACK,   makeBack());
 
         player.openInventory(inv);
@@ -73,7 +74,7 @@ public class ProductionGUI implements Listener {
         return item;
     }
 
-    private static ItemStack buildWorkerItem(PlayerProfile profile) {
+    private static ItemStack buildWorkerItem(PlayerProfile profile, java.util.UUID uid) {
         int    level = profile.getWorkerLevel();
         double xp    = profile.getWorkerXp();
         double need  = ProductionManager.getXpForNextLevel(level);
@@ -84,11 +85,11 @@ public class ProductionGUI implements Listener {
         meta.setDisplayName(ChatColor.GRAY + "" + ChatColor.BOLD + "Worker");
         List<String> lore = new ArrayList<>();
         lore.add(" ");
-        lore.add(ChatColor.GRAY + "Level: " + ChatColor.WHITE + NumberFormatter.format(new BigNumber(level)));
+        lore.add(ChatColor.GRAY + "Level: " + ChatColor.WHITE + NumberFormatter.format(new BigNumber(level), uid));
         lore.add(ChatColor.GRAY + "Work XP: " + ChatColor.WHITE
-                + NumberFormatter.format(new BigNumber(xp))
+                + NumberFormatter.format(new BigNumber(xp), uid)
                 + ChatColor.DARK_GRAY + " / "
-                + ChatColor.YELLOW + NumberFormatter.format(new BigNumber(need)));
+                + ChatColor.YELLOW + NumberFormatter.format(new BigNumber(need), uid));
         lore.add(ChatColor.GRAY + "Energy/min: "
                 + (level == 0 ? ChatColor.DARK_GRAY + "none (need lvl 1)"
                               : ChatColor.AQUA + String.format("%.2f", rate)));
@@ -99,7 +100,7 @@ public class ProductionGUI implements Listener {
         return item;
     }
 
-    private static ItemStack buildEnergyItem(PlayerProfile profile) {
+    private static ItemStack buildEnergyItem(PlayerProfile profile, java.util.UUID uid) {
         double energy = profile.getWorkerEnergy();
         double rate   = ProductionManager.getEnergyPerMinute(profile.getWorkerLevel());
 
@@ -109,7 +110,7 @@ public class ProductionGUI implements Listener {
         List<String> lore = new ArrayList<>();
         lore.add(" ");
         lore.add(ChatColor.GRAY + "Stored: " + ChatColor.YELLOW
-                + NumberFormatter.format(new BigNumber(energy)));
+                + NumberFormatter.format(new BigNumber(energy), uid));
         lore.add(ChatColor.GRAY + "Rate: " + ChatColor.AQUA
                 + String.format("%.2f", rate) + ChatColor.GRAY + "/min");
         lore.add(" ");

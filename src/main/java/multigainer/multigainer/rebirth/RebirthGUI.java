@@ -18,24 +18,22 @@ import java.util.Arrays;
 
 public class RebirthGUI {
     public static void open(Player player, PlayerProfile profile) {
+        java.util.UUID uid = player.getUniqueId();
         Inventory inv = Bukkit.createInventory(null, 27, "§8Rebirth");
 
         // Decorative Fill
         // 1. Statistics Section (Slot 11)
         ItemStack stats = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta sm = (SkullMeta) stats.getItemMeta(); // Změněno na SkullMeta a přetypováno
+        SkullMeta sm = (SkullMeta) stats.getItemMeta();
 
         if (sm != null) {
-            // Nastavení hlavy hráče
             sm.setOwningPlayer(player);
-
-            // Nastavení jména a lore
             sm.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR PROGRESS");
             sm.setLore(Arrays.asList(
                     " ",
-                    ChatColor.GRAY + "Money: " + ChatColor.GREEN + NumberFormatter.format(profile.getMoney()),
-                    ChatColor.GRAY + "Rebirth Points: " + ChatColor.AQUA + NumberFormatter.format(new BigNumber(profile.getRebirthPoints())),
-                    ChatColor.GRAY + "Active Multiplier: " + ChatColor.YELLOW + NumberFormatter.format(new BigNumber(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()))) + "x",
+                    ChatColor.GRAY + "Money: " + ChatColor.GREEN + NumberFormatter.format(profile.getMoney(), uid),
+                    ChatColor.GRAY + "Rebirth Points: " + ChatColor.AQUA + NumberFormatter.format(profile.getRebirthPoints(), uid),
+                    ChatColor.GRAY + "Active Multiplier: " + ChatColor.YELLOW + NumberFormatter.format(RebirthManager.calculateMoneyMultiplier(profile.getRebirthPoints()), uid) + "x",
                     " "
             ));
 
@@ -46,22 +44,20 @@ public class RebirthGUI {
         inv.setItem(11, stats);
 
         // 2. Rebirth Action (Slot 13)
-        double potential = RebirthManager.calculateRebirthPoints(profile.getMoney().toDouble())
-                * ArtifactManager.getMultiplierDouble(profile, ArtifactType.REBIRTH_POINTS);
-        boolean canRebirth = profile.getMoney().toDouble() >= RebirthManager.REBIRTH_THRESHOLD;
+        BigNumber potential = RebirthManager.calculateRebirthPoints(profile.getMoney())
+                .multiply(new BigNumber(ArtifactManager.getMultiplierDouble(profile, ArtifactType.REBIRTH_POINTS)));
+        boolean canRebirth = profile.getMoney().compareTo(new BigNumber(RebirthManager.REBIRTH_THRESHOLD)) >= 0;
 
         ItemStack rebirth = new ItemStack(canRebirth ? Material.NETHER_STAR : Material.BARRIER);
         ItemMeta rm = rebirth.getItemMeta();
         rm.setDisplayName(canRebirth ? ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "REBIRTH" : ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
         rm.setLore(Arrays.asList(
-                // FIXED: Automatically format the static cost threshold using BigNumber definitions
                 " ",
-                ChatColor.GRAY + "Cost: " + ChatColor.WHITE + NumberFormatter.format(new BigNumber(RebirthManager.REBIRTH_THRESHOLD)) + " Money",
+                ChatColor.GRAY + "Cost: " + ChatColor.WHITE + NumberFormatter.format(new BigNumber(RebirthManager.REBIRTH_THRESHOLD), uid) + " Money",
                 " ",
                 ChatColor.GRAY + "Rebirth reset your progress,",
                 ChatColor.GRAY + "but you will be granted:",
-                // FIXED: Formatted potential point yield to fix the issue shown in image_346d49.png
-                ChatColor.AQUA + "+ " + NumberFormatter.format(new BigNumber(potential)) + " Rebirth Points"
+                ChatColor.AQUA + "+ " + NumberFormatter.format(potential, uid) + " Rebirth Points"
         ));
         rebirth.setItemMeta(rm);
 
@@ -73,7 +69,7 @@ public class RebirthGUI {
         im.setLore(Arrays.asList(
                 " ",
                 ChatColor.WHITE + "REBIRTH PATH",
-                ChatColor.GRAY + "Accumulate " + ChatColor.YELLOW + NumberFormatter.format(new BigNumber(RebirthManager.REBIRTH_THRESHOLD)) + " money",
+                ChatColor.GRAY + "Accumulate " + ChatColor.YELLOW + NumberFormatter.format(new BigNumber(RebirthManager.REBIRTH_THRESHOLD), uid) + " money",
                 ChatColor.GRAY + "to qualify for a rebirth.",
                 " ",
                 ChatColor.WHITE + "THE BENEFITS",

@@ -267,7 +267,7 @@ public class MiningListener implements Listener {
                     * ArmorManager.getMultiplier(profile, ArmorType.GRIND_POINTS);
             profile.addGrindingPoints(gpEarned);
             if (profile.isGrindMessagesEnabled()) {
-                player.sendMessage("§c§l[+] §c" + NumberFormatter.format(new BigNumber(gpEarned))
+                player.sendMessage("§c§l[+] §c" + NumberFormatter.format(new BigNumber(gpEarned), player.getUniqueId())
                         + " §cGrinding Points §8(§7Mining§8)");
             }
         }
@@ -281,7 +281,7 @@ public class MiningListener implements Listener {
                     if (profile.isPerkMessageEnabled(i)) {
                         player.sendMessage(PerkManager.PERK_COLORS[i] + "§l[✦] §7You found a "
                             + PerkManager.PERK_COLORS[i] + PerkManager.PERK_NAMES[i]
-                            + " §7perk! §8(§f" + NumberFormatter.format(new BigNumber(profile.getPerkCount(i)))
+                            + " §7perk! §8(§f" + NumberFormatter.format(new BigNumber(profile.getPerkCount(i)), player.getUniqueId())
                             + "§8x total)");
                     }
                 }
@@ -308,8 +308,8 @@ public class MiningListener implements Listener {
             showActionBar(player, "§b§l[!] §7Mining Level Up! Level §e" + currentLevel);
         } else {
             sendFixedMineActionBar(player,
-                    NumberFormatter.format(payout),
-                    NumberFormatter.format(new BigNumber(xpGain)));
+                    NumberFormatter.format(payout, player.getUniqueId()),
+                    NumberFormatter.format(new BigNumber(xpGain), player.getUniqueId()));
         }
 
         new BukkitRunnable() {

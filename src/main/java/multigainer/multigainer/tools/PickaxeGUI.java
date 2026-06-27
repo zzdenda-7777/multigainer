@@ -80,6 +80,7 @@ public class PickaxeGUI implements Listener {
         inv.setItem(SLOT_STORAGE, storage);
 
         // --- Slot 20: Grinding Points ---
+        java.util.UUID uid = player.getUniqueId();
         ItemStack grindBtn = new ItemStack(Material.QUARTZ);
         ItemMeta grm = grindBtn.getItemMeta();
         grm.setDisplayName("§a§lGRINDING POINTS");
@@ -88,7 +89,7 @@ public class PickaxeGUI implements Listener {
             "§7Spend your Grinding Points",
             "§7on permanent upgrades.",
             "",
-            "§7Balance§8: §e" + NumberFormatter.format(new BigNumber(profile.getGrindingPoints())) + " GP",
+            "§7Balance§8: §e" + NumberFormatter.format(new BigNumber(profile.getGrindingPoints()), uid) + " GP",
             "",
             "§eClick to open!"
         ));
@@ -105,7 +106,7 @@ public class PickaxeGUI implements Listener {
             "§7Perks are rare bonuses obtained",
             "§7from mining blocks (Tier 5+).",
             "",
-            "§7Total Perk Multi§8: §f" + NumberFormatter.format(perkMulti) + "x",
+            "§7Total Perk Multi§8: §f" + NumberFormatter.format(perkMulti, uid) + "x",
             "",
             "§eClick to open!"
         ));

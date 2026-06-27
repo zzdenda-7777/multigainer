@@ -36,8 +36,9 @@ public class StatsCommand implements CommandExecutor {
         int miningLevel = profile.getMiningLevel();
 
         // Using your NumberFormatter for consistency across the plugin
-        String formattedMoney = NumberFormatter.format(MiningLevelManager.getMoneyMultiplier(miningLevel));
-        String formattedGems = NumberFormatter.format(MiningLevelManager.getGemsMultiplier(miningLevel));
+        java.util.UUID uid = player.getUniqueId();
+        String formattedMoney = NumberFormatter.format(MiningLevelManager.getMoneyMultiplier(miningLevel), uid);
+        String formattedGems = NumberFormatter.format(MiningLevelManager.getGemsMultiplier(miningLevel), uid);
 
         player.sendMessage(ChatColor.GOLD + "========== ✨ YOUR STATS ✨ ==========");
         player.sendMessage(ChatColor.YELLOW + "⛏ Mining Level: " + ChatColor.WHITE + miningLevel);

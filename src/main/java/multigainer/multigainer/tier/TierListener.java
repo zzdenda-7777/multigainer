@@ -31,8 +31,8 @@ public class TierListener implements Listener {
 
         BigNumber cost = TierManager.getCostForTierBig(profile.getTier() + 1);
 
-        if (new BigNumber(profile.getRebirthPoints()).compareTo(cost) < 0) {
-            player.sendMessage(ChatColor.RED + "You need " + NumberFormatter.format(cost) + " Rebirth Points to Tier Up!");
+        if (profile.getRebirthPoints().compareTo(cost) < 0) {
+            player.sendMessage(ChatColor.RED + "You need " + NumberFormatter.format(cost, player.getUniqueId()) + " Rebirth Points to Tier Up!");
             player.closeInventory();
             return;
         }

@@ -35,6 +35,18 @@ public class PlayerDataManager {
                     stmt.setString(1, uuid.toString());
                     try (ResultSet rs = stmt.executeQuery()) {
                         if (rs.next()) {
+                            // Load BigNumber rebirth points — prefer new mantissa/exponent columns,
+                            // fall back to legacy single-REAL column for migration
+                            double rpMantissa = safeGetDouble(rs, "rebirth_points_mantissa", 0.0);
+                            double rpExponent = safeGetDouble(rs, "rebirth_points_exponent", 0.0);
+                            BigNumber loadedRp;
+                            if (rpMantissa != 0 || rpExponent != 0) {
+                                loadedRp = new BigNumber(rpMantissa, rpExponent);
+                            } else {
+                                double oldRp = safeGetDouble(rs, "rebirth_points", 0.0);
+                                loadedRp = (Double.isFinite(oldRp) && oldRp > 0) ? new BigNumber(oldRp) : new BigNumber(0);
+                            }
+
                             PlayerProfile profile = new PlayerProfile(
                                     new BigNumber(rs.getDouble("money_mantissa"), rs.getDouble("money_exponent")),
                                     new BigNumber(rs.getDouble("gems_mantissa"),  rs.getDouble("gems_exponent")),
@@ -42,7 +54,7 @@ public class PlayerDataManager {
                                     rs.getInt("upgrade_level"), rs.getInt("tier"), rs.getInt("tier_points"),
                                     rs.getInt("farming_level"), rs.getDouble("farming_xp"),
                                     rs.getInt("mining_level"),  rs.getDouble("mining_xp"),
-                                    rs.getDouble("rebirth_points"), rs.getInt("rebirth_count")
+                                    loadedRp, rs.getInt("rebirth_count")
                             );
 
                             // Pickaxe
@@ -176,7 +188,7 @@ public class PlayerDataManager {
                         + "money_mantissa=?,money_exponent=?,gems_mantissa=?,gems_exponent=?,"
                         + "rubies_mantissa=?,rubies_exponent=?,upgrade_level=?,tier=?,tier_points=?,"
                         + "farming_level=?,farming_xp=?,mining_level=?,mining_xp=?,"
-                        + "rebirth_points=?,rebirth_count=?,"
+                        + "rebirth_points_mantissa=?,rebirth_points_exponent=?,rebirth_count=?,"
                         + "pickaxe_tier=?,mining_speed_level=?,xp_multi_level=?,gem_multi_level=?"
         );
         for (String col : PickaxeManager.BLOCK_COLUMN_NAMES) q.append(",").append(col).append("=?");
@@ -221,14 +233,15 @@ public class PlayerDataManager {
             stmt.setDouble(11, profile.getFarmingXp());
             stmt.setInt(12,    profile.getMiningLevel());
             stmt.setDouble(13, profile.getMiningXp());
-            stmt.setDouble(14, profile.getRebirthPoints());
-            stmt.setInt(15,    profile.getRebirthCount());
-            stmt.setInt(16,    profile.getPickaxeTier());
-            stmt.setInt(17,    profile.getMiningSpeedLevel());
-            stmt.setInt(18,    profile.getXpMultiLevel());
-            stmt.setInt(19,    profile.getGemMultiLevel());
+            stmt.setDouble(14, profile.getRebirthPoints().getMantissa());
+            stmt.setDouble(15, profile.getRebirthPoints().getExponent());
+            stmt.setInt(16,    profile.getRebirthCount());
+            stmt.setInt(17,    profile.getPickaxeTier());
+            stmt.setInt(18,    profile.getMiningSpeedLevel());
+            stmt.setInt(19,    profile.getXpMultiLevel());
+            stmt.setInt(20,    profile.getGemMultiLevel());
 
-            int base = 20;
+            int base = 21;
             for (int i = 0; i < PickaxeManager.BLOCK_COLUMN_NAMES.length; i++) {
                 stmt.setLong(base++, profile.getBlockStorage(i));
             }

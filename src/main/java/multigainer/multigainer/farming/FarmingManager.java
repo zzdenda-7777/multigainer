@@ -198,4 +198,8 @@ public class FarmingManager {
     public static String fmtCount(long value) {
         return NumberFormatter.format(new BigNumber((double) value));
     }
+
+    public static String fmtCount(long value, java.util.UUID uid) {
+        return NumberFormatter.format(new BigNumber((double) value), uid);
+    }
 }

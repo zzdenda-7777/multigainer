@@ -16,6 +16,7 @@ import multigainer.multigainer.grind.GrindGUI;
 import multigainer.multigainer.farming.CropSelectionGUI;
 import multigainer.multigainer.farming.EnchantToggleGUI;
 import multigainer.multigainer.farming.FarmingStorageGUI;
+import multigainer.multigainer.formatting.NumberFormatter;
 import multigainer.multigainer.rebirth.RebirthListener;
 import multigainer.multigainer.rebirth.RebirthGUI;
 import multigainer.multigainer.tier.TierGUI;
@@ -27,6 +28,7 @@ import multigainer.multigainer.income.IncomeManager;
 import multigainer.multigainer.listeners.MiningListener;
 import multigainer.multigainer.listeners.FarmingListener;
 import multigainer.multigainer.listeners.JoinListener;
+import multigainer.multigainer.listeners.SettingsListener;
 import multigainer.multigainer.upgrades.UpgradeItemHandler;
 import multigainer.multigainer.tools.PickaxeBlockStorageGUI;
 import multigainer.multigainer.tools.PickaxeGUI;
@@ -50,6 +52,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
     private PlayerDataManager playerDataManager;
     private UpgradeItemHandler upgradeHandler;
     private ToolItemHandler toolHandler;
+    private SettingsListener settingsListener;
     private ToolGUI toolGUI;
     private PickaxeGUI pickaxeGUI;
     private PickaxeUpgradeGUI pickaxeUpgradeGUI;
@@ -70,6 +73,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
 
         this.upgradeHandler         = new UpgradeItemHandler(this);
         this.toolHandler            = new ToolItemHandler(this);
+        this.settingsListener       = new SettingsListener(this);
         this.toolGUI                = new ToolGUI(this);
         this.pickaxeGUI             = new PickaxeGUI(this);
         this.pickaxeUpgradeGUI      = new PickaxeUpgradeGUI(this);
@@ -82,6 +86,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
         this.artifactGUI            = new ArtifactGUI(this);
 
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(settingsListener, this);
         getServer().getPluginManager().registerEvents(new MiningListener(this), this);
         getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
         getServer().getPluginManager().registerEvents(new JoinListener(this, playerDataManager), this);
@@ -268,16 +273,17 @@ public final class Multigainer extends JavaPlugin implements Listener {
         PlayerProfile profile = playerDataManager.getProfile(p.getUniqueId());
         if (profile != null) {
             if (profile.getTier() < 0 || profile.getMoney().toDouble() == 0
-                    && profile.getRebirthPoints() == 0 && profile.getTier() == 1) {
+                    && profile.getRebirthPoints().getMantissa() == 0 && profile.getTier() == 1) {
                 profile.setTier(0);
             }
             scoreboardManager.createScoreboard(p, profile.getMoney(), profile.getGems(),
                 profile.getRubies(), profile.getFarmingLevel(), profile.getFarmingXp(),
                 profile.getMiningLevel(), profile.getMiningXp());
             // Place items at last-known slots (defaults 0, 1, 4 for new players)
-            p.getInventory().setItem(profile.getHoeSlot(),     toolHandler.getHoeForProfile(profile));
-            p.getInventory().setItem(profile.getPickaxeSlot(), toolHandler.getPickaxeForProfile(profile));
+            p.getInventory().setItem(profile.getHoeSlot(),     toolHandler.getHoeForProfile(profile, p.getUniqueId()));
+            p.getInventory().setItem(profile.getPickaxeSlot(), toolHandler.getPickaxeForProfile(profile, p.getUniqueId()));
             p.getInventory().setItem(profile.getUpgradeSlot(), upgradeHandler.getUpgradeEmerald());
+            p.getInventory().setItem(8, settingsListener.buildItem(p.getUniqueId()));
             ArmorGUI.equipArmor(p, profile);
             profile.setChosenCrop(0);
             CropSelectionGUI.sendFakeCrops(p, 0, this);
@@ -285,6 +291,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
             p.getInventory().setItem(0, toolHandler.getHoeForProfile(null));
             p.getInventory().setItem(1, toolHandler.getPickaxeForProfile(null));
             p.getInventory().setItem(4, upgradeHandler.getUpgradeEmerald());
+            p.getInventory().setItem(8, settingsListener.buildItem(p.getUniqueId()));
         }
     }
 
@@ -302,6 +309,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
                 else if (item.isSimilar(upgradeHandler.getUpgradeEmerald())) profile.setUpgradeSlot(i);
             }
         }
+        NumberFormatter.clearMode(p.getUniqueId());
         playerDataManager.handleQuit(p.getUniqueId());
     }
 

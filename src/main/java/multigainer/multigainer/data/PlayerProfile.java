@@ -8,7 +8,8 @@ public class PlayerProfile {
     private BigNumber rubies;
     private int tierPoints = 0;
     private int upgradeLevel, tier, farmingLevel, miningLevel, rebirthCount;
-    private double farmingXp, miningXp, rebirthPoints;
+    private double farmingXp, miningXp;
+    private BigNumber rebirthPoints;
 
     // Pickaxe progression
     private int pickaxeTier = 0;
@@ -65,12 +66,12 @@ public class PlayerProfile {
     private int grindGPMultiLevel   = 0;  // 1.25x grinding points earned per level
 
     public PlayerProfile() {
-        this(new BigNumber(0), new BigNumber(0), new BigNumber(0), 0, 1, 0, 1, 0.0, 1, 0.0, 0.0, 0);
+        this(new BigNumber(0), new BigNumber(0), new BigNumber(0), 0, 1, 0, 1, 0.0, 1, 0.0, new BigNumber(0), 0);
     }
 
     public PlayerProfile(BigNumber money, BigNumber gems, BigNumber rubies, int upgradeLevel, int tier, int tierPoints,
                          int farmingLevel, double farmingXp, int miningLevel, double miningXp,
-                         double rebirthPoints, int rebirthCount) {
+                         BigNumber rebirthPoints, int rebirthCount) {
         this.money = money; this.gems = gems; this.rubies = rubies;
         this.upgradeLevel = upgradeLevel; this.tier = tier; this.tierPoints = tierPoints;
         this.farmingLevel = farmingLevel; this.farmingXp = farmingXp;
@@ -165,8 +166,8 @@ public class PlayerProfile {
     public double getMiningXp() { return miningXp; }
     public void setMiningXp(double xp) { this.miningXp = xp; }
 
-    public double getRebirthPoints() { return rebirthPoints; }
-    public void setRebirthPoints(double points) { this.rebirthPoints = points; }
+    public BigNumber getRebirthPoints() { return rebirthPoints; }
+    public void setRebirthPoints(BigNumber points) { this.rebirthPoints = points != null ? points : new BigNumber(0); }
     public int getRebirthCount() { return rebirthCount; }
     public void setRebirthCount(int count) { this.rebirthCount = count; }
 

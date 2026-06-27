@@ -152,9 +152,13 @@ public class ArtifactManager {
 
     // Build the artifact ItemStack with clean lore
     public static ItemStack buildItem(Plugin plugin, ArtifactRecord r) {
+        return buildItem(plugin, r, null);
+    }
+
+    public static ItemStack buildItem(Plugin plugin, ArtifactRecord r, java.util.UUID uid) {
         ArtifactType type = r.type();
         BigNumber multBig = UpgradeManager.fromLog10(r.multLog10());
-        String multStr = "§f×" + NumberFormatter.format(multBig);
+        String multStr = "§f×" + NumberFormatter.format(multBig, uid);
 
         ItemStack item = new ItemStack(r.material());
         ItemMeta meta = item.getItemMeta();
