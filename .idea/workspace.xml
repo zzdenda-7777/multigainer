@@ -3,12 +3,16 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
+  <component name="BackgroundAgentGlobalSettings">
+    <option name="selectedModelId" value="claude-haiku-4.5" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="ale žádná rakovina, semhle si je dáš, co mám dělat?">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" afterDir="false" />
+    <list default="true" id="f8967d36-ec0a-4362-8449-42fc9bd1ce47" name="Changes" comment="ujebali mi koleso KDE MAM SVOJE KOLESOOOOOOOOOOOOOOOOOOOOO">
+      <change afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/ArmorStand/ArmorStandCMDS.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/build/libs/multigainer-1.0-SNAPSHOT.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/armor/ArmorType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/armor/ArmorType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/Multigainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/Multigainer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/ReloadCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/commands/ReloadCommand.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/messages/MessageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/multigainer/multigainer/messages/MessageManager.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -93,9 +97,8 @@
         <option name="modeId" value="Agent" />
         <option name="model">
           <model>
-            <option name="modelProviderName" value="Gemini" />
-            <option name="modelType" value="byok_family" />
-            <option name="modelValue" value="models/gemini-3.5-flash" />
+            <option name="modelType" value="builtin_id" />
+            <option name="modelValue" value="claude-haiku-4.5" />
           </model>
         </option>
         <option name="targetType" value="BACKGROUND" />
@@ -403,7 +406,15 @@
       <option name="project" value="LOCAL" />
       <updated>1782545478522</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="ujebali mi koleso KDE MAM SVOJE KOLESOOOOOOOOOOOOOOOOOOOOO">
+      <option name="closed" value="true" />
+      <created>1782747428327</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1782747428327</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -426,7 +437,8 @@
     <MESSAGE value="jak ti muze takhle smrdět píča" />
     <MESSAGE value="design upraven vsude" />
     <MESSAGE value="ale žádná rakovina, semhle si je dáš, co mám dělat?" />
-    <option name="LAST_COMMIT_MESSAGE" value="ale žádná rakovina, semhle si je dáš, co mám dělat?" />
+    <MESSAGE value="ujebali mi koleso KDE MAM SVOJE KOLESOOOOOOOOOOOOOOOOOOOOO" />
+    <option name="LAST_COMMIT_MESSAGE" value="ujebali mi koleso KDE MAM SVOJE KOLESOOOOOOOOOOOOOOOOOOOOO" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

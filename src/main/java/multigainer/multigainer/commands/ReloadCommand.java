@@ -32,6 +32,9 @@ public class ReloadCommand implements CommandExecutor {
 
                 // 2. Refresh any memory maps or settings inside your managers here
                 // Example: plugin.getIncomeManager().loadConfigValues();
+                
+                // 3. Reload ArmorStand teleport configurations
+                plugin.getArmorStandCMDS().reload();
 
                 sender.sendMessage(ChatColor.GREEN + "✔ Multigainer configurations successfully reloaded!");
             } catch (Exception e) {

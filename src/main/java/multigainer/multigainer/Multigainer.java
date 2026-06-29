@@ -1,5 +1,6 @@
 package multigainer.multigainer;
 
+import multigainer.multigainer.ArmorStand.ArmorStandCMDS;
 import multigainer.multigainer.armor.ArmorGUI;
 import multigainer.multigainer.artifacts.ArtifactGUI;
 import multigainer.multigainer.artifacts.ArtifactStorageGUI;
@@ -69,6 +70,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
     private GrindGUI grindGUI;
     private PerkGUI perkGUI;
     private ArtifactGUI artifactGUI;
+    private ArmorStandCMDS armorStandCMDS;
 
     @Override
     public void onEnable() {
@@ -92,6 +94,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
         this.perkGUI                = new PerkGUI(this);
         this.artifactGUI            = new ArtifactGUI(this);
 
+        this.armorStandCMDS = new ArmorStandCMDS();
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(settingsListener, this);
         getServer().getPluginManager().registerEvents(new MiningListener(this), this);
@@ -100,6 +103,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new GameModeListener(messageManager), this);
         getServer().getPluginManager().registerEvents(new TeleportListener(messageManager), this);
         getServer().getPluginManager().registerEvents(new UnknownCommandListener(messageManager), this);
+        getServer().getPluginManager().registerEvents(armorStandCMDS, this);
 
         getServer().getPluginManager().registerEvents(upgradeHandler, this);
         getServer().getPluginManager().registerEvents(toolHandler, this);
@@ -132,6 +136,9 @@ public final class Multigainer extends JavaPlugin implements Listener {
                 }
                 if (args.length > 0 && args[0].equalsIgnoreCase("reset")) {
                     return new ResetCommand(this).onCommand(sender, command, label, args);
+                }
+                if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
+                    return new ReloadCommand(this).onCommand(sender, command, label, args);
                 }
                 return new ReloadCommand(this).onCommand(sender, command, label, args);
             });
@@ -329,4 +336,5 @@ public final class Multigainer extends JavaPlugin implements Listener {
     public ToolItemHandler getToolHandler() { return toolHandler; }
     public ToolGUI getToolGUI() { return toolGUI; }
     public GrindGUI getGrindGUI() { return grindGUI; }
+    public ArmorStandCMDS getArmorStandCMDS() { return armorStandCMDS; }
 }
