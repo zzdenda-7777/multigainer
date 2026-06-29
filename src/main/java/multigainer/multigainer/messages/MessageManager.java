@@ -20,27 +20,27 @@ public class MessageManager {
         
         if (isNewPlayer) {
             int joinNumber = playerJoinCounter.incrementAndGet();
-            return "§8[§eNEW §6PLAYER§l§8] §7Welcome to the server " + playerName + "! #welcome" + joinNumber;
+            return "§8[§eNEW §6PLAYER§l§8]§f Welcome to the server " + playerName + "! #welcome" + joinNumber;
         } else {
-            return "§8[§eM§6G§l§8] §7" + playerName + " joined the game";
+            return "§8[§e§lM§6§lG§8]§f " + playerName + " joined the game";
         }
     }
 
     public String getLeaveMessage(Player player) {
         String playerName = player.getName();
-        return "§8[§eM§6G§l§8] §7" + playerName + " left the game";
+        return "§8[§e§lM§6§lG§8]§f " + playerName + " left the game";
     }
 
     public String getGameModeMessage(String gameMode) {
-        return "§8[§eM§6G§l§8] §7Set own game mode to " + gameMode;
+        return "§8[§e§lM§6§lG§8]§f Set own game mode to " + gameMode;
     }
 
     public String getTeleportMessage(String targetPlayerName) {
-        return "§8[§eM§6G§l§8]§7 You have been teleported to " + targetPlayerName;
+        return "§8[§e§lM§6§lG§8]§f You have been teleported to " + targetPlayerName;
     }
 
     public String getUnknownCommandMessage(String command) {
-        return "§8[§eM§6G§l§8]§7 Unknown command: " + command;
+        return "§8[§e§lM§6§lG§8]§f Unknown command: " + command;
     }
 
     public int getPlayerJoinCounter() {
