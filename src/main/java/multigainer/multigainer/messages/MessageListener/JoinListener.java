@@ -1,10 +1,13 @@
-package multigainer.multigainer.listeners;
+package multigainer.multigainer.messages.MessageListener;
 
 import multigainer.multigainer.Multigainer;
 import multigainer.multigainer.data.PlayerDataManager;
+import multigainer.multigainer.data.PlayerProfile;
+import multigainer.multigainer.messages.MessageManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.UUID;
@@ -13,10 +16,12 @@ public class JoinListener implements Listener {
 
     private final Multigainer plugin;
     private final PlayerDataManager dataManager;
+    private final MessageManager messageManager;
 
-    public JoinListener(Multigainer plugin, PlayerDataManager dataManager) {
+    public JoinListener(Multigainer plugin, PlayerDataManager dataManager, MessageManager messageManager) {
         this.plugin = plugin;
         this.dataManager = dataManager;
+        this.messageManager = messageManager;
     }
 
     /**
@@ -48,5 +53,17 @@ public class JoinListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         dataManager.handleQuit(uuid);
+        
+        String leaveMessage = messageManager.getLeaveMessage(event.getPlayer());
+        event.setQuitMessage(leaveMessage);
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        PlayerProfile profile = dataManager.getProfile(event.getPlayer().getUniqueId());
+        boolean isNewPlayer = (profile == null || (profile.getTier() == 0 && profile.getMoney().toDouble() == 0));
+        
+        String joinMessage = messageManager.getJoinMessage(event.getPlayer(), isNewPlayer);
+        event.setJoinMessage(joinMessage);
     }
 }

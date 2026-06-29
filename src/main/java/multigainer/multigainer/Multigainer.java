@@ -27,8 +27,12 @@ import multigainer.multigainer.data.StorageManager;
 import multigainer.multigainer.income.IncomeManager;
 import multigainer.multigainer.listeners.MiningListener;
 import multigainer.multigainer.listeners.FarmingListener;
-import multigainer.multigainer.listeners.JoinListener;
 import multigainer.multigainer.listeners.SettingsListener;
+import multigainer.multigainer.messages.MessageManager;
+import multigainer.multigainer.messages.MessageListener.GameModeListener;
+import multigainer.multigainer.messages.MessageListener.TeleportListener;
+import multigainer.multigainer.messages.MessageListener.JoinListener;
+import multigainer.multigainer.messages.MessageListener.UnknownCommandListener;
 import multigainer.multigainer.upgrades.UpgradeItemHandler;
 import multigainer.multigainer.tools.PickaxeBlockStorageGUI;
 import multigainer.multigainer.tools.PickaxeGUI;
@@ -45,11 +49,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+
 public final class Multigainer extends JavaPlugin implements Listener {
 
     private ScoreboardManager scoreboardManager;
     private StorageManager storageManager;
     private PlayerDataManager playerDataManager;
+    private MessageManager messageManager;
     private UpgradeItemHandler upgradeHandler;
     private ToolItemHandler toolHandler;
     private SettingsListener settingsListener;
@@ -69,6 +75,7 @@ public final class Multigainer extends JavaPlugin implements Listener {
         this.storageManager    = new StorageManager(this);
         this.storageManager.init();
         this.playerDataManager = new PlayerDataManager(this, storageManager);
+        this.messageManager    = new MessageManager(this);
         this.scoreboardManager = new ScoreboardManager(this);
 
         this.upgradeHandler         = new UpgradeItemHandler(this);
@@ -89,7 +96,11 @@ public final class Multigainer extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(settingsListener, this);
         getServer().getPluginManager().registerEvents(new MiningListener(this), this);
         getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
-        getServer().getPluginManager().registerEvents(new JoinListener(this, playerDataManager), this);
+        getServer().getPluginManager().registerEvents(new JoinListener(this, playerDataManager, messageManager), this);
+        getServer().getPluginManager().registerEvents(new GameModeListener(messageManager), this);
+        getServer().getPluginManager().registerEvents(new TeleportListener(messageManager), this);
+        getServer().getPluginManager().registerEvents(new UnknownCommandListener(messageManager), this);
+
         getServer().getPluginManager().registerEvents(upgradeHandler, this);
         getServer().getPluginManager().registerEvents(toolHandler, this);
         getServer().getPluginManager().registerEvents(toolGUI, this);
@@ -310,11 +321,11 @@ public final class Multigainer extends JavaPlugin implements Listener {
             }
         }
         NumberFormatter.clearMode(p.getUniqueId());
-        playerDataManager.handleQuit(p.getUniqueId());
     }
 
     public PlayerDataManager getPlayerDataManager() { return playerDataManager; }
     public ScoreboardManager getScoreboardManager() { return this.scoreboardManager; }
+    public MessageManager getMessageManager() { return messageManager; }
     public ToolItemHandler getToolHandler() { return toolHandler; }
     public ToolGUI getToolGUI() { return toolGUI; }
     public GrindGUI getGrindGUI() { return grindGUI; }

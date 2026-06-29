@@ -61,7 +61,7 @@ public class StatsMoneyCommand implements CommandExecutor {
 
         java.util.UUID uid = player.getUniqueId();
         player.sendMessage(ChatColor.GOLD + "════════ 💰 MONEY MULTIPLIERS 💰 ════════");
-        player.sendMessage(fmt(zuid, "⚡ Upgrade Multi",    upgradeMulti));
+        player.sendMessage(fmt(uid, "⚡ Upgrade Multi",    upgradeMulti));
         player.sendMessage(fmt(uid, "🌱 Farm Multi",       farmMulti));
         player.sendMessage(fmt(uid, "🔧 Farm Upgrade",     farmUpgMulti));
         player.sendMessage(fmt(uid, "🏔 Tier Bonus",       tierBonus));

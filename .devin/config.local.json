@@ -13,7 +13,10 @@
       "Exec(./gradlew clean)",
       "Exec(where java)",
       "Exec(./gradlew)",
-      "Exec(findstr jdk)"
+      "Exec(findstr jdk)",
+      "Exec(mkdir)",
+      "Exec(del)",
+      "Exec(rmdir)"
     ]
   }
 }
