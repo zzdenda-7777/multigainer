@@ -1,17 +1,41 @@
 package multigainer.multigainer.math;
 
 public class BigNumber implements Comparable<BigNumber> {
+
+    // Maximální rozumný exponent - vysoko nad veškeré reálné potřeby hry,
+    // ale dost nízko pod Double.MAX_VALUE (~1.8e308), aby se nikdy nedostali
+    // do oblasti, kde by dalsi multiply/add mohlo prerazit do Infinity.
+    private static final double MAX_EXPONENT = 1.0e15;
+
     private final double mantissa;
     private final double exponent;
 
     public BigNumber(double value) {
-        if (value == 0) {
+        if (value == 0 || Double.isNaN(value)) {
             this.mantissa = 0;
             this.exponent = 0;
+        } else if (Double.isInfinite(value)) {
+            // Nemělo by se stávat, ale kdyby někdo zavolal s Infinity přímo,
+            // ošetříme to capem místo NaN mantissy.
+            this.mantissa = value > 0 ? 1.0 : -1.0;
+            this.exponent = MAX_EXPONENT;
         } else {
             double log = Math.floor(Math.log10(Math.abs(value)));
-            this.mantissa = value / Math.pow(10, log);
-            this.exponent = log;
+            double calcMantissa = value / Math.pow(10, log);
+            double calcExponent = log;
+
+            // Math.pow(10, log) může pro extrémně malá/velká log vrátit 0 nebo Infinity,
+            // což by dalo calcMantissa = Infinity nebo NaN. Ošetřeno níže společnou
+            // sanitizací stejně jako u druhého konstruktoru.
+            if (Double.isNaN(calcMantissa) || Double.isInfinite(calcMantissa)) {
+                calcMantissa = value > 0 ? 1.0 : -1.0;
+                calcExponent = MAX_EXPONENT;
+            }
+
+            calcExponent = clampExponent(calcExponent);
+
+            this.mantissa = calcMantissa;
+            this.exponent = calcExponent;
         }
     }
 
@@ -20,17 +44,47 @@ public class BigNumber implements Comparable<BigNumber> {
         double calcMantissa = mantissa;
         double calcExponent = exponent;
 
-        if (calcMantissa == 0) {
+        if (Double.isNaN(calcMantissa) || Double.isNaN(calcExponent)) {
             calcMantissa = 0;
             calcExponent = 0;
+        } else if (calcMantissa == 0) {
+            calcMantissa = 0;
+            calcExponent = 0;
+        } else if (Double.isInfinite(calcMantissa) || Double.isInfinite(calcExponent)) {
+            // Exponent přetekl (typicky z opakovaného multiply/add) - capneme
+            // na MAX_EXPONENT místo propagace Infinity dál do formatteru.
+            calcMantissa = calcMantissa > 0 ? 1.0 : -1.0;
+            calcExponent = MAX_EXPONENT;
         } else if (Math.abs(calcMantissa) >= 10.0 || Math.abs(calcMantissa) < 1.0) {
             double log = Math.floor(Math.log10(Math.abs(calcMantissa)));
-            calcMantissa = calcMantissa / Math.pow(10, log);
-            calcExponent = calcExponent + log;
+            double normalizedMantissa = calcMantissa / Math.pow(10, log);
+            double normalizedExponent = calcExponent + log;
+
+            if (Double.isNaN(normalizedMantissa) || Double.isInfinite(normalizedMantissa)
+                    || Double.isNaN(normalizedExponent) || Double.isInfinite(normalizedExponent)) {
+                calcMantissa = calcMantissa > 0 ? 1.0 : -1.0;
+                calcExponent = MAX_EXPONENT;
+            } else {
+                calcMantissa = normalizedMantissa;
+                calcExponent = normalizedExponent;
+            }
         }
+
+        calcExponent = clampExponent(calcExponent);
 
         this.mantissa = calcMantissa;
         this.exponent = calcExponent;
+    }
+
+    /**
+     * Capne exponent na MAX_EXPONENT (oběma směry), aby žádná navazující
+     * operace (multiply, add přes Math.pow(10, diff)...) nemohla vyrobit
+     * Infinity/NaN po dalším kroku.
+     */
+    private static double clampExponent(double exp) {
+        if (exp > MAX_EXPONENT) return MAX_EXPONENT;
+        if (exp < -MAX_EXPONENT) return -MAX_EXPONENT;
+        return exp;
     }
 
     public double getMantissa() { return mantissa; }

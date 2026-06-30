@@ -58,10 +58,35 @@ public class NumberFormatter {
     public static String format(BigNumber value, UUID playerId) { return format(value, getMode(playerId)); }
 
     public static String format(BigNumber value, FormatMode mode) {
-        if (value == null || value.getMantissa() == 0) return "0";
+        return format(value, mode, 0);
+    }
+
+    /**
+     * Interní přetížení s hloubkou rekurze - pojistka proti tomu, aby
+     * SCIENTIFIC mód u extrémně vysokých (capnutých) exponentů nemohl
+     * skončit v zacyklení nebo vyprodukovat NaN/Infinity text.
+     */
+    private static String format(BigNumber value, FormatMode mode, int recursionDepth) {
+        if (value == null || isInvalid(value) || value.getMantissa() == 0) {
+            return "0";
+        }
 
         double mantissa = value.getMantissa();
         double exp      = value.getExponent();
+
+        // Pojistka: pokud se i přes ochrany v BigNumber dostane NaN/Infinity
+        // až sem, nevypisujeme to hráči jako "NaN" nebo "Infinity".
+        if (Double.isNaN(mantissa) || Double.isInfinite(mantissa)
+                || Double.isNaN(exp) || Double.isInfinite(exp)) {
+            return "∞";
+        }
+
+        // Pojistka proti přílišné hloubce rekurze ve SCIENTIFIC módu -
+        // i kdyby exponent z nějakého důvodu neklesal dost rychle mezi
+        // voláními, po 5 úrovních prostě ukončíme formátování.
+        if (recursionDepth > 5) {
+            return String.format(Locale.US, "%.2fe%.0f", mantissa, exp);
+        }
 
         // ── SCIENTIFIC mode: always e-notation ───────────────────────────────
         if (mode == FormatMode.SCIENTIFIC) {
@@ -70,13 +95,16 @@ public class NumberFormatter {
             }
             // Exponent is itself huge — format it recursively
             return String.format(Locale.US, "%.2fe%s", mantissa,
-                    format(new BigNumber(exp), FormatMode.SCIENTIFIC));
+                    format(new BigNumber(exp), FormatMode.SCIENTIFIC, recursionDepth + 1));
         }
 
         // ── SUFFIX mode ───────────────────────────────────────────────────────
         // Values below 1000: show raw
         if (exp < 3) {
             double raw = mantissa * Math.pow(10, exp);
+            if (Double.isNaN(raw) || Double.isInfinite(raw)) {
+                return "∞";
+            }
             return (raw % 1 == 0)
                     ? String.format(Locale.US, "%.0f", raw)
                     : String.format(Locale.US, "%.2f", raw).replaceAll("\\.?0+$", "");
@@ -87,33 +115,43 @@ public class NumberFormatter {
         if (remainder < 0) remainder += 3;
         double displayMantissa = mantissa * Math.pow(10, remainder);
 
+        if (Double.isNaN(displayMantissa) || Double.isInfinite(displayMantissa)) {
+            return "∞";
+        }
+
         // If tier exceeds int range fall back to scientific
         if (tier > Integer.MAX_VALUE) {
             if (exp < 1_000_000) return String.format(Locale.US, "%.2fe%.0f", mantissa, exp);
             return String.format(Locale.US, "%.2fe%s", mantissa,
-                    format(new BigNumber(exp), FormatMode.SCIENTIFIC));
+                    format(new BigNumber(exp), FormatMode.SCIENTIFIC, recursionDepth + 1));
         }
 
         return String.format(Locale.US, "%.2f%s", displayMantissa, getSuffix((int) tier));
     }
 
+    private static boolean isInvalid(BigNumber value) {
+        double m = value.getMantissa();
+        double e = value.getExponent();
+        return Double.isNaN(m) || Double.isNaN(e);
+    }
+
     // ── Conway–Wechsler suffix system (infinite) ──────────────────────────────
 
     private static final String[] BASE = {
-        "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No"
+            "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No"
     };
 
     // Latin ones (0–9)
     private static final String[] ONES = {
-        "", "Un", "Du", "Tr", "Qa", "Qi", "Sx", "Sp", "Oc", "Nv"
+            "", "Un", "Du", "Tr", "Qa", "Qi", "Sx", "Sp", "Oc", "Nv"
     };
     // Latin tens (0–9)
     private static final String[] TENS = {
-        "", "Dc", "Vg", "Tg", "Qg", "Qn", "Sg", "Spg", "Og", "Ng"
+            "", "Dc", "Vg", "Tg", "Qg", "Qn", "Sg", "Spg", "Og", "Ng"
     };
     // Latin hundreds (0–9)
     private static final String[] HUNDREDS = {
-        "", "Ct", "Dct", "Tct", "Qct", "Qnct", "Sct", "Spct", "Oct", "Nct"
+            "", "Ct", "Dct", "Tct", "Qct", "Qnct", "Sct", "Spct", "Oct", "Nct"
     };
 
     /**
